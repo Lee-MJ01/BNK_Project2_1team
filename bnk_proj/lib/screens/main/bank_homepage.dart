@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:test_main/transaction_history.dart';
-import 'app_colors.dart';
-import 'list.dart';
-import 'main.dart';
+import 'package:test_main/screens/product/list.dart';
+import '../app_colors.dart';
+import '../../main.dart';
+import '../mypage/transaction_history.dart';
+
 
 
 
