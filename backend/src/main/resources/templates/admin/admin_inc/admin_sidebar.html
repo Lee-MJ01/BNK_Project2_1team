@@ -1,0 +1,64 @@
+<aside th:fragment="admin_sidebar"
+       class="sidebar"
+       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+    <div class="logo">
+        <a th:href="@{/admin/index}" class="logo-link">
+            <span>FLOWBANK ADMIN</span>
+        </a>
+    </div>
+
+    <nav>
+        <ul>
+            <li>
+                <a th:href="@{/admin/index}"
+                   th:classappend="${menu} == 'dashboard' ? ' active' : ''">
+                    <i class="fa-solid fa-gauge"></i>대시보드
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/member}"
+                   th:classappend="${menu} == 'member' ? ' active' : ''">
+                    <i class="fa-solid fa-gear"></i>고객센터
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/products}"
+                   th:classappend="${menu} == 'products' ? ' active' : ''">
+                    <i class="fa-solid fa-coins"></i>외화예금
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/exchange}"
+                   th:classappend="${menu} == 'exchange' ? 'active' : ''">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>환전
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/terms}"
+                   th:classappend="${menu} == 'terms' ? ' active' : ''">
+                    <i class="fa-solid fa-file-contract"></i>약관관리
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/chatbot}"  style="padding-left: 13px"
+                   th:classappend="${menu} == 'terms' ? ' active' : ''">
+                    <i class="fa-solid fa-robot"></i>챗봇
+                </a>
+            </li>
+
+            <!--  adminType=1 (ROLE_ADMIN) 사용자만 보임 -->
+            <li sec:authorize="hasRole('ADMIN')">
+                <a href="http://34.64.124.33:5601/" target="_blank">
+                    <i class="fa-solid fa-server"></i> 서버관리
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+</aside>

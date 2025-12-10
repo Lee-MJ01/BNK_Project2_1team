@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('관리자 메인','대시보드',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+
+    <!-- 1행: 방문·거래 통계 섹션 -->
+    <section class="section">
+        <div class="section-header">
+            <h2>오늘 주요 통계</h2>
+        </div>
+
+        <div class="admin-stats-row admin-stats-row--today">
+            <!-- d원화 -->
+            <article class="admin-stat-card admin-stat-card--krw">
+                <h3> 원화 거래 수
+                    <span th:text="|(${#temporals.format(baseTime,'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                </h3>
+                <div class="admin-graph-box admin-summary-cards">
+                    <div class="krw-summary-row">
+                        <div class="krw-summary-block krw-summary-block--count">
+                            <h4>총 거래 건수</h4>
+                            <p class="summary-value" id="totalTxCountText">0건</p>
+                            <p class="summary-sub">
+                                <span id="totalTxCountDiff" class="diff diff-up">+0%</span>
+                                <span class="diff-label">전일 대비</span>
+                            </p>
+                        </div>
+                        <div class="summary-mini-chart">
+                            <canvas id="krwCountMiniChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="krw-summary-block krw-summary-block--amount">
+                            <h4>총 거래 금액</h4>
+                            <p class="summary-value" id="totalTxAmountText">0원</p>
+                            <p class="summary-sub">
+                                <span id="totalTxAmountDiff" class="diff diff-down">-0%</span>
+                                <span class="diff-label">전일 대비</span>
+                            </p>
+                        </div>
+                        <div class="summary-mini-chart">
+                            <canvas id="krwAmountMiniChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 외화 건수 -->
+            <article class="admin-stat-card admin-stat-card--fx">
+                <h3>외화 거래 수
+                    <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                </h3>
+                <div class="fx-chart-box">
+                    <canvas id="fxChart"></canvas>
+                </div>
+
+            </article>
+        </div>
+    </section>
+
+    <!-- 4행: 가입자수 추이 -->
+    <section class="section">
+        <div class="section-header">
+            <h2>상품 가입</h2>
+        </div>
+
+        <div class="admin-stats-row-3">
+            <article class="admin-stat-card-3 admin-graph-card">
+                <h3>일별 가입 건수
+                    <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                </h3>
+                <div class="admin-graph-box-3">
+                    <canvas id="joinDailyChart"></canvas>
+                </div>
+            </article>
+
+            <article class="admin-stat-card-3 admin-graph-card">
+                 <h3>주별 가입 건수
+                        <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                    </h3>
+                <div class="admin-graph-box-3">
+                   <canvas id="joinWeeklyChart"></canvas>
+                </div>
+            </article>
+
+            <article class="admin-stat-card-3 admin-graph-card">
+                <h3>월별 가입 건수
+                        <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                    </h3>
+                <div class="admin-graph-box-3">
+                   <canvas id="joinMonthlyChart"></canvas>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- 2행: 연령·성별 분포 -->
+    <section class="section">
+        <div class="admin-stats-row">
+            <article class="admin-stat-card admin-graph-card">
+                <h3>연령대별 분포
+                    <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                </h3>
+                <div class="admin-graph-box">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </article>
+
+            <article class="admin-stat-card admin-graph-card">
+                  <h3>성별 비율
+                    <span th:text="|(${#temporals.format(baseTime, 'yyyy.MM.dd HH:mm:ss')} 기준)|"></span>
+                </h3>
+                <div class="admin-graph-box">
+                    <canvas id="genderChart" style="width: 100%; height: 260px;"></canvas>
+                </div>
+            </article>
+        </div>
+    </section>
+</th:block>
+
+<th:block th:fragment="script">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.dashboardData = {
+            // 오늘 총 거래 건수 / 금액
+            todayTotalTxCount:  [[${stats != null ? stats.todayTotalTxCount : 0}]],
+            todayTotalTxAmount: [[${stats != null ? stats.todayTotalTxAmount : 0}]],
+
+        // 오늘 환전·외화송금 건수 리스트
+        todayFxTxCounts: [
+            /*[# th:if="${stats != null && stats.todayTxCounts != null}"]*/
+            /*[# th:each="tx, iterStat : ${stats.todayTxCounts}"]*/
+            {
+                // 문자열은 JS 주석 인라인 방식으로 안전하게 넣기
+                type: /*[[${tx.type}]]*/"",
+                count: [[${tx.count}]]
+            }/*[# th:if="${!iterStat.last}"]*/,/*[/]*/
+            /*[/]*/
+            /*[/]*/
+        ],
+
+            // 🔹 최근 7일 (null 안전하게 처리)
+        last7Days: [
+        /*[# th:if="${stats != null && stats.last7Days != null}"]*/
+        /*[# th:each="d, iter : ${stats.last7Days}"]*/
+        {
+            date: '[[${d != null && d.baseDate != null ? #temporals.format(d.baseDate, "MM/dd") : ""}]]',
+            count: [[${d != null ? d.count : 0}]],
+        amount: [[${d != null ? d.amount : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ],
+        dailyJoinStats: [
+            /*[# th:if="${stats != null and stats.dailyJoinStats != null}"]*/
+            /*[# th:each="j, iter : ${stats.dailyJoinStats}"]*/
+            {
+                // baseDate는 String 이라 그냥 문자열로 출력
+                baseDate: '[[${j != null ? j.baseDate : ""}]]',
+                // joinCount는 숫자, j가 null이면 0
+                joinCount: [[${j != null ? j.joinCount : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ],
+
+        weeklyJoinStats: [
+            /*[# th:if="${stats != null and stats.weeklyJoinStats != null}"]*/
+            /*[# th:each="j, iter : ${stats.weeklyJoinStats}"]*/
+            {
+                baseDate: '[[${j != null ? j.baseDate : ""}]]',
+                joinCount: [[${j != null ? j.joinCount : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ],
+        monthlyJoinStats: [
+            /*[# th:if="${stats != null and stats.monthlyJoinStats != null}"]*/
+            /*[# th:each="j, iter : ${stats.monthlyJoinStats}"]*/
+            {
+                baseDate: '[[${j != null ? j.baseDate : ""}]]',
+                joinCount: [[${j != null ? j.joinCount : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ],
+        ageStats: [
+            /*[# th:if="${stats != null and stats.ageStats != null}"]*/
+            /*[# th:each="a, iter : ${stats.ageStats}"]*/
+            {
+                ageBand: '[[${a != null ? a.ageStats : ""}]]',
+                count:   [[${a != null ? a.count   : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ],
+        genderStats: [
+            /*[# th:if="${stats != null and stats.genderStats != null}"]*/
+            /*[# th:each="g, iter : ${stats.genderStats}"]*/
+            {
+                gender: '[[${g != null ? g.gender : ""}]]',
+                count: [[${g != null ? g.count : 0}]]
+        }/*[# th:if="${!iter.last}"]*/,/*[/]*/
+        /*[/]*/
+        /*[/]*/
+        ]
+
+
+
+        };
+        /*]]>*/
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+
+    <!-- 4) 키워드 폰트 랜덤 (원래 있던 JS) -->
+    <script>
+        document.querySelectorAll('.admin-keyword-box span').forEach(el => {
+            const randomSize = Math.floor(Math.random() * 14) + 14; // 14~28px
+            el.style.fontSize = randomSize + 'px';
+        });
+    </script>
+
+</th:block>
+</html>

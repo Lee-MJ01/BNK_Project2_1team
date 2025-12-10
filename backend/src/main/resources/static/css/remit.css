@@ -1,0 +1,267 @@
+
+
+/* -----------------------------
+  사이드 카테고리
+------------------------------ */
+.remit-sidebar {
+  width: 230px;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 25px 20px;
+  height: fit-content;
+}
+
+.remit-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 20px;
+}
+
+.remit-category {
+  list-style: none;
+  padding: 0;
+}
+
+.remit-category > li {
+  margin-bottom: 14px;
+}
+
+/* 메인 카테고리 */
+.remit-category > li > a {
+  color: #222;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+/* hover 시 */
+.remit-category > li > a:hover {
+  color: #2C5DE5; /* 로열블루 */
+}
+
+/* 세부 카테고리 */
+.remit-subcategory {
+  list-style: none;
+  margin-top: 8px;
+  padding-left: 10px;
+}
+
+.remit-subcategory li {
+  margin-bottom: 6px;
+}
+
+.remit-subcategory a {
+  color: #666;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.remit-subcategory a:hover {
+  color: #2C5DE5;
+}
+
+/* 현재 페이지 (글씨 색상만 변경) */
+.remit-subcategory li.active a {
+  color: #2C5DE5;
+  font-weight: 700;
+}
+
+/* -----------------------------
+   remit: 메인 레이아웃
+------------------------------ */
+.remit-container {
+  display: flex;
+  justify-content: center; /* ✅ 전체 중앙 정렬 */
+  gap: 40px;               /* 사이 간격 */
+  max-width: 1100px;       /* 화면 너비 제한 */
+  margin: 80px auto;       /* 위아래 여백 + 가운데 정렬 */
+  align-items: flex-start; /* 높이 맞추기 */
+}
+
+/* 오른쪽 콘텐츠 */
+.remit-content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 30px 40px;
+  min-height: 400px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.remit-content h2 {
+  font-size: 20px;
+  color: #22304E;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 10px;
+}
+
+/* =========================================================
+   🔹 Info / Get 페이지 공통 콘텐츠 스타일
+   설명: 인터넷송금(info1), 공동송금(info2), 즉시송금(info3),
+        송금받기(get), 송금안내(info) 등 본문 내용 통일화
+   ========================================================= */
+
+/* 기본 구조 */
+.info-section, .get-section {
+  margin-top: 20px;
+  line-height: 1.8;
+  color: #444;
+}
+
+/* 섹션 헤더 */
+.info-section h2, .get-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 8px;
+}
+
+/* 설명 문단 */
+.info-section p, .get-section p {
+  color: #555;
+  margin-bottom: 25px;
+}
+
+/* 소제목 */
+.info-section h3, .get-section h3 {
+  font-size: 19px;
+  color: #22304E;
+  margin-top: 35px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+/* 리스트 */
+.info-section ul, .get-section ul {
+  margin-left: 22px;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.info-section li, .get-section li {
+  margin-bottom: 8px;
+  list-style-type: disc;
+}
+
+/* 강조 요소 */
+.info-section strong, .get-section strong {
+  color: #1E3E99;
+  font-weight: 700;
+}
+
+/* 경고나 주의사항 */
+.info-warning {
+  background: #fff8e6;
+  border: 1px solid #ffd166;
+  border-radius: 6px;
+  padding: 14px 18px;
+  color: #5f4b00;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+/* 표 (있을 경우) */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.info-table th, .info-table td {
+  border: 1px solid #ddd;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.info-table th {
+  background: #f4f6fa;
+  color: #22304E;
+  font-weight: 700;
+}
+
+.info-table td {
+  color: #444;
+}
+
+/* 언어번역 */
+
+.language-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.language-toggle {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/*  항상 닫힌 상태로 시작 */
+.language-menu {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  list-style: none;
+  padding: 6px 0;
+  margin: 6px 0 0 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  transition: opacity 0.2s ease;
+}
+
+/*  열릴 때 */
+.language-menu.show {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.language-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.language-menu li:hover {
+  background-color: #f2f4ff;
+  color: #2C5DE5;
+}
+
+
+
+/* 메인 active */
+.remit-category > li.active > a {
+  color: #2C5DE5;
+  font-weight: 700;
+}
+
+/* 서브 active */
+.remit-subcategory li.active a {
+  color: #2C5DE5;
+  font-weight: 700;
+}
+
+.terms-content {
+    overflow-x: hidden;   /* 가로 스크롤 제거 */
+}
+
+.terms-content pre {
+    white-space: pre-wrap; /* 가로 스크롤 없이 줄바꿈 */
+}

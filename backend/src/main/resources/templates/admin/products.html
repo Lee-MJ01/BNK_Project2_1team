@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('외화예금 관리','외화예금 관리',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+    <style>
+        /* 카드 전체 컨테이너 */
+        .ai-card-preview {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #e1e4e8;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /* 1. 헤더 (파란색) */
+        .preview-header {
+            background-color: #1e3a8a; /* 짙은 파란색 */
+            color: white;
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preview-header h3 { margin: 0 0 6px 0; font-size: 20px; font-weight: 700; color: white;}
+        .preview-header p { margin: 0; font-size: 13px; opacity: 0.8; font-weight: 400; color: #dbeafe;}
+        .preview-flag { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+
+        /* 2. 바디 (내용) */
+        .preview-body {
+            padding: 30px;
+            display: flex;
+            gap: 30px;
+        }
+
+        /* 왼쪽: 텍스트 영역 */
+        .preview-text-area { flex: 1.5; }
+
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(90deg, #8b5cf6, #6366f1); /* 보라색 그라데이션 */
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .preview-desc {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap; /* 줄바꿈 허용 */
+        }
+        .preview-desc strong { color: #1e3a8a; font-weight: 700; background: #eff6ff; padding: 2px 4px; border-radius: 4px; }
+
+        /* 오른쪽: 원형 그래프 영역 */
+        .preview-visual-area {
+            flex: 1;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #f1f5f9;
+        }
+
+        /* 원형 차트 (CSS conic-gradient) */
+        .circle-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            /* 기본 배경 (회색) */
+            background: #e2e8f0;
+        }
+
+        .circle-chart::before {
+            content: "";
+            position: absolute;
+            width: 84px; /* 두께 조절: 100 - 84 = 16px */
+            height: 84px;
+            background: #f8fafc; /* 배경색과 동일하게 */
+            border-radius: 50%;
+        }
+
+        .chart-text {
+            position: relative;
+            z-index: 2;
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+
+        .visual-label { font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;}
+        .visual-icon { font-size: 24px; margin-top: 16px; }
+
+        /* 입력 필드 숨기기 (필요시 보이게 해도 됨) */
+        .edit-controls {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px dashed #cbd5e1;
+        }
+        .edit-controls label { font-size: 12px; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;}
+        .edit-controls input, .edit-controls textarea {
+            width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; font-size: 13px; margin-bottom: 10px;
+        }
+    </style>
+    <div class="product-container">
+
+        <!-- =======================
+             PDF 업로드 / AI 분석
+        ======================== -->
+        <section class="product-card">
+            <h2 class="product-title">외화예금 상품 등록</h2>
+
+            <form id="foreignDepositForm"
+                  th:action="@{/admin/products/register}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                <div class="form-section">
+                    <h3>상품설명서 AI 분석 준비</h3>
+
+                    <div class="form-group">
+                        <label for="dpstInfoPdfUpload">PDF 파일 선택</label>
+                        <div class="pdf-upload-controls">
+                            <input type="file" id="dpstInfoPdfUpload" accept=".pdf" />
+                            <button type="button" id="btnPdfUpload" class="btn-secondary">업로드</button>
+                        </div>
+                    </div>
+
+                    <!-- 🔥 Progress Box 추가 -->
+                    <div id="pdf-progress-box"
+                         style="display:none; margin:10px 0; padding:10px; background:#f5f7fa; border-radius:6px;">
+                        <div style="font-weight:bold; margin-bottom:5px;">
+                            AI 분석 진행률:
+                            <span id="pdf-progress-text">0%</span>
+                        </div>
+                        <div style="width:100%; background:#e1e4e8; height:12px; border-radius:6px;">
+                            <div id="pdf-progress-bar"
+                                 style="width:0%; height:100%; background:#4A90E2; border-radius:6px; transition:width 0.3s;"></div>
+                        </div>
+                    </div>
+                    <!-- 🔥 Progress Box 끝 -->
+
+                    <div class="pdf-list">
+                        <div class="pdf-list-header" id="pdfListHeader">
+                            <div class="pdf-list-title">
+                                <span class="pdf-list-arrow" id="pdfListArrow">▲</span>
+                                <span>업로드된 PDF 목록</span>
+                            </div>
+                            <span class="status-legend">상태: wait / done / used</span>
+                        </div>
+                        <div class="pdf-list-body" id="pdfListBody">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pdfSelector">AI 분석 완료 PDF 선택 (done만 선택 가능)</label>
+                        <select id="pdfSelector" name="donePdf" class="pdf-select">
+                            <option value="">선택하세요</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" id="selectedPdfPath" name="selectedPdfPath" />
+                    <input type="hidden" id="selectedPdfName" name="selectedPdfName" />
+                    <input type="hidden" id="selectedPdfId" name="selectedPdfId" />
+                    <div id="selectedPdfNotice" class="selected-pdf-notice" style="display:none;"></div>
+
+                    <div class="ai-comment-box">
+                        <div id="aiRiskBlockMessage" class="risk-block-message" style="display:none;">
+                            위험 상품설명서 → 상품 등록 불가
+                        </div>
+                        <div class="ai-comment-header">
+                            <h4>AI 분석 코멘트</h4>
+                            <span class="ai-comment-status" id="aiRiskBadge">AI 분석 코멘트 표시 예정</span>
+                        </div>
+                        <div id="aiCommentContent" class="ai-comment-content">
+                            <p class="ai-comment-placeholder">AI 분석이 완료되면 생성된 코멘트가 이 영역에 표시됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h3>AI 요약 카드 설정</h3>
+
+                    <div class="ai-card-preview">
+                        <div class="preview-header">
+                            <div>
+                                <h3 id="previewTitle">상품명 표시 영역</h3>
+                                <p>복잡한 상품 설명, AI가 3줄로 정리했어요!</p>
+                            </div>
+                            <div class="preview-flag" id="previewFlag">US</div>
+                        </div>
+
+                        <div class="preview-body">
+                            <div class="preview-body">
+                                <div class="preview-text-area">
+                                    <span class="ai-badge">✨ AI 핵심 요약</span>
+                                    <div class="preview-desc" id="previewDesc">아직 AI 분석 전입니다.</div>
+                                </div>
+
+                                <div class="preview-visual-area">
+                                    <div class="circle-chart" id="previewChart" style="background: conic-gradient(#1e3a8a 0% 0%, #e2e8f0 0% 100%);">
+                                        <span class="chart-text" id="previewRate">0%</span>
+                                    </div>
+                                    <div class="visual-label">최대 예상 금리</div>
+
+                                    <div id="benefitSection" style="text-align: center;">
+                                        <div class="visual-icon" id="previewIcon">🎁</div>
+                                        <div class="visual-label" id="previewBenefit">경품 혜택 포함</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-controls">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label>🤖 AI 생성 데이터 수정</label>
+                            <button type="button" id="btnGenSummary" class="btn-secondary" style="font-size: 11px; padding: 3px 8px;">✨ AI 내용 다시 생성</button>
+                        </div>
+
+                        <label>요약 텍스트</label>
+                        <textarea id="aiSummaryInput" name="aiSummary" rows="3" placeholder="AI 요약문"></textarea>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <label>강조 금리 (%)</label>
+                                <input type="number" id="aiRateInput" name="aiRate" step="0.1" placeholder="5.2" />
+                            </div>
+                            <div style="flex: 1;">
+                                <label>대표 통화</label>
+                                <input type="text" id="aiCurrencyInput" name="aiCurrency" placeholder="US" />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 0.3;">
+                                <label>아이콘(이모지)</label>
+                                <input type="text" id="aiIconInput" name="aiIcon" placeholder="🎁" style="text-align: center;" />
+                            </div>
+                            <div style="flex: 1;">
+                                <label>추가 혜택 문구 (비워두면 숨김)</label>
+                                <input type="text" id="aiBenefitInput" name="aiBenefit" placeholder="예: 경품 혜택 포함, 비과세 적용 등" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section">
+                <h3>기본정보</h3>
+                <div class="form-group">
+                    <label for="dpstName">상품명</label>
+                    <input type="text" id="dpstName" name="dpstName" placeholder="상품명을 입력하세요" required />
+                </div>
+                <div class="form-group">
+                    <label for="dpstInfo">상품 한 줄 설명</label>
+                    <input type="text" id="dpstInfo" name="dpstInfo" placeholder="간단한 설명을 입력하세요" />
+                </div>
+                <div class="form-group">
+                    <label>예금 유형</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="dpstType" value="1" checked /> 거치식 예금</label>
+                        <label><input type="radio" name="dpstType" value="2" /> 자유 적립식</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>통화 및 금액 설정</h3>
+                <div class="form-group">
+                    <label>가능한 통화</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="dpstCurrency" value="USD" /> USD(미국 달러)</label>
+                        <label><input type="checkbox" name="dpstCurrency" value="JPY" /> JPY(일본 엔화)</label>
+                        <label><input type="checkbox" name="dpstCurrency" value="EUR" /> EUR(유로화)</label>
+                        <label><input type="checkbox" name="dpstCurrency" value="GBP" /> GBP(영국 파운드)</label>
+                        <label><input type="checkbox" name="dpstCurrency" value="CNH" /> CNH(중국 위안)</label>
+                        <label><input type="checkbox" name="dpstCurrency" value="AUD" /> AUD(호주 달러)</label>
+                    </div>
+                </div>
+                <div class="conditional deposit-type" data-type="1">
+                    <div id="currencyAmountContainer"></div>
+                    <div class="form-group">
+                        <label>추가납입 가능 여부</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="dpstAddPayYn" value="Y" /> 가능</label>
+                            <label><input type="radio" name="dpstAddPayYn" value="N" checked /> 불가능</label>
+                        </div>
+                    </div>
+                    <div class="conditional extra-deposit">
+                        <div class="form-group">
+                            <label>신규 포함 최대 납입 횟수</label>
+                            <input type="number" name="dpstAddPayMax" placeholder="예: 3" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>환율 적용 기준</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="dpstRateType" value="1" checked /> 가입 시점</label>
+                    <label><input type="radio" name="dpstRateType" value="2" /> 만기 시점</label>
+                    <label><input type="radio" name="dpstRateType" value="3" /> 납입 시 환율</label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>상품 정보</h3>
+                <div class="form-group">
+                    <label for="dpstDescript">상품 개요</label>
+                    <textarea id="dpstDescript" name="dpstDescript" rows="3" placeholder="상품 특징 및 안내를 입력하세요"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>상품 가입기간 유형</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="dpstPeriodType" value="1" checked /> 자유형</label>
+                        <label><input type="radio" name="dpstPeriodType" value="2" /> 고정형</label>
+                    </div>
+                </div>
+                <div class="conditional join-type" data-type="1">
+                    <div class="form-inline">
+                        <label>최소 가입월수</label>
+                        <input type="number" name="minMonths" placeholder="예: 1" /> 개월
+                    </div>
+                    <div class="form-inline">
+                        <label>최대 가입월수</label>
+                        <input type="number" name="maxMonths" placeholder="예: 36" /> 개월
+                    </div>
+                </div>
+                <div class="conditional join-type" data-type="2">
+                    <div class="form-group">
+                        <label>가입 가능한 개월수</label>
+                        <input type="text" name="fixedMonths" placeholder="예: 3,6,12" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>가입 대상</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="ageLimit" value="none" checked /> 제한 없음</label>
+                    <label><input type="radio" name="ageLimit" value="yes" /> 제한 있음</label>
+                </div>
+                <div class="conditional age-limit">
+                    <div class="form-inline">
+                        <label>최소 나이</label>
+                        <input type="number" name="dpstMinAge" placeholder="예: 19" /> 세
+                    </div>
+                    <div class="form-inline">
+                        <label>최대 나이</label>
+                        <input type="number" name="dpstMaxAge" placeholder="예: 65" /> 세
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>분할 인출 설정</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="dpstPartWdrwYn" value="Y" /> 가능</label>
+                    <label><input type="radio" name="dpstPartWdrwYn" value="N" checked /> 불가능</label>
+                </div>
+                <div class="conditional partial-withdrawal">
+                    <div class="form-group">
+                        <label>가능 시점 (가입 후)</label>
+                        <input type="number" name="withdrawAfterMonths" placeholder="예: 6" /> 개월 이후
+                    </div>
+                    <div class="form-group">
+                        <label>최대 인출 가능 횟수</label>
+                        <input type="number" name="withdrawCount" placeholder="예: 3회" />
+                    </div>
+                    <div id="withdrawCurrencyContainer"></div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>자동연장 설정</h3>
+                <div class="radio-group">
+                    <label><input type="radio" name="dpstAutoRenewYn" value="Y" /> 가능</label>
+                    <label><input type="radio" name="dpstAutoRenewYn" value="N" checked /> 불가능</label>
+                </div>
+                <div class="conditional auto-renew">
+                    <div class="form-group">
+                        <label>연장 기간 선택</label>
+                        <select name="renewPeriod">
+                            <option value="">선택하세요</option>
+                            <option value="1">1개월</option>
+                            <option value="3">3개월</option>
+                            <option value="6">6개월</option>
+                            <option value="12">12개월</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>상품설명서 첨부</h3>
+                <div class="form-group">
+                    <input type="file" name="pdfFile" accept=".pdf,.doc,.docx" />
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>상품 개시일자</h3>
+                <div class="form-group">
+                    <label for="dpstRegDt">개시일자 선택</label>
+                    <input type="date" id="dpstRegDt" name="dpstRegDt" required />
+                </div>
+            </div>
+
+            <div class="form-submit">
+                <button type="submit" class="btn-submit">등록하기</button>
+            </div>
+
+        </form> </section>
+
+
+
+    <section class="product-card">
+
+        <h2 class="product-title">외화예금 상품 관리</h2>
+
+        <div class="product-tabs">
+            <button class="tab-btn active" data-status="approve">승인 대기 중</button>
+            <button class="tab-btn" data-status="pending">상품 등록 대기 중</button>
+        </div>
+
+        <div class="product-table-wrap" data-status-group="approve">
+            <table class="product-table">
+                <thead>
+                <tr>
+                    <th>상품명</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${approveList}" data-status="approve" th:data-id="${p.dpstId}">
+                    <td th:text="${p.dpstName}"></td>
+                    <td><span class="status-badge status-approve">승인 대기 중</span></td>
+                    <td><button class="btn-approve">승인</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="product-table-wrap" data-status-group="pending" style="display:none;">
+            <table class="product-table">
+                <thead>
+                <tr>
+                    <th>상품명</th>
+                    <th>상태</th>
+                    <th>상품 개시일</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${pendingList}" th:data-id="${p.dpstId}">
+                    <td th:text="${p.dpstName}"></td>
+                    <td><span class="status-badge status-pending">상품 등록 대기 중</span></td>
+                    <td th:text="${p.dpstRegDt}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+
+    <section class="product-card">
+        <h2 class="product-title">외화예금 상품 현황</h2>
+
+        <div class="product-table-wrap">
+            <table class="product-table">
+                <thead>
+                <tr>
+                    <th>상품명</th>
+                    <th>상품판매개시일시</th>
+                    <th>가입자수</th>
+                    <th>상태</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="p : ${saleList}">
+                    <td>
+                        <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
+                           class="product-link"
+                           th:text="${p.dpstName}"></a>
+                    </td>
+                    <td th:text="${p.dpstRegDt}"></td>
+                    <td>0</td>
+                    <td><span class="status-badge status-sale">판매중</span></td>
+                </tr>
+
+                <tr th:each="p : ${stopList}">
+                    <td>
+                        <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
+                           class="product-link"
+                           th:text="${p.dpstName}"></a>
+                    </td>
+                    <td th:text="${p.dpstRegDt}"></td>
+                    <td>0</td>
+                    <td><span class="status-badge status-stop">판매중단</span></td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+</th:block>
+
+<th:block th:fragment="script">
+
+    <script>
+        /* ============================
+           SSE 전역 변수
+        ============================= */
+        let currentEventSource = null;
+        let currentPdfData = null;
+
+        const AI_PLACEHOLDER = "AI 분석이 완료되면 생성된 코멘트가 이 영역에 표시됩니다.";
+
+        /* ============================
+           🎨 1. AI 카드 미리보기 로직
+        ============================= */
+        // UI 요소 가져오기
+        const ui = {
+            summaryInput: document.getElementById('aiSummaryInput'),
+            rateInput: document.getElementById('aiRateInput'),
+            currencyInput: document.getElementById('aiCurrencyInput'),
+            // [추가] 혜택 관련 입력창
+            iconInput: document.getElementById('aiIconInput'),
+            benefitInput: document.getElementById('aiBenefitInput'),
+            nameInput: document.getElementById('dpstName'),
+
+            previewTitle: document.getElementById('previewTitle'),
+            previewDesc: document.getElementById('previewDesc'),
+            previewRate: document.getElementById('previewRate'),
+            previewChart: document.getElementById('previewChart'),
+            previewFlag: document.getElementById('previewFlag'),
+            // [추가] 미리보기 요소
+            previewIcon: document.getElementById('previewIcon'),
+            previewBenefit: document.getElementById('previewBenefit'),
+            benefitSection: document.getElementById('benefitSection')
+        };
+
+        // 미리보기 업데이트 함수
+        function updateCardPreview() {
+            // 텍스트 반영
+            if(ui.previewDesc) ui.previewDesc.innerHTML = (ui.summaryInput.value || "아직 AI 분석 전입니다.<br>PDF를 분석하면 요약 내용이 여기에 표시됩니다.").replace(/\n/g, "<br>");
+            if(ui.previewTitle) ui.previewTitle.textContent = ui.nameInput.value || "상품명 표시 영역";
+            if(ui.previewFlag) ui.previewFlag.textContent = ui.currencyInput.value || "US";
+
+            // 금리 차트 반영
+            const rate = parseFloat(ui.rateInput.value) || 0;
+            if(ui.previewRate) ui.previewRate.textContent = rate + "%";
+
+            // 도넛 차트 그라데이션 (최대 10% 기준 시각화)
+            const percentage = Math.min((rate / 6) * 100, 100);
+            if(ui.previewChart) {
+                ui.previewChart.style.background = `conic-gradient(#1e3a8a 0% ${percentage}%, #e2e8f0 ${percentage}% 100%)`;
+            }
+
+            // 2. 🔥 [핵심] 혜택 섹션 제어 로직
+            const iconVal = ui.iconInput.value;
+            const benefitVal = ui.benefitInput.value;
+
+            if (!benefitVal) {
+                // 텍스트가 없으면 아예 숨김
+                if(ui.benefitSection) ui.benefitSection.style.display = 'none';
+            } else {
+                // 텍스트가 있으면 보여줌
+                if(ui.benefitSection) ui.benefitSection.style.display = 'block';
+                if(ui.previewIcon) ui.previewIcon.textContent = iconVal || "🎁"; // 아이콘 없으면 기본값 선물상자
+                if(ui.previewBenefit) ui.previewBenefit.textContent = benefitVal;
+            }
+        }
+
+        // 이벤트 리스너 등록 (새로 추가된 input들도 포함)
+        [ui.summaryInput, ui.rateInput, ui.currencyInput, ui.iconInput, ui.benefitInput, ui.nameInput].forEach(input => {
+            if(input) input.addEventListener('input', updateCardPreview);
+        });
+
+        /* ============================
+           🤖 2. AI 내용 생성 버튼 동작
+        ============================= */
+        const btnGenSummary = document.getElementById("btnGenSummary");
+        if(btnGenSummary) {
+            btnGenSummary.addEventListener("click", () => {
+                if (!currentPdfData) {
+                    alert("먼저 'AI 분석 완료 PDF'를 선택해주세요.");
+                    return;
+                }
+
+                // 로딩 표시
+                ui.summaryInput.value = "AI가 내용을 생성하고 있습니다...";
+
+                setTimeout(() => {
+                    // 실제 데이터 매핑 (PDF 분석 결과가 있다고 가정)
+                    const summary = currentPdfData.productShortDesc || "PDF에서 요약 정보를 찾을 수 없습니다.";
+                    const maxRate = currentPdfData.maxRate || 0.0; // 데이터 없으면 0.0
+
+                    // 통화 코드 추출 (예: "USD, JPY" -> "US")
+                    let currency = "US";
+                    if(currentPdfData.currencies) {
+                        currency = currentPdfData.currencies.substring(0, 2).toUpperCase();
+                    }
+
+                    // 값 주입
+                    ui.summaryInput.value = summary;
+                    ui.rateInput.value = maxRate;
+                    ui.currencyInput.value = currency;
+
+                    // 미리보기 갱신
+                    updateCardPreview();
+                    alert("AI 요약 내용이 생성되었습니다.");
+                }, 500); // 0.5초 딜레이 연출
+            });
+        }
+
+        /* ============================
+           📡 SSE 연결 함수
+        ============================= */
+        function connectProgressSSE(pdfId) {
+            if (!pdfId) return;
+
+            if (currentEventSource) {
+                currentEventSource.close();
+            }
+
+            const url = `/flobank/pdf-ai/progress/${pdfId}`;
+            console.log("🔌 SSE 연결:", url);
+
+            const box = document.getElementById("pdf-progress-box");
+            const bar = document.getElementById("pdf-progress-bar");
+            const text = document.getElementById("pdf-progress-text");
+
+            box.style.display = "block";
+
+            currentEventSource = new EventSource(url);
+
+            currentEventSource.onmessage = function (event) {
+
+                const progress = Number(event.data);
+                console.log("📡 SSE Progress:", progress);
+
+                bar.style.width = `${progress}%`;
+                text.textContent = `${progress}%`;
+
+                // 100% → 자동 종료
+                if (progress >= 100) {
+                    setTimeout(() => {
+                        box.style.display = "none";
+                        bar.style.width = "0%";
+                        text.textContent = "0%";
+                        currentEventSource.close();
+                    }, 3000);
+                }
+
+                // 에러 (-1)
+                if (progress === -1) {
+                    text.textContent = "에러 발생";
+                    bar.style.background = "red";
+                }
+            };
+
+            currentEventSource.onerror = function () {
+                console.log("❌ SSE 오류 → 연결 종료");
+                currentEventSource.close();
+            };
+        }
+
+        /* ============================
+           📑 헬퍼 함수
+        ============================= */
+        function formatDateTime(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            return date.toLocaleString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
+        function resetAiCommentBox() {
+            const badge = document.getElementById("aiRiskBadge");
+            const content = document.getElementById("aiCommentContent");
+
+            if (badge) {
+                badge.textContent = "AI 분석 코멘트 표시 예정";
+                badge.className = "ai-comment-status";
+            }
+
+            if (content) {
+                content.innerHTML = `<p class="ai-comment-placeholder">${AI_PLACEHOLDER}</p>`;
+            }
+
+            updateRiskGuard(null);
+            updateSelectedPdfInputs();
+        }
+
+        function parseAiComments(aiComment, aiOverallRisk) {
+            let overallRisk = aiOverallRisk || null;
+            let comments = [];
+
+            if (aiComment) {
+                try {
+                    const parsed = JSON.parse(aiComment);
+                    overallRisk = parsed.overall_risk || parsed.overallRisk || overallRisk;
+                    if (Array.isArray(parsed.comments)) {
+                        comments = parsed.comments;
+                    }
+                } catch (e) {
+                    comments = [aiComment];
+                }
+            }
+
+            return { overallRisk, comments };
+        }
+
+        function updateSelectedPdfInputs(pdf) {
+            const pathInput = document.getElementById("selectedPdfPath");
+            const nameInput = document.getElementById("selectedPdfName");
+            const idInput = document.getElementById("selectedPdfId");
+            const noticeEl = document.getElementById("selectedPdfNotice");
+
+            if (!pdf) {
+                if (pathInput) pathInput.value = "";
+                if (nameInput) nameInput.value = "";
+                if (idInput) idInput.value = "";
+                if (noticeEl) {
+                    noticeEl.style.display = "none";
+                    noticeEl.textContent = "";
+                }
+                return;
+            }
+
+            if (pathInput) pathInput.value = pdf.filePath || "";
+            if (nameInput) nameInput.value = pdf.storedFileName || "";
+            if (idInput) idInput.value = pdf.pdfId || "";
+
+            if (noticeEl) {
+                const filename = pdf.orgFileName || pdf.storedFileName || "선택한 PDF";
+                noticeEl.style.display = "block";
+                noticeEl.textContent = `${filename}가 자동으로 등록 파일에 연결되었습니다.`;
+            }
+        }
+
+        function updateRiskGuard(risk) {
+            const submitBtn = document.querySelector(".btn-submit");
+            const blockMessage = document.getElementById("aiRiskBlockMessage");
+
+            const normalized = (risk || "").toString().toLowerCase();
+            const isDanger = normalized.includes("danger") || normalized.includes("위험");
+
+            if (submitBtn) {
+                submitBtn.disabled = isDanger;
+            }
+
+            if (blockMessage) {
+                blockMessage.style.display = isDanger ? "block" : "none";
+            }
+        }
+
+        function buildCommentItem(comment) {
+            const item = document.createElement("div");
+            item.classList.add("ai-comment-item");
+
+            if (typeof comment === "string") {
+                const text = document.createElement("p");
+                text.classList.add("ai-comment-text");
+                text.textContent = comment;
+                item.appendChild(text);
+                return item;
+            }
+
+            const phrase = comment.risky_phrase || comment.riskyPhrase;
+            const reason = comment.violation_reason || comment.violationReason;
+            const suggestion = comment.improvement_suggestion || comment.improvementSuggestion;
+
+            const rows = [
+                { label: "위험 문구", value: phrase, className: "ai-comment-phrase" },
+                { label: "위반/분석", value: reason, className: "ai-comment-reason" },
+                { label: "개선 방향", value: suggestion, className: "ai-comment-suggestion" }
+            ];
+
+            rows.forEach(row => {
+                if (!row.value) return;
+                const rowEl = document.createElement("div");
+                rowEl.className = "ai-comment-row";
+
+                const labelEl = document.createElement("div");
+                labelEl.className = "ai-comment-label";
+                labelEl.textContent = row.label;
+
+                const valueEl = document.createElement("div");
+                valueEl.className = row.className;
+                valueEl.textContent = row.value;
+
+                rowEl.appendChild(labelEl);
+                rowEl.appendChild(valueEl);
+                item.appendChild(rowEl);
+            });
+
+            if (!phrase && !reason && !suggestion) {
+                const fallback = document.createElement("p");
+                fallback.classList.add("ai-comment-text");
+                fallback.textContent = "추가 코멘트 없음";
+                item.appendChild(fallback);
+            }
+
+            return item;
+        }
+
+        function renderAiComments(pdf) {
+            const badge = document.getElementById("aiRiskBadge");
+            const content = document.getElementById("aiCommentContent");
+
+            if (!badge || !content) return;
+
+            const { overallRisk, comments } = parseAiComments(pdf.aiComment, pdf.aiOverallRisk);
+
+            const riskText = overallRisk || "분석 대기";
+            const riskClass = riskText.toLowerCase().replace(/\s+/g, "");
+            badge.textContent = `위험도: ${riskText}`;
+            badge.className = `ai-comment-status ai-risk-${riskClass}`;
+            updateRiskGuard(overallRisk);
+
+            content.innerHTML = "";
+
+            if (!comments || comments.length === 0) {
+                content.innerHTML = `<p class="ai-comment-placeholder">${AI_PLACEHOLDER}</p>`;
+                return;
+            }
+
+            comments.forEach(comment => content.appendChild(buildCommentItem(comment)));
+        }
+
+        function setRadioValue(name, value) {
+            if (!value) return;
+            const target = document.querySelector(`input[name="${name}"][value="${value}"]`);
+            if (target) {
+                target.checked = true;
+                target.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        }
+
+        function applyPdfDataToForm(pdf) {
+            if (!pdf) return;
+
+            currentPdfData = pdf; // [중요] 데이터 저장해두기 (버튼 클릭용)
+
+            updateSelectedPdfInputs(pdf);
+
+            const nameInput = document.getElementById("dpstName");
+            const infoInput = document.getElementById("dpstInfo");
+            const descriptInput = document.getElementById("dpstDescript");
+
+            if (pdf.productName && nameInput) nameInput.value = pdf.productName;
+            if (pdf.productShortDesc && infoInput) infoInput.value = pdf.productShortDesc;
+            if (pdf.productFeatures && descriptInput) descriptInput.value = pdf.productFeatures;
+
+            /* 예금 유형 */
+            const depositValue = (pdf.depositType || "").includes("거치") ? "1" : (pdf.depositType ? "2" : null);
+            setRadioValue("dpstType", depositValue);
+
+            /* 통화 */
+            const currencyText = pdf.currencies || "";
+            const currencyCodes = currencyText.split(/[,\s]+/).map(c => c.trim()).filter(Boolean);
+            const currencyBoxes = document.querySelectorAll('input[name="dpstCurrency"]');
+            currencyBoxes.forEach(box => {
+                box.checked = currencyCodes.includes(box.value);
+                box.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+
+            /* 환율 정책 */
+            const policy = (pdf.exchangeRatePolicy || "").replace(/\s/g, "").toLowerCase();
+            let rateValue = null;
+            if (policy.includes("납입")) rateValue = "3";
+            else if (policy.includes("만기")) rateValue = "2";
+            else if (policy.includes("가입")) rateValue = "1";
+            setRadioValue("dpstRateType", rateValue);
+
+            /* 가입 기간 */
+            const termText = pdf.termType || "";
+            let joinType = null;
+            if (pdf.minMonth != null || pdf.maxMonth != null || termText.includes("자유")) joinType = "1";
+            else if (termText) joinType = "2";
+            setRadioValue("dpstPeriodType", joinType);
+
+            const minMonths = document.querySelector('input[name="minMonths"]');
+            const maxMonths = document.querySelector('input[name="maxMonths"]');
+            if (minMonths && pdf.minMonth != null) minMonths.value = pdf.minMonth;
+            if (maxMonths && pdf.maxMonth != null) maxMonths.value = pdf.maxMonth;
+
+            const fixedMonthsInput = document.querySelector('input[name="fixedMonths"]');
+            if (fixedMonthsInput && joinType === "2") {
+                const monthsFromText = termText.match(/\d+/g);
+                if (monthsFromText && monthsFromText.length > 0) fixedMonthsInput.value = monthsFromText.join(",");
+                else if (termText) fixedMonthsInput.value = termText;
+                fixedMonthsInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+
+            /* 추가 기능 */
+            const yesNo = (value) => {
+                if (!value) return null;
+                const cleaned = value.trim();
+                if (cleaned.includes("가능")) return "Y";
+                if (cleaned.includes("없음") || cleaned.includes("불가") || cleaned.includes("불가능")) return "N";
+                return null;
+            };
+            setRadioValue("dpstAddPayYn", yesNo(pdf.additionalDeposit));
+            setRadioValue("dpstAutoRenewYn", yesNo(pdf.autoRenewal));
+            setRadioValue("dpstPartWdrwYn", yesNo(pdf.partialWithdrawal));
+
+            renderAiComments(pdf);
+
+            // PDF 선택 시 카드 미리보기도 한번 갱신 시도
+            if(ui.nameInput) ui.nameInput.dispatchEvent(new Event('input'));
+        }
+
+
+        /* ============================
+           📤 PDF 업로드
+        ============================= */
+        document.getElementById("btnPdfUpload").addEventListener("click", async () => {
+            const fileInput = document.getElementById("dpstInfoPdfUpload");
+
+            if (fileInput.files.length === 0) {
+                alert("PDF 파일을 선택하세요.");
+                return;
+            }
+
+            const form = new FormData();
+            form.append("file", fileInput.files[0]);
+
+            const res = await fetch("/flobank/admin/pdf-ai/upload", {
+                method: "POST",
+                body: form
+            });
+
+            if (!res.ok) {
+                alert("업로드 실패");
+                return;
+            }
+
+            const result = await res.json();
+            console.log("📦 업로드 응답:", result);
+
+            alert("업로드 성공!");
+            loadPdfList();
+
+            // 🔥 SSE 연결 시작
+            connectProgressSSE(result.pdfId);
+        });
+
+
+        /* ============================
+           ✅ PDF 선택 시 자동 대입
+        ============================= */
+        async function handlePdfSelection(event) {
+            const selectedId = event.target.value;
+
+            if (!selectedId) {
+                resetAiCommentBox();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/flobank/admin/pdf-ai/${selectedId}`);
+
+                if (!res.ok) {
+                    const message = await res.text();
+                    alert(message || "PDF 정보를 불러오지 못했습니다.");
+                    event.target.value = "";
+                    resetAiCommentBox();
+                    return;
+                }
+
+                const data = await res.json();
+                applyPdfDataToForm(data);
+            } catch (error) {
+                console.error(error);
+                alert("PDF 정보를 불러오는 중 오류가 발생했습니다.");
+            }
+        }
+
+
+        /* ============================
+           📄 PDF 목록 불러오기
+        ============================= */
+        async function loadPdfList() {
+            try {
+                const res = await fetch("/flobank/admin/pdf-ai/list");
+                if (!res.ok) {
+                    throw new Error("PDF 목록을 불러오지 못했습니다.");
+                }
+
+                const list = await res.json();
+
+                const body = document.getElementById("pdfListBody");
+                const selector = document.getElementById("pdfSelector");
+
+                body.innerHTML = "";
+                selector.innerHTML = `<option value="">선택하세요</option>`;
+
+                list.forEach(item => {
+                    const createdAt = formatDateTime(item.createdAt);
+                    const riskLabel = item.aiOverallRisk ? `<span class="ai-risk-chip ai-risk-${(item.aiOverallRisk || '').toLowerCase()}">${item.aiOverallRisk}</span>` : "";
+
+                    body.innerHTML += `
+                <div class="pdf-list-item" data-pdf-id="${item.pdfId}">
+                    <div>
+                        <strong>${item.orgFileName}</strong>
+                        <div class="pdf-meta">${createdAt}</div>
+                    </div>
+                    <div class="pdf-status-cluster">
+                        <span class="status-chip status-${item.status}">${item.status}</span>
+                        ${riskLabel}
+                        <button type="button" class="pdf-delete-btn" data-pdf-id="${item.pdfId}">×</button>
+                    </div>
+                </div>
+            `;
+
+                    if (item.status === "done") {
+                        selector.innerHTML += `
+                    <option value="${item.pdfId}">
+                        ${item.orgFileName} (done)
+                    </option>
+                `;
+                    }
+                });
+
+                bindPdfDeleteButtons();
+            } catch (error) {
+                console.error(error);
+                alert(error.message || "PDF 목록을 불러오는 중 오류가 발생했습니다.");
+            }
+        }
+
+        function bindPdfDeleteButtons() {
+            const container = document.getElementById("pdfListBody");
+            if (!container) return;
+
+            container.querySelectorAll(".pdf-delete-btn").forEach(btn => {
+                btn.addEventListener("click", async (event) => {
+                    event.stopPropagation();
+                    const pdfId = btn.getAttribute("data-pdf-id");
+
+                    if (!pdfId) return;
+
+                    if (!confirm("PDF를 삭제하시겠습니까?")) return;
+
+                    const res = await fetch(`/flobank/admin/pdf-ai/${pdfId}`, { method: "DELETE" });
+
+                    if (!res.ok) {
+                        const message = await res.text();
+                        alert(message || "PDF 삭제에 실패했습니다.");
+                        return;
+                    }
+
+                    alert("삭제되었습니다.");
+                    loadPdfList();
+                });
+            });
+        }
+
+        function initPdfAccordion() {
+            const header = document.getElementById("pdfListHeader");
+            const body = document.getElementById("pdfListBody");
+            const arrow = document.getElementById("pdfListArrow");
+
+            if (!header || !body || !arrow) return;
+
+            header.addEventListener("click", () => {
+                const isHidden = body.style.display === "none";
+                body.style.display = isHidden ? "flex" : "none";
+                arrow.textContent = isHidden ? "▲" : "▼";
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initPdfAccordion();
+            loadPdfList();
+            const selector = document.getElementById("pdfSelector");
+            if (selector) {
+                selector.addEventListener("change", handlePdfSelection);
+            }
+            if(typeof updateCardPreview === 'function') updateCardPreview();
+        });
+    </script>
+
+    <script th:src="@{/js/product1.js}"></script>
+    <script th:src="@{/js/product2.js}"></script>
+
+</th:block>
+
+</html>

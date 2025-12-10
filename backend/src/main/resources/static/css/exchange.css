@@ -1,0 +1,1004 @@
+@charset "UTF-8";
+
+/* ============================================
+   1. 레이아웃 & 사이드바 (Layout & Sidebar)
+   ============================================ */
+
+.exchange-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1100px;
+    margin: 80px auto;
+    align-items: flex-start;
+}
+
+/* 사이드바 스타일 */
+.exchange-sidebar {
+    width: 230px;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 10px;
+    padding: 25px 20px;
+    height: fit-content;
+}
+
+.exchange-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #22304E;
+    margin-bottom: 20px;
+}
+
+.exchange-category {
+    list-style: none;
+    padding: 0;
+}
+
+.exchange-category > li {
+    margin-bottom: 14px;
+}
+
+.exchange-category > li > a {
+    color: #222;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.exchange-category > li > a:hover {
+    color: #2C5DE5;
+}
+
+.exchange-category li.active > a {
+    color: #2C5DE5;
+    font-weight: 700;
+}
+
+/* 서브 카테고리 */
+.exchange-subcategory {
+    list-style: none;
+    margin-top: 8px;
+    padding-left: 10px;
+}
+
+.exchange-subcategory li {
+    margin-bottom: 6px;
+}
+
+.exchange-subcategory a {
+    color: #666;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.exchange-subcategory a:hover,
+.exchange-subcategory li.active a {
+    color: #2C5DE5;
+    font-weight: 700;
+}
+
+
+/* ============================================
+   2. 공통 콘텐츠 영역 (Common Content)
+   ============================================ */
+
+.exchange-content {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 10px;
+    padding: 30px 40px;
+    min-height: 500px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+.exchange-content h2 {
+    font-size: 20px;
+    color: #22304E;
+    border-bottom: 2px solid #E3E7EC;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+.exchange-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #22304E;
+    margin-top: 35px;
+    margin-bottom: 15px;
+}
+
+.exchange-desc {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 20px;
+    line-height: 1.7;
+}
+
+.exchange-content ul {
+    margin-left: 20px;
+    margin-bottom: 25px;
+    line-height: 1.8;
+    color: #444;
+}
+
+.exchange-content ul li {
+    margin-bottom: 6px;
+}
+
+/* 표 스타일 */
+.exchange-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+}
+
+.exchange-table th,
+.exchange-table td {
+    border: 1px solid #ddd;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.exchange-table th {
+    background: #f3f6fa;
+    color: #22304E;
+    font-weight: 700;
+}
+
+.exchange-table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+/* 안내 박스 */
+.exchange-note {
+    background: #f9fafc;
+    border: 1px solid #e0e4eb;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+    margin-top: 25px;
+}
+
+.exchange-box {
+    background: #fff;
+    border: 1px solid #e6e9ef;
+    border-radius: 10px;
+    padding: 25px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+}
+
+
+/* ============================================
+   3. 환전 1단계 (Step 1: 약관동의)
+   ============================================ */
+
+.step1-container {
+    width: 100%;
+    min-height: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.step1-top-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #22304E;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.step1-steps {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 35px;
+}
+
+.step1-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.step1-step .num {
+    width: 26px;
+    height: 26px;
+    background: #fff;
+    border: 1.8px solid #ccc;
+    color: #888;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.step1-step.active .num {
+    border-color: #22304E;
+    color: #22304E;
+    font-weight: 700;
+}
+
+.step1-step.active .text {
+    color: #22304E;
+    font-weight: 700;
+}
+
+.step1-box {
+    width: 750px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 12px;
+    padding: 40px 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.step1-info-box {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.step1-term-box {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.step1-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 12px;
+}
+
+.step1-input {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    max-height: 200px;
+    padding: 15px;
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+    overflow-y: auto;
+}
+
+.step1-input pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.step1-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 15px;
+    color: #222;
+}
+
+.step1-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.step1-agree-all {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px dashed #ccc;
+    font-size: 15px;
+    color: #22304E;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step1-agree-all input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    cursor: pointer;
+}
+
+.step1-actions {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.step1-btn-next {
+    background: #22304E;
+    color: #fff;
+    padding: 12px 36px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 3px 8px rgba(34,48,78,0.25);
+    transition: 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.step1-btn-next:hover {
+    background: #4FBDBA;
+    transform: translateY(-2px);
+}
+
+
+/* ============================================
+   4. 환전 2단계 (Step 2: 정보입력)
+   ============================================ */
+
+.step2-container {
+    width: 100%;
+    min-height: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.step2-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 40px;
+}
+
+.step2-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.step2-step .num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.8px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    background: #fff;
+    color: #888;
+    transition: all 0.3s ease;
+}
+
+.step2-step.active .num {
+    border-color: #22304E;
+    color: #22304E;
+    font-weight: 700;
+}
+
+.step2-step.active .text {
+    color: #22304E;
+    font-weight: 700;
+}
+
+.step2-box {
+    width: 750px;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 12px;
+    padding: 50px 60px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.step2-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #22304E;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.step2-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* --- [좌우 배치 환전 박스 (상하 배치로 변경)] --- */
+.exchange-swapper {
+    display: flex;
+    flex-direction: column; /* [핵심] 가로(row) -> 세로(column) 변경 */
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 30px; /* 상하 배치 시 여백을 조금 더 줌 */
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 0;
+    gap: 10px; /* 박스와 화살표 사이 간격 */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-sizing: border-box;
+}
+
+.currency-box {
+    width: 100%; /* 부모 박스 너비에 꽉 차게 설정 */
+    flex: none;  /* 상하 배치에서는 flex 비율보다는 width 100%가 중요 */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.currency-box label {
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+}
+
+/* --- [입력 그룹 스타일 개선] --- */
+
+/* 통합 입력 그룹 (하나의 박스) */
+.input-group-merged {
+    display: flex;
+    align-items: center;
+    border: 1px solid #dfe3e8; /* 기본은 연한 회색 */
+    border-radius: 8px;
+    background-color: #fff;
+    padding: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 60px; /* 높이를 조금 더 키워 터치/클릭 영역 확보 */
+    transition: all 0.2s ease-in-out; /* 부드러운 전환 효과 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* 마우스를 올렸을 때 */
+.input-group-merged:hover {
+    border-color: #2C5DE5; /* 플로뱅크 블루 */
+}
+
+/* 입력창을 클릭(포커스)했을 때 - 가장 중요한 부분 */
+.input-group-merged:focus-within {
+    border-color: #22304E; /* 플로뱅크 네이비 */
+    box-shadow: 0 0 0 3px rgba(44, 93, 229, 0.1); /* 파란색 은은한 번짐 효과 */
+    transform: translateY(-1px); /* 살짝 떠오르는 느낌 */
+}
+
+/* 왼쪽: 국기 + 드롭다운 영역 */
+.select-prefix {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa; /* 아주 연한 배경색 */
+    padding: 0 15px; /* 내부 여백 확보 */
+    border-right: 1px solid #eee;
+    position: relative;
+    height: 100%;
+    flex-shrink: 0;
+    transition: background-color 0.2s;
+    cursor: pointer; /* 손가락 모양 커서 */
+}
+
+.input-group-merged:focus-within .select-prefix {
+    background-color: #fff; /* 포커스 시 배경 하얗게 */
+}
+
+/* 국기 이미지 */
+.flag-icon {
+    width: 28px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-right: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 국기에도 살짝 그림자 */
+}
+
+/* 드롭다운 (실제 select 태그) */
+.hidden-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 700; /* 굵게 */
+    color: #22304E;   /* 짙은 네이비 텍스트 */
+    padding: 0 24px 0 5px; /* 화살표 공간 넉넉히 확보 */
+    cursor: pointer;
+    outline: none;
+    z-index: 2;
+    height: 100%;
+    line-height: 1.5;
+}
+
+/* 드롭다운 옵션 스타일 (브라우저 제한이 있지만 가능한 부분만 적용) */
+.hidden-select option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333;
+    font-weight: 500;
+}
+
+/* 커스텀 화살표 아이콘 */
+.select-arrow {
+    position: absolute;
+    right: 12px;
+    font-size: 12px;
+    color: #666;
+    pointer-events: none;
+    z-index: 1;
+    transition: transform 0.3s ease;
+}
+
+/* 드롭다운 클릭 시 화살표 회전 효과 (focus-within 활용) */
+.input-group-merged:focus-within .select-arrow {
+    transform: rotate(180deg);
+    color: #2C5DE5; /* 활성화 시 파란색으로 변경 */
+}
+
+/* 오른쪽: 금액 입력창 */
+.amount-input-merged {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    padding: 0 20px;
+    font-size: 22px; /* 금액은 더 크게 */
+    font-weight: 700;
+    text-align: right;
+    width: 50px;
+    color: #22304E; /* 숫자도 네이비 색상 */
+    height: 100%;
+    background: transparent;
+    letter-spacing: -0.5px;
+}
+
+.amount-input-merged::placeholder {
+    color: #cbd0d6;
+    font-weight: 400;
+}
+
+/* 닫혀있는(readonly) 상태의 입력창 스타일 (예: 받으실 때) */
+.amount-input-merged:read-only {
+    color: #22304E;
+    background-color: #fff; /* 회색 대신 흰색 배경 유지하여 깔끔하게 */
+    cursor: default;
+}
+
+/* 중앙 화살표 (오른쪽 화살표 아이콘을 아래로 회전) */
+.arrow-icon {
+    flex-shrink: 0;
+    color: #adb5bd;
+    font-size: 24px; /* 아이콘 크기 키움 */
+    padding: 5px 0;
+    width: 100%;
+    text-align: center; /* 가운데 정렬 */
+    transform: rotate(90deg); /* [핵심] 오른쪽 화살표를 90도 돌려서 아래로 향하게 함 */
+}
+
+/* --- [환전 결과 및 정보 박스] --- */
+.step2-result-box {
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 15px;
+    background: #f1fcfa;
+    margin-bottom: 30px;
+}
+
+.step2-result-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.step2-result-table th,
+.step2-result-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e3e9ef;
+    font-size: 14px;
+}
+
+.step2-result-table th {
+    width: 35%;
+    color: #333;
+    text-align: left;
+    background: transparent;
+    font-weight: 600;
+}
+
+.step2-result-table td {
+    text-align: right;
+    color: #555;
+}
+
+/* 폼 요소 공통 */
+.step2-form-group {
+    margin-bottom: 22px;
+}
+
+.step2-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.step2-input, .step2-select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.step2-input.short {
+    width: 200px;
+}
+
+.step2-input.small {
+    width: 80px;
+    text-align: center;
+}
+
+.step2-flex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.step2-note {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
+
+.step2-note.red {
+    color: #d22;
+    font-weight: 500;
+}
+
+/* 수령 방법 버튼 그룹 */
+.receive-method-group {
+    display: flex;
+    gap: 10px;
+}
+
+.method-btn {
+    flex: 1;
+    padding: 12px 0;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    color: #555;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.method-btn.active {
+    border-color: #22304E;
+    background-color: #22304E;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(34, 48, 78, 0.2);
+}
+
+.method-btn:hover {
+    border-color: #22304E;
+    color: #22304E;
+}
+
+.method-btn.active:hover {
+    color: #fff;
+}
+
+/* 버튼 영역 */
+.step2-actions {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.step2-btn-next {
+    background: #22304E;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 36px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(34,48,78,0.25);
+    transition: all 0.25s ease;
+}
+
+.step2-btn-next:hover {
+    background: #2C5DE5FF;
+    transform: translateY(-2px);
+}
+
+.step2-btn-sub {
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 18px;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.step2-btn-sub:hover {
+    background: #e5e5e5;
+}
+
+
+/* ============================================
+   5. 환전 3단계 (Step 3: 완료)
+   ============================================ */
+
+.step3-complete {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 100px 0;
+}
+
+.step3-complete-box {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 16px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    padding: 60px 80px;
+    text-align: center;
+    width: 700px;
+}
+
+.step3-char-img img {
+    width: 120px;
+    height: auto;
+    margin-bottom: 25px;
+}
+
+.step3-complete-text h2 {
+    font-size: 22px;
+    color: #22304E;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.step3-complete-text p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 35px;
+}
+
+.step3-complete-text strong {
+    color: #22304E;
+    font-weight: 700;
+}
+
+.step3-complete-btn {
+    display: inline-block;
+    background: #22304E;
+    color: #fff;
+    border-radius: 8px;
+    padding: 12px 36px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 3px 8px rgba(34, 48, 78, 0.25);
+}
+
+.step3-complete-btn:hover {
+    background: #4FBDBA;
+    transform: translateY(-2px);
+}
+
+
+/* ============================================
+   6. 유틸리티 (쿠폰 모달, 툴팁 등)
+   ============================================ */
+
+/* 쿠폰 모달 */
+.coupon-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.coupon-modal-content {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px 30px;
+    width: 320px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.coupon-modal-content h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.coupon-modal-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+.coupon-modal-content li {
+    margin: 8px 0;
+}
+
+.coupon-option {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    background-color: #22304E;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.coupon-option:hover {
+    background-color: #1a253a;
+}
+
+.coupon-close {
+    margin-top: 15px;
+    padding: 6px 12px;
+    background-color: #ccc;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.coupon-btn {
+    background-color: #22304E;
+    color: #fff;
+    border: none;
+    padding: 3px 8px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.coupon-btn:hover {
+    background-color: #1a253a;
+}
+
+/* 툴팁 (Tooltip) */
+.tooltip-icon {
+    position: relative;
+    display: inline-block;
+    margin-left: 5px;
+    color: #888;
+    cursor: pointer;
+}
+
+.tooltip-text {
+    visibility: hidden;
+    width: 240px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: normal;
+    position: absolute;
+    z-index: 10;
+    bottom: 140%;
+    left: 50%;
+    margin-left: -120px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.tooltip-icon:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* 다국어 드롭다운 */
+.language-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.language-toggle {
+    cursor: pointer;
+    color: #333;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.language-menu {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    list-style: none;
+    padding: 6px 0;
+    margin: 6px 0 0 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transition: opacity 0.2s ease;
+}
+
+.language-menu.show {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+.language-menu li {
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.language-menu li:hover {
+    background-color: #f2f4ff;
+    color: #2C5DE5;
+}

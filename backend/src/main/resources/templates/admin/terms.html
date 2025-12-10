@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('약관 관리','약관 관리',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+
+
+    <!-- ===================================================== -->
+    <!-- 1) 약관 등록 -->
+    <!-- ===================================================== -->
+    <section class="terms-section">
+        <h2 class="product-title">약관 등록</h2>
+
+        <form class="terms-form"
+              method="post"
+              th:action="@{/admin/terms/register}"
+              enctype="multipart/form-data">
+
+
+            <!-- 카테고리 선택 -->
+            <div class="form-section">
+                <h3>약관 카테고리</h3>
+                <div class="form-group">
+                    <label>카테고리 선택</label>
+                    <select name="cate" class="terms-select" required>
+                        <option value="">선택하세요</option>
+                        <option value="1">1.회원가입</option>
+                        <option value="2">2.환전하기</option>
+                        <option value="3">3.외화송금</option>
+                        <option value="4">4.외환예금</option>
+                        <option value="5">5.원화통장개설</option>
+                        <option value="6">6.외화통장개설</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 제목 -->
+            <div class="form-section">
+                <h3>약관 제목</h3>
+                <div class="form-group">
+                    <input type="text" class="terms-title-input"
+                           name="title"
+                           placeholder="약관 제목을 입력하세요"
+                           required />
+                </div>
+            </div>
+
+            <!-- 내용 -->
+            <div class="form-section">
+                <h3>약관 내용</h3>
+                <div class="form-group">
+                <textarea class="terms-textarea" rows="8"
+                          name="content"
+                          placeholder="약관 내용을 입력하세요" required></textarea>
+                </div>
+            </div>
+
+            <!-- 파일 첨부 (DB 버전 관리라 파일은 선택) -->
+            <div class="terms-modal-group">
+                <h3>약관 파일 첨부 (선택)</h3>
+                <input type="file"
+                       name="file"
+                       id="modalFile"
+                       class="terms-input"
+                       accept=".pdf,.doc,.docx">
+            </div>
+
+        </form>
+
+        <!-- 전송 -->
+        <div class="terms-submit-wrap">
+            <button type="button" id="termsSubmitBtn" class="btn-submit terms-submit">
+                등록하기
+            </button>
+        </div>
+
+
+
+    </section>
+
+
+    <!-- ===================================================== -->
+    <!-- 2) 약관 현황 -->
+    <!-- ===================================================== -->
+    <section class="terms-section" id="termsListSection">
+        <h2 class="product-title">약관 현황</h2>
+
+        <!-- 검색 -->
+        <form class="terms-search-area" method="get"
+              th:action="@{/admin/terms#termsListSection}">
+            <select name="type" class="terms-search-type">
+                <option value="category" th:selected="${type == 'category'}">약관 카테고리</option>
+                <option value="title" th:selected="${type == 'title'}">약관 제목</option>
+                <option value="content" th:selected="${type == 'content'}">약관 내용</option>
+            </select>
+
+            <input type="text"
+                   name="keyword"
+                   class="terms-search-input"
+                   placeholder="검색어를 입력하세요"
+                   th:value="${keyword != null and keyword != 'null' ? keyword : ''}">
+
+            <button type="submit" class="terms-search-btn">
+                <i class="fa-solid fa-search"></i>
+            </button>
+        </form>
+
+        <!-- 테이블 (올바른 위치) -->
+        <div class="product-table-wrap">
+            <table class="product-table terms-table">
+                <thead>
+                <tr>
+                    <th>카테고리</th>
+                    <th>순번</th>
+                    <th>약관 제목</th>
+                    <th>버전</th>
+                    <th>등록일</th>
+                    <th>수정일</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="t : ${termsList}">
+                    <td th:text="${t.termCate == 1 ? '회원가입' :
+                  (t.termCate == 2 ? '환전하기' :
+                  (t.termCate == 3 ? '외화송금' :
+                  (t.termCate == 4 ? '외환예금' :
+                  (t.termCate == 5 ? '원화통장개설' :
+                  (t.termCate == 6 ? '외화통장개설' : '기타')))))}">
+                    </td>
+
+                    <td th:text="${t.termOrder}"></td>
+                    <td th:text="${t.termTitle}"></td>
+                    <td th:text="'v' + ${t.latestVersion}"></td>
+                    <td th:text="${t.termRegDy}"></td>
+                    <td th:text="${t.latestRegDy}"></td>
+
+                    <td class="terms-actions">
+                        <button type="button" class="terms-edit-btn"
+                                th:attr="data-cate=${t.termCate},
+                                     data-order=${t.termOrder},
+                                     data-title=${t.termTitle}">
+                            수정
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+
+            <!-- 이전 -->
+            <a th:if="${page > 1}"
+               th:href="@{|/admin/terms?page=${page-1}&type=${type}&keyword=${keyword}#termsListSection|}"
+               class="page-btn prev">〈</a>
+
+            <!-- 첫 페이지 -->
+            <a th:href="@{|/admin/terms?page=1&type=${type}&keyword=${keyword}#termsListSection|}"
+               th:classappend="${page == 1} ? 'active'"
+               class="page-btn">1</a>
+
+            <!-- ... -->
+            <span class="ellipsis" th:if="${page > 4}">...</span>
+
+            <!-- 현재 페이지 주변 -->
+            <a th:each="p : ${#numbers.sequence(page-2, page+2)}"
+               th:if="${p > 1 and p < totalPage}"
+               th:href="@{|/admin/terms?page=${p}&type=${type}&keyword=${keyword}#termsListSection|}"
+               th:text="${p}"
+               th:classappend="${p == page} ? 'active'"
+               class="page-btn"></a>
+
+            <!-- ... -->
+            <span class="ellipsis" th:if="${page < totalPage-3}">...</span>
+
+            <!-- 마지막 페이지 -->
+            <a th:if="${totalPage > 1}"
+               th:href="@{|/admin/terms?page=${totalPage}&type=${type}&keyword=${keyword}#termsListSection|}"
+               th:text="${totalPage}"
+               th:classappend="${page == totalPage} ? 'active'"
+               class="page-btn"></a>
+
+            <!-- 다음 -->
+            <a th:if="${page < totalPage}"
+               th:href="@{|/admin/terms?page=${page+1}&type=${type}&keyword=${keyword}#termsListSection|}"
+               class="page-btn next">〉</a>
+        </div>
+    </section>
+
+
+    <!-- ==========================
+     🔹 약관 수정 모달
+========================== -->
+    <div class="terms-modal" id="termsModal">
+        <div class="terms-modal-content">
+
+            <span class="terms-modal-close">&times;</span>
+
+            <h2 class="terms-modal-title">약관 수정</h2>
+
+            <div class="terms-modal-body">
+
+                <!-- 카테고리 -->
+                <div class="terms-modal-group">
+                    <label>약관 카테고리</label>
+                    <input type="text" id="modalCategory" class="terms-input" disabled>
+                </div>
+
+                <!-- 제목 -->
+                <div class="terms-modal-group">
+                    <label>약관 제목</label>
+                    <input type="text" id="modalTitle" class="terms-input" disabled>
+                </div>
+
+                <!-- 버전 / 등록일 / 등록자 -->
+                <div class="terms-modal-row">
+                    <div class="terms-modal-group">
+                        <label>버전</label>
+                        <input type="text" id="modalVersion" class="terms-input" disabled>
+                    </div>
+
+                    <div class="terms-modal-group">
+                        <label>등록일</label>
+                        <input type="text" id="modalRegDate" class="terms-input" disabled>
+                    </div>
+
+                    <div class="terms-modal-group">
+                        <label>등록자</label>
+                        <input type="text" id="modalWriter" class="terms-input" disabled>
+                    </div>
+                </div>
+
+                <!-- 제목 -->
+                <div class="terms-modal-group">
+                    <label>코멘트(특이사항)</label>
+                    <input type="text" id="modalVerMemo" class="terms-input">
+                </div>
+
+                <!-- 내용 수정 -->
+                <div class="terms-modal-group">
+                    <label>약관 내용</label>
+                    <textarea id="modalContent" class="terms-textarea" rows="8"></textarea>
+                </div>
+
+
+
+            </div>
+            <div class="terms-modal-footer">
+                <button class="terms-modal-cancel">취소</button>
+                <button class="terms-modal-save">저장하기</button>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+    <script th:if="${msg != null}">
+        alert([[${msg}]]);   <!-- 그대로 써도 OK -->
+    </script>
+
+
+
+</th:block>
+
+<th:block th:fragment="script">
+    <script th:src="@{/js/terms.js}"></script>
+</th:block>
+
+</html>

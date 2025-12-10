@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "dpstId": { "type": "keyword" },
+    "dpstName": { "type": "text", "analyzer": "nori" },
+    "dpstInfo": { "type": "text", "analyzer": "nori" },
+    "dpstDescript": { "type": "text", "analyzer": "nori" },
+    "suggest": {
+      "type": "completion",
+      "analyzer": "standard",
+      "max_input_length": 100,
+      "preserve_separators": true
+    }
+  }
+}

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('고객센터 관리','환경설정',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+
+<!--지금 부터 수정 -->
+
+<!-- 본문 시작 -->
+<section class="admin-content">
+
+    <!-- 게시판 관리 -->
+    <section class="board-admin">
+
+        <!-- 글 등록 -->
+        <section id="board-register" class="board-section">
+            <div class="board-header">
+                <h2 th:text="${editMode} ? '글 수정' : '글 등록'"></h2>
+            </div>
+
+            <!-- 수정 모드일 때만 보이는 form -->
+            <form th:if="${editMode}" th:action="@{/admin/board/update}" method="post">
+
+                <input type="hidden" name="boardNo" th:value="${board.boardNo}" />
+
+                <div class="board-row">
+                    <div class="board-control">
+                        <label for="board-title">제목</label>
+                        <input id="board-title" name="boardTitle" type="text"
+                               th:value="${board.boardTitle}" required />
+                    </div>
+
+                    <div class="board-control">
+                        <label for="board-type">유형</label>
+                        <select id="board-type" name="boardType">
+                            <option value="1" th:selected="${board.boardType == 1}">공지사항</option>
+                            <option value="2" th:selected="${board.boardType == 2}">이벤트</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="board-control">
+                    <label for="board-content">내용</label>
+                    <textarea id="board-content" name="boardContent" rows="6"
+                              th:text="${board.boardContent}"></textarea>
+                </div>
+
+                <button type="submit" class="board-btn-primary">수정 완료</button>
+
+                <button type="button"
+                        class="board-btn-cancel"
+                        th:onclick="|location.href='@{/admin/member(page=${page})}#board-list'|">
+                    취소
+                </button>
+
+
+            </form>
+
+
+
+            <!-- 등록 모드일 때만 보이는 form -->
+            <form th:if="${!editMode}" th:action="@{/admin/board/register}" method="post">
+
+                <div class="board-row">
+                    <div class="board-control">
+                        <label for="board-title">제목</label>
+                        <input id="board-title" name="boardTitle" type="text" required />
+                    </div>
+
+                    <div class="board-control">
+                        <label for="board-type">유형</label>
+                        <select id="board-type" name="boardType">
+                            <option value="1">공지사항</option>
+                            <option value="2">이벤트</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="board-control">
+                    <label for="board-content">내용</label>
+                    <textarea id="board-content" name="boardContent" rows="6"></textarea>
+                </div>
+
+                <button type="submit" class="board-btn-primary">등록</button>
+            </form>
+
+
+
+        </section>
+
+
+        <!-- 글 목록 -->
+        <section id="board-list" class="board-section">
+            <div class="board-header">
+                <h2>글 목록</h2>
+            </div>
+
+            <!-- 통합 목록 -->
+            <div class="board-table-wrapper">
+                <table class="board-table">
+                    <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>유형</th>
+                        <th>제목</th>
+                        <th>작성일</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="item, stat : ${list}">
+                        <td th:text="${totalCount - ((page - 1) * pageSize) - stat.index}"></td>
+                        <td th:text="${item.boardType == 1 ? '공지사항' : '이벤트'}"></td>
+                        <td th:text="${item.boardTitle}"></td>
+                        <td th:text="${#temporals.format(item.boardRegDt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td>
+                            <button class="board-btn-edit"
+                                    th:onclick="|location.href='@{/admin/board/edit/{no}(no=${item.boardNo}, page=${page})}#board-register'|">
+                                <i class="fa-solid fa-pen"></i> 수정
+                            </button>
+
+
+                            <a th:href="@{|/admin/board/delete/${item.boardNo}|}"
+                               class="board-btn-delete"
+                               onclick="return confirm('정말 삭제하시겠습니까?');">
+                                <i class="fa-solid fa-trash"></i> 삭제
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+
+                <a th:if="${page > 1}"
+                   th:href="@{|/admin/member?page=${page-1}#board-list|}"
+                   class="page-btn prev">〈</a>
+
+                <a th:href="@{|/admin/member?page=1#board-list|}"
+                   th:classappend="${page == 1} ? 'active'"
+                   class="page-btn">1</a>
+
+                <span class="ellipsis" th:if="${page > 4}">...</span>
+
+                <a th:each="p : ${#numbers.sequence(page-2, page+2)}"
+                   th:if="${p > 1 and p < totalPage}"
+                   th:href="@{|/admin/member?page=${p}#board-list|}"
+                   th:text="${p}"
+                   th:classappend="${p == page} ? 'active'"
+                   class="page-btn"></a>
+
+                <span class="ellipsis" th:if="${page < totalPage-3}">...</span>
+
+                <a th:if="${totalPage > 1}"
+                   th:href="@{|/admin/member?page=${totalPage}#board-list|}"
+                   th:text="${totalPage}"
+                   th:classappend="${page == totalPage} ? 'active'"
+                   class="page-btn"></a>
+
+                <a th:if="${page < totalPage}"
+                   th:href="@{|/admin/member?page=${page+1}#board-list|}"
+                   class="page-btn next">〉</a>
+
+            </div>
+
+
+        </section>
+
+
+        <!--  FAQ 등록 & 수정  -->
+        <section id="faq-register" class="board-section">
+            <div class="board-header">
+                <h2 th:text="${faqEditMode} ? 'FAQ 수정' : 'FAQ 등록'"></h2>
+            </div>
+
+            <!-- 등록 -->
+            <form th:if="${!faqEditMode}" th:action="@{/admin/faq/register}" method="post">
+                <div class="board-row">
+                    <div class="board-control">
+                        <label>카테고리</label>
+                        <select name="faqCate">
+                            <option value="1">환율</option>
+                            <option value="2">환전</option>
+                            <option value="3">외화예금</option>
+                            <option value="4">환전수수료</option>
+                        </select>
+                    </div>
+
+                    <div class="board-control">
+                        <label>질문</label>
+                        <input name="faqQuestion" type="text" required>
+                    </div>
+                </div>
+
+                <div class="board-control">
+                    <label>답변</label>
+                    <textarea name="faqAnswer" rows="6" required></textarea>
+                </div>
+
+                <button type="submit" class="board-btn-primary">등록</button>
+            </form>
+
+            <!-- 수정 -->
+            <form th:if="${faqEditMode}" th:action="@{/admin/faq/update}" method="post">
+                <input type="hidden" name="faqNo" th:value="${faq.faqNo}" />
+
+                <div class="board-row">
+                    <div class="board-control">
+                        <label>카테고리</label>
+                        <select name="faqCate">
+                            <option value="1" th:selected="${faq.faqCate == 1}">환율</option>
+                            <option value="2" th:selected="${faq.faqCate == 2}">환전</option>
+                            <option value="3" th:selected="${faq.faqCate == 3}">외화예금</option>
+                            <option value="4" th:selected="${faq.faqCate == 4}">환전수수료</option>
+                        </select>
+                    </div>
+
+                    <div class="board-control">
+                        <label>질문</label>
+                        <input name="faqQuestion" th:value="${faq.faqQuestion}" required />
+                    </div>
+                </div>
+
+                <div class="board-control">
+                    <label>답변</label>
+                    <textarea name="faqAnswer" rows="6" th:text="${faq.faqAnswer}" required></textarea>
+                </div>
+
+                <button type="submit" class="board-btn-primary">수정 완료</button>
+
+                <button type="button" class="board-btn-cancel"
+                        th:onclick="|location.href='@{/admin/member(faqPage=${faqPage})}#faq-list'|">
+                    취소
+                </button>
+
+            </form>
+        </section>
+
+        <!--  FAQ 목록  -->
+        <section id="faq-list" class="board-section">
+            <div class="board-header">
+                <h2>FAQ 목록</h2>
+            </div>
+
+            <div class="board-table-wrapper">
+                <table class="board-table">
+                    <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>카테고리</th>
+                        <th>질문</th>
+                        <th>답변</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="faq, stat : ${faqList}">
+                        <td th:text="${totalFaqCount - ((faqPage - 1) * faqPageSize) - stat.index}"></td>
+
+                        <td th:switch="${faq.faqCate}">
+                            <span th:case="1">환율</span>
+                            <span th:case="2">환전</span>
+                            <span th:case="3">외화예금</span>
+                            <span th:case="4">환전수수료</span>
+                        </td>
+
+                        <td th:text="${faq.faqQuestion}"></td>
+                        <td th:text="${faq.faqAnswer}"></td>
+
+                        <td>
+                            <button class="board-btn-edit"
+                                    th:onclick="|location.href='@{/admin/faq/edit/{no}(no=${faq.faqNo}, faqPage=${faqPage})}#faq-register'|">
+                                수정
+                            </button>
+
+
+
+                            <a th:href="@{|/admin/faq/delete/${faq.faqNo}|}"
+                               class="board-btn-delete"
+                               onclick="return confirm('삭제하시겠습니까?');">
+                                삭제
+                            </a>
+                        </td>
+
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+
+                <!-- 이전 -->
+                <a th:if="${faqPage > 1}"
+                   th:href="@{|/admin/member?faqPage=${faqPage-1}#faq-list|}"
+                   class="page-btn prev">〈</a>
+
+                <!-- 첫 페이지 -->
+                <a th:href="@{|/admin/member?faqPage=1#faq-list|}"
+                   th:classappend="${faqPage == 1} ? 'active'"
+                   class="page-btn">1</a>
+
+                <!-- 첫 페이지 다음에 ... 표시 -->
+                <span class="ellipsis" th:if="${faqPage > 4}">...</span>
+
+                <!-- 현재 페이지 주변 3개 -->
+                <a th:each="p : ${#numbers.sequence(faqPage-2, faqPage+2)}"
+                   th:if="${p > 1 and p < totalFaqPage}"
+                   th:href="@{|/admin/member?faqPage=${p}#faq-list|}"
+                   th:text="${p}"
+                   th:classappend="${p == faqPage} ? 'active'"
+                   class="page-btn"></a>
+
+                <!-- 마지막 앞에 ... 표시 -->
+                <span class="ellipsis" th:if="${faqPage < totalFaqPage-3}">...</span>
+
+                <!-- 마지막 페이지 -->
+                <a th:if="${totalFaqPage > 1}"
+                   th:href="@{|/admin/member?faqPage=${totalFaqPage}#faq-list|}"
+                   th:text="${totalFaqPage}"
+                   th:classappend="${faqPage == totalFaqPage} ? 'active'"
+                   class="page-btn"></a>
+
+                <!-- 다음 -->
+                <a th:if="${faqPage < totalFaqPage}"
+                   th:href="@{|/admin/member?faqPage=${faqPage+1}#faq-list|}"
+                   class="page-btn next">〉</a>
+
+            </div>
+
+
+        </section>
+
+
+
+
+
+        <!-- Q&A 관리 -->
+        <section id="qna-list" class="qna-admin">
+            <div class="qna-header">
+                <h2>Q&A 목록</h2>
+
+                <form id="qnaFilterForm" th:action="@{/admin/member}" method="get" class="qna-filter">
+                    <input type="hidden" name="page" th:value="${page}">
+                    <input type="hidden" name="faqPage" th:value="${faqPage}">
+                    <input type="hidden" name="qnaPage" value="1">
+                    <label for="qna-status-filter">상태</label>
+                    <select id="qna-status-filter" name="qnaStatus">
+                        <option value="all" th:selected="${qnaStatus == 'all'}">전체</option>
+                        <option value="WAIT" th:selected="${qnaStatus == 'WAIT'}">대기</option>
+                        <option value="SAFE" th:selected="${qnaStatus == 'SAFE'}">AI SAFE</option>
+                        <option value="MID" th:selected="${qnaStatus == 'MID'}">AI 중간 위험</option>
+                        <option value="HIGH" th:selected="${qnaStatus == 'HIGH'}">AI 높은 위험</option>
+                        <option value="ANSWERED" th:selected="${qnaStatus == 'ANSWERED'}">최종 답변 완료</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="qna-table-wrapper">
+                <table class="qna-table">
+                    <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>질문</th>
+                        <th>작성자</th>
+                        <th>등록일</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item, stat : ${qnaList}">
+                        <td th:text="${totalQnaCount - ((qnaPage - 1) * qnaPageSize) - stat.index}">1</td>
+                        <td class="title" th:text="${item.qnaTitle}"></td>
+                        <td th:text="${item.qnaCustName != null ? item.qnaCustName : item.qnaCustCode}"></td>
+                        <td th:text="${item.qnaDt != null ? #temporals.format(item.qnaDt, 'yyyy-MM-dd HH:mm') : ''}"></td>
+                        <td>
+                            <span th:class="${'qna-status ' + (item.qnaStatus != null ? item.qnaStatus.toLowerCase() : 'wait')}"
+                                  th:text="${item.qnaStatus == 'SAFE' ? 'AI SAFE 자동답변' : (item.qnaStatus == 'MID' or item.qnaStatus == 'HIGH') ? 'AI 초안 검토 필요' : item.qnaStatus == 'ANSWERED' ? '최종 답변 완료' : '대기'}"></span>
+                        </td>
+                        <td>
+                            <button type="button"
+                                    class="qna-btn-view"
+                                    th:attr="data-qna-no=${item.qnaNo}">보기</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(qnaList)}">
+                        <td colspan="6" class="empty">등록된 문의가 없습니다.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" th:if="${totalQnaPage > 1}">
+                <a th:if="${qnaPage > 1}"
+                   th:href="@{|/admin/member?page=${page}&faqPage=${faqPage}&qnaPage=${qnaPage-1}&qnaStatus=${qnaStatus}#qna-list|}"
+                   class="page-btn prev">〈</a>
+
+                <a th:href="@{|/admin/member?page=${page}&faqPage=${faqPage}&qnaPage=1&qnaStatus=${qnaStatus}#qna-list|}"
+                   th:classappend="${qnaPage == 1} ? 'active'"
+                   class="page-btn">1</a>
+
+                <span class="ellipsis" th:if="${qnaPage > 4}">...</span>
+
+                <a th:each="p : ${#numbers.sequence(qnaPage-2, qnaPage+2)}"
+                   th:if="${p > 1 and p < totalQnaPage}"
+                   th:href="@{|/admin/member?page=${page}&faqPage=${faqPage}&qnaPage=${p}&qnaStatus=${qnaStatus}#qna-list|}"
+                   th:text="${p}"
+                   th:classappend="${p == qnaPage} ? 'active'"
+                   class="page-btn"></a>
+
+                <span class="ellipsis" th:if="${qnaPage < totalQnaPage-3}">...</span>
+
+                <a th:if="${totalQnaPage > 1}"
+                   th:href="@{|/admin/member?page=${page}&faqPage=${faqPage}&qnaPage=${totalQnaPage}&qnaStatus=${qnaStatus}#qna-list|}"
+                   th:text="${totalQnaPage}"
+                   th:classappend="${qnaPage == totalQnaPage} ? 'active'"
+                   class="page-btn"></a>
+
+                <a th:if="${qnaPage < totalQnaPage}"
+                   th:href="@{|/admin/member?page=${page}&faqPage=${faqPage}&qnaPage=${qnaPage+1}&qnaStatus=${qnaStatus}#qna-list|}"
+                   class="page-btn next">〉</a>
+            </div>
+        </section>
+        <div id="qnaModal" class="qna-modal" aria-hidden="true" role="dialog" aria-labelledby="qnaModalTitle">
+            <div class="qna-modal-content">
+                <span class="qna-modal-close" role="button" aria-label="닫기">&times;</span>
+                <div class="qna-modal-title" id="qnaModalTitle">Q&A 상세</div>
+                <div class="qna-modal-meta">
+                    <span class="qna-status" id="qnaModalStatus">상태</span>
+                    <p class="qna-meta" id="qnaModalMeta"></p>
+                </div>
+                <div class="qna-modal-question">
+                    <h3>질문</h3>
+                    <p id="qnaModalQuestion" class="qna-modal-question-text">내용을 불러오는 중입니다.</p>
+                </div>
+                <div class="qna-modal-line"></div>
+                <div class="qna-modal-answer">
+                    <label for="qnaReplyInput">답변</label>
+                    <textarea id="qnaReplyInput" rows="8" placeholder="문의에 대한 답변을 입력하세요."></textarea>
+                    <p class="qna-hint" id="qnaModalAiHint" style="display:none;">
+                        AI 생성 초안입니다. 검토가 필요합니다. 안내 문구를 제거한 뒤 승인해주세요.
+                    </p>
+                </div>
+                <div class="qna-modal-footer">
+                    <button type="button" class="qna-btn-cancel" id="qnaCancelButton">취소</button>
+                    <button type="button" class="board-btn-delete" id="qnaDeleteButton">삭제</button>
+                    <button type="button" class="qna-btn-primary" id="qnaSaveButton">저장</button>
+                </div>
+            </div>
+        </div>
+    <!-- admin-content 끝 -->
+</th:block>
+
+
+<th:block th:fragment="script">
+    <script th:src="@{/js/admin_setting.js}"></script>
+    <script th:src="@{/js/admin_qna.js}"></script>
+</th:block>
+
+
+
+</html>

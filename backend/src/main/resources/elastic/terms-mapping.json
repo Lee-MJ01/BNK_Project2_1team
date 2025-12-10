@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "thistNo": { "type": "keyword" },
+    "termTitle": { "type": "text", "analyzer": "nori" },
+    "thistContent": { "type": "text", "analyzer": "nori" },
+    "_class": { "type": "keyword", "index": false, "doc_values": false },
+    "thistVersion": { "type": "integer" },
+    "thistRegDy": { "type": "date", "format": "yyyy-MM-dd||date" },
+    "thistFile": { "type": "keyword" },
+
+    "groupKey": { "type": "keyword" },
+    "thistTermOrder": { "type": "integer" },
+    "thistTermCate": { "type": "integer" },
+
+    "suggest": {
+      "type": "completion",
+      "max_input_length": 100,
+      "analyzer": "standard",
+      "preserve_separators": true
+    }
+  }
+}

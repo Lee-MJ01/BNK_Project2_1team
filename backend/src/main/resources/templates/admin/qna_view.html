@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('Q&A 상세','Q&A 상세',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+    <section class="qna-detail">
+        <div class="qna-detail-header">
+            <div>
+                <p class="qna-breadcrumb">
+                    <a th:href="@{|/admin/member?qnaPage=${qnaPage}&qnaStatus=${qnaStatus}#qna-list|}">Q&A 목록</a>
+                    <span> / </span>
+                    <span th:text="${qna.qnaTitle}">상세</span>
+                </p>
+                <h2 th:text="${qna.qnaTitle}">Q&A 상세</h2>
+                <p class="qna-meta">
+                    작성자
+                    <strong th:text="${qna.qnaCustName != null ? qna.qnaCustName : qna.qnaCustCode}">작성자</strong>
+                    · 등록일
+                    <span th:text="${qna.qnaDt != null ? #temporals.format(qna.qnaDt, 'yyyy-MM-dd HH:mm') : ''}">0000-00-00</span>
+                </p>
+            </div>
+            <div class="qna-status-box">
+                <span th:class="${'qna-status ' + (qna.qnaStatus != null ? qna.qnaStatus.toLowerCase() : 'wait')}"
+                      th:text="${qna.qnaStatus == 'SAFE' ? 'AI SAFE 자동답변' : (qna.qnaStatus == 'MID' or qna.qnaStatus == 'HIGH') ? 'AI 초안 검토 필요' : qna.qnaStatus == 'ANSWERED' ? '최종 답변 완료' : '대기'}"></span>
+            </div>
+        </div>
+
+        <div class="qna-alert" th:if="${msg != null}">
+            <i class="fa-solid fa-circle-check"></i>
+            <span th:text="${msg}">알림</span>
+        </div>
+
+
+        <div class="qna-panel">
+            <h3>질문 내용</h3>
+
+            <!-- 내용이 있을 때 -->
+            <div class="qna-question"
+                 th:if="${qna.qnaContent != null and !#strings.isEmpty(qna.qnaContent)}"
+                 th:utext="${#strings.replace(#strings.escapeXml(qna.qnaContent), '\n', '<br/>')}">
+            </div>
+
+            <!-- 내용이 없을 때 -->
+            <div class="qna-question empty"
+                 th:if="${qna.qnaContent == null or #strings.isEmpty(qna.qnaContent)}">
+                등록된 내용이 없습니다.
+            </div>
+        </div>
+
+
+        <form class="qna-panel qna-reply-form" th:action="@{/admin/qna/{qnaNo}/reply(qnaNo=${qna.qnaNo})}" method="post">
+            <input type="hidden" name="qnaPage" th:value="${qnaPage}">
+            <input type="hidden" name="qnaStatus" th:value="${qnaStatus}">
+            <h3>답변 작성</h3>
+            <p class="qna-hint" th:if="${qna.qnaStatus == 'MID' or qna.qnaStatus == 'HIGH'}">AI 생성 초안입니다. 검토 문구를 삭제한 뒤 승인해주세요.</p>
+            <textarea name="reply" rows="8" placeholder="문의에 대한 답변을 입력하세요." th:text="${(qna.qnaStatus == 'SAFE' or qna.qnaStatus == 'ANSWERED') ? qna.qnaReply : (qna.qnaDraft != null ? qna.qnaDraft : qna.qnaReply)}"></textarea>
+            <div class="qna-actions">
+                <button type="submit" class="qna-btn-primary">저장</button>
+                <a class="qna-btn-secondary" th:href="@{|/admin/member?qnaPage=${qnaPage}&qnaStatus=${qnaStatus}#qna-list|}">목록</a>
+            </div>
+        </form>
+    </section>
+</th:block>
+
+<th:block th:fragment="script">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('form.qna-reply-form');
+            if (form) {
+                form.addEventListener('submit', () => {
+                    const btn = form.querySelector('button[type="submit"]');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = '저장 중...';
+                    }
+                });
+            }
+        });
+    </script>
+</th:block>
+</html>

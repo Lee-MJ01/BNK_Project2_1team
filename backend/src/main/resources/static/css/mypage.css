@@ -1,0 +1,3788 @@
+
+
+
+/* //////////////////////////////////////////////////////////// *
+
+
+/* =========================================================
+   MYPAGE
+   ========================================================= */
+
+   :root {
+  --main-color: #22304E;      /* 딥 네이비 (Main) */
+  --sub-color: #E3E7EC;       /* 미스트 그레이 (Sub) */
+  --point-color: #4A6FA5;     /* 스틸 블루 (Point) */
+  --bg-color: #F5F5F5;        /* 화이트 스모크 (Background) */
+  --text-dark: #222;
+  --text-gray: #666;
+  --border-light: #e5e5e5;
+}
+
+/*  마이페이지 전체 레이아웃 */
+.mypage-container {
+  display: grid;
+  grid-template-columns: 340px 1fr; /* 왼쪽(프로필+배너) / 오른쪽(내용) */
+  gap: 40px;
+  max-width: 1300px;
+  margin: 80px auto;
+  padding: 0 40px;
+  align-items: start;
+}
+
+/* ✅ 프로필 카드 */
+.profile-card {
+  width: 100%;
+  max-width: 320px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  padding: 28px 24px;
+}
+
+
+
+.profile-header {
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.profile-header i {
+  font-size: 70px;
+  color: var(--main-color);
+  margin-bottom: 10px;
+}
+
+.profile-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.profile-header p {
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+/* 우수고객 우대서비스 버튼 */
+.btn-grade {
+  margin-top: 10px;
+  background: var(--main-color); /* 딥네이비 */
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-grade:hover {
+  background: var(--point-color); /* 스틸블루로 hover */
+  box-shadow: 0 2px 6px rgba(34, 48, 78, 0.3);
+}
+
+
+
+.profile-info {
+  list-style: none;
+  margin-top: 20px;
+  padding-left: 0;
+}
+
+.profile-info li {
+  font-size: 14px;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-info i {
+  color: var(--sub-color);
+}
+
+
+
+/* 입출금통장 개설 버튼 */
+.profile-action {
+  text-align: center;
+  margin: 15px 0 10px 0;
+}
+
+/* ✅ 완전히 독립된 버튼 스타일 */
+.btn-flow-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #22304E !important; /* ✅ 남색 확정 */
+  color: #fff !important;               /* ✅ 흰 글씨 강제 */
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10; /* 혹시 z-index 문제 대비 */
+}
+
+.btn-flow-open i {
+  margin-right: 6px;
+}
+
+.btn-flow-open:hover {
+  background-color: #4FBDBA !important; /* ✅ hover 시 민트 */
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(34, 48, 78, 0.3);
+  transform: translateY(-1px);
+}
+
+
+
+
+
+
+
+
+
+.profile-footer {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.profile-footer a {
+  color: var(--main-color);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+/* ✅ 오른쪽 영역 (계좌정보, 거래내역 등) */
+.account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 35px;
+}
+
+/* 공통 카드 스타일 */
+.transfer-history,
+.my-account,
+.foreign-assets {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 25px 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 제목 스타일 */
+.transfer-history h2,
+.my-account h2,
+.foreign-assets h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 15px;
+}
+
+/* 보유 외화자산 영역 */
+.foreign-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-more {
+  background: none;
+  border: none;
+  color: var(--point-color);
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.btn-more:hover {
+  color: var(--main-color);
+}
+
+
+
+
+
+/* 표 스타일 (account-table과 동일) */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.history-table th {
+  text-align: left;
+  background: #f5f8fa;
+  padding: 12px;
+  color: #555;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.history-table td {
+  padding: 14px 12px;
+  font-size: 15px;
+  color: var(--text-dark);
+  border-bottom: 1px solid #eee;
+}
+
+.history-table tr:hover td {
+  background: #f9fafc;
+  color: var(--main-color);
+}
+
+
+.btn-more-history:hover {
+  text-decoration: underline;
+}
+/* 계좌 정보 */
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.account-header h2 {
+  font-size: 18px;
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.account-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-tabs button {
+  border: 1px solid var(--border-light);
+  background: #fff;
+  color: var(--text-gray);
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.account-tabs button:hover {
+  background: var(--main-color);
+  color: #fff;
+}
+
+.account-tabs .active {
+  background: var(--main-color);
+  color: #fff;
+  border-color: var(--main-color);
+}
+
+/* 계좌 테이블 */
+.account-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.account-table th {
+  text-align: left;
+  background: #f5f8fa;
+  padding: 12px;
+  color: #555;
+  font-size: 14px;
+  border-bottom: 1px solid #ddd;
+}
+
+.account-table td {
+  padding: 14px 12px;
+  font-size: 15px;
+  color: var(--text-dark);
+  border-bottom: 1px solid #eee;
+}
+
+.btn-transfer {
+  border: none;
+  background: #2C5DE5;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  text-decoration: none;  /* 밑줄 제거 */
+}
+
+/* 🔹 외화 보유 자산 - 3x2 카드 정렬 */
+.currency-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* ✅ 가로 3개 */
+  gap: 24px;                             /* 카드 간격 */
+  justify-items: center;                 /* 중앙 정렬 */
+  margin-top: 20px;
+}
+
+.currency-card {
+  width: 180px;                          /* 카드 고정폭 */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  text-align: center;
+  padding: 20px 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+}
+
+.currency-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.currency-card i {
+  font-size: 32px;
+  color: var(--point-color);
+  margin-bottom: 8px;
+}
+
+.currency-card p {
+  color: var(--text-gray);
+  font-size: 14px;
+}
+
+.currency-card strong {
+  display: block;
+  font-size: 18px;
+  margin-top: 6px;
+  color: var(--text-dark);
+}
+
+
+
+
+
+/* =============================
+   계좌개설 약관
+============================= */
+:root {
+  --main-color: #22304E;   /* 딥 네이비 */
+  --highlight: #4FBDBA;   /* 버튼/포인트 민트색 */
+  --border-light: #ddd;
+  --text-dark: #222;
+  --text-gray: #666;
+}
+
+/* ----------------------------
+   전체 레이아웃
+---------------------------- */
+body {
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* 중앙 컨테이너 */
+.terms-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 제목 */
+.terms-container h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 8px;
+}
+
+.terms-desc {
+  color: var(--text-gray);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+/* ----------------------------
+   그룹 제목
+---------------------------- */
+.group-title {
+  text-align: left;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 40px 0 15px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 10px;
+}
+
+/* ----------------------------
+   약관 박스
+---------------------------- */
+.terms-box {
+  text-align: left;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  background: #fafafa;
+}
+
+/* 약관 제목 */
+.terms-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 10px;
+}
+
+/* 약관 본문 */
+.terms-content {
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 15px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+  border-radius: 6px;
+}
+
+/* 스크롤바 디자인 */
+.terms-content::-webkit-scrollbar {
+  width: 8px;
+}
+.terms-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.terms-content::-webkit-scrollbar-thumb:hover {
+  background-color: #aaa;
+}
+
+/* ----------------------------
+   체크박스
+---------------------------- */
+.terms-check {
+  margin-top: 12px;
+}
+
+.custom-check {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-dark);
+  user-select: none;
+}
+
+/* 실제 input 숨김 */
+.custom-check input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+/* 기본 박스 */
+.custom-check .checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  display: inline-block;
+  margin-right: 8px;
+  transition: all 0.25s ease;
+}
+
+/* 체크 시 효과 */
+.custom-check input:checked + .checkmark {
+  background: var(--highlight);
+  border-color: var(--highlight);
+  box-shadow: 0 0 4px rgba(79, 189, 186, 0.6);
+  position: relative;
+}
+
+/* 체크표시 */
+.custom-check input:checked + .checkmark::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ----------------------------
+   전체 동의
+---------------------------- */
+.terms-all {
+  margin-top: 40px;
+  text-align: left;
+  font-size: 15px;
+  color: var(--main-color);
+  border-top: 1px dashed #ccc;
+  padding-top: 20px;
+}
+
+.terms-all .custom-check {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ----------------------------
+   다음 버튼
+---------------------------- */
+.terms-actions {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.btn-next {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  padding: 12px 36px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 3px 8px rgba(34, 48, 78, 0.25);
+  transition: all 0.25s ease;
+}
+
+.btn-next:hover {
+  background: var(--highlight);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(79, 189, 186, 0.4);
+}
+
+
+
+
+/* =========================================================
+   입출금통장 개설 (open2-account) - 독립 버전
+   ========================================================= */
+
+.open2-account-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.open2-account-box {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 35px 45px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 제목 및 설명 */
+.open2-account-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.open2-account-box .desc {
+  color: var(--text-gray);
+  font-size: 14px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* --------------------------------------------
+   입력 폼 기본
+-------------------------------------------- */
+.open2-form-group {
+  margin-bottom: 22px;
+  text-align: left;
+}
+
+.open2-form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.open2-form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.open2-form-input:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 4px rgba(79, 189, 186, 0.3);
+}
+
+/* 읽기 전용 input */
+.open2-form-input.readonly {
+  background-color: #f9f9f9;
+  color: #555;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+}
+.open2-form-input.readonly:focus {
+  border-color: #e0e0e0;
+  box-shadow: none;
+}
+
+/* 생년월일/성별 한 줄 */
+.open2-form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.open2-form-group.half {
+  flex: 1;
+}
+
+/* --------------------------------------------
+   이체 한도
+-------------------------------------------- */
+.open2-limit-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+
+/* 입력칸 폭 줄이기 */
+.open2-limit-input {
+  flex: 1;
+  max-width: 320px; /* ⬅️ 입력칸 최대폭 축소 */
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  padding: 8px 10px;
+  text-align: right;
+  transition: border-color 0.25s ease;
+}
+.open2-limit-input:focus {
+  border-color: var(--highlight);
+}
+
+.open2-btn-limit {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.open2-btn-limit:hover {
+  background: var(--highlight);
+}
+
+/* 안내 박스 */
+.open2-info-box {
+  background: #fafafa;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-gray);
+  line-height: 1.6;
+}
+
+/* --------------------------------------------
+   인증 / 비밀번호
+-------------------------------------------- */
+.open2-verify-box {
+  display: flex;
+  gap: 10px;
+}
+
+.open2-form-input.short {
+  flex: 1;
+}
+
+.open2-btn-verify {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.open2-btn-verify:hover {
+  background: var(--highlight);
+}
+
+/* --------------------------------------------
+   버튼
+-------------------------------------------- */
+.open2-form-actions {
+  text-align: center;
+  margin-top: 35px;
+}
+
+.open2-btn-next {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  padding: 12px 34px;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 3px 6px rgba(34, 48, 78, 0.25);
+  transition: all 0.25s ease;
+}
+.open2-btn-next:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(79, 189, 186, 0.4);
+}
+
+
+
+/* =========================================================
+   입출금통장 개설 (open2-account) - 수정 완료 버전
+   ========================================================= */
+
+.open2-account-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.open2-account-box {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 35px 45px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 제목 및 설명 */
+.open2-account-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.open2-account-box .desc {
+  color: var(--text-gray);
+  font-size: 14px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+/* --------------------------------------------
+   입력 폼 기본
+-------------------------------------------- */
+.open2-form-group {
+  margin-bottom: 22px;
+  text-align: left;
+  width: 420px; /* 전체 폼 폭 제한 */
+  margin-left: auto;
+  margin-right: auto; /* 중앙 정렬 */
+}
+
+.open2-form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 14px;
+  margin-bottom: 6px;
+  text-align: left; /* 라벨 왼쪽정렬 */
+}
+
+.open2-form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.open2-form-input:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 4px rgba(79, 189, 186, 0.3);
+}
+
+/* 읽기 전용 input */
+.open2-form-input.readonly {
+  background-color: #f9f9f9;
+  color: #555;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+}
+.open2-form-input.readonly:focus {
+  border-color: #e0e0e0;
+  box-shadow: none;
+}
+
+/* 생년월일/성별 한 줄 */
+.open2-form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  width: 420px;
+  margin: 0 auto;
+}
+.open2-form-group.half {
+  flex: 1;
+}
+
+/* --------------------------------------------
+   이체 한도
+-------------------------------------------- */
+.open2-limit-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.open2-limit-section .open2-form-group {
+  width: 420px;
+}
+
+.open2-limit-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.open2-limit-input {
+  flex: 1;
+  max-width: 320px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  padding: 8px 10px;
+  text-align: right;
+  transition: border-color 0.25s ease;
+}
+
+.open2-limit-input:focus {
+  border-color: var(--highlight);
+}
+
+.open2-btn-limit {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.open2-btn-limit:hover {
+  background: var(--highlight);
+}
+
+/* 안내문구 왼쪽 정렬 */
+.open2-guide-text {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-top: 5px;
+  text-align: left;
+}
+
+/* 안내 박스 */
+.open2-info-box {
+  background: #fafafa;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-gray);
+  line-height: 1.6;
+  width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --------------------------------------------
+   인증 / 비밀번호
+-------------------------------------------- */
+.open2-verify-box {
+  display: flex;
+  gap: 10px;
+}
+
+.open2-form-input.short {
+  flex: 1;
+}
+
+.open2-btn-verify {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.open2-btn-verify:hover {
+  background: var(--highlight);
+}
+
+/* --------------------------------------------
+   버튼
+-------------------------------------------- */
+.open2-form-actions {
+  text-align: center;
+  margin-top: 35px;
+}
+
+.open2-btn-next {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  padding: 12px 34px;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 3px 6px rgba(34, 48, 78, 0.25);
+  transition: all 0.25s ease;
+}
+.open2-btn-next:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(79, 189, 186, 0.4);
+}
+
+
+.open2-info-box {
+  margin-bottom: 30px; /* 아래쪽 여백 */
+}
+
+.open2-form-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  background-color: #fff;
+}
+
+
+.currency-label {
+  margin-left: 8px;
+  font-weight: 600;
+  color: #2C5DE5; /* 플로뱅크 대표색 (#2C5DE5) */
+}
+
+
+
+/* =========================================================
+   입출금통장 개설 완료 (open3)
+   ========================================================= */
+
+.open3-complete {
+  width: 100%;
+  min-height: 70vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  padding: 100px 0;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.open3-complete-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 60px 80px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  max-width: 600px;
+}
+
+.open3-char-img img {
+  width: 160px;
+  margin-bottom: 25px;
+}
+
+.open3-complete-text h2 {
+  font-size: 22px;
+  color: var(--main-color);
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.open3-complete-text p {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 35px;
+}
+
+.open3-complete-btn {
+  background: var(--main-color);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 12px 30px;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(34, 48, 78, 0.25);
+}
+
+.open3-complete-btn:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(79, 189, 186, 0.4);
+}
+
+
+
+
+/* 입출금통장 개설 페이지 */
+
+/* =========================================================
+   입출금통장 개설 선택 (open-account-choice)
+   ========================================================= */
+
+
+/* =========================================================
+   입출금통장 개설 선택 (open-account-choice)
+   ========================================================= */
+
+.open-choice-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.open-choice-box {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 60px 50px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 중앙 캐릭터 */
+.choice-main-img {
+  width: 200px;
+  margin-bottom: 25px;
+}
+
+.open-choice-box h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #22304E; /* 플로뱅크 메인 컬러 */
+  margin-bottom: 45px;
+}
+
+/* 버튼 컨테이너 */
+.choice-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+/* 버튼 */
+.choice-btn {
+  width: 220px;
+  height: 110px;
+  background: #fff;
+  border: 2px solid #22304E;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #22304E;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.choice-btn i {
+  font-size: 26px;
+}
+
+.choice-btn:hover {
+  background: #22304E;
+  color: #fff;
+  transform: translateY(-3px);
+}
+
+
+/* ============================================
+   계좌이체 1단계 (transfer1)
+   ============================================ */
+.transfer1-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.transfer1-box {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 제목 */
+.transfer1-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-color);
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+/* 안내문 */
+.transfer1-info-box {
+  background: #fafafa;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-gray);
+  padding: 15px 20px;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+/* 구역 제목 */
+.transfer1-subtitle {
+  text-align: left;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin: 30px 0 15px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 10px;
+}
+
+/* 폼 그룹 */
+.transfer1-form-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.transfer1-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.transfer1-input,
+.transfer1-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.transfer1-input:focus,
+.transfer1-select:focus {
+  border-color: var(--highlight);
+  box-shadow: 0 0 4px rgba(79,189,186,0.3);
+}
+
+/* 이체금액 버튼 */
+.transfer1-flex {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transfer1-input.short {
+  max-width: 250px;
+  flex: 1;
+}
+
+.transfer1-btn-group button {
+  background: #f3f4f6;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transfer1-btn-group button:hover {
+  background: var(--highlight);
+  color: #fff;
+}
+
+/* 선택입력 */
+.transfer1-flex-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.transfer1-form-group.half {
+  flex: 1;
+}
+
+/* 버튼영역 */
+.transfer1-actions {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.transfer1-btn-next {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 36px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(34,48,78,0.25);
+  transition: all 0.25s ease;
+}
+
+.transfer1-btn-next:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+}
+
+.transfer1-btn-sub {
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 30px;
+  margin-left: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.transfer1-btn-sub:hover {
+  background: #e5e5e5;
+}
+
+
+.transfer1-input.readonly {
+  background: #f9f9f9;
+  color: #555;
+  border-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+
+/* --------------------------------------------
+   단계 표시 바 (Progress Steps)
+-------------------------------------------- */
+.transfer1-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 35px;
+}
+
+.transfer1-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.transfer1-step .num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.8px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  background: #fff;
+  color: #888;
+  transition: all 0.3s ease;
+}
+
+.transfer1-step.active .num {
+  border-color: var(--main-color);
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.transfer1-step.active .text {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.transfer1-step .text {
+  font-size: 14px;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+/* ============================================
+   계좌이체 2단계 (transfer2)
+   ============================================ */
+.transfer2-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.transfer2-box {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 단계 표시 */
+.transfer2-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.transfer2-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.transfer2-step .num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.8px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  background: #fff;
+  color: #888;
+}
+
+.transfer2-step.active .num {
+  border-color: var(--main-color);
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.transfer2-step.active .text {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+/* 제목 */
+.transfer2-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--main-color);
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+/* 안내문 */
+.transfer2-info-box {
+  background: #fafafa;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-gray);
+  padding: 15px 20px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+}
+
+.transfer2-info-box.small {
+  background: #fefefe;
+  font-size: 13px;
+  padding: 12px 18px;
+}
+
+/* 구역 제목 */
+.transfer2-subtitle {
+  text-align: left;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin: 25px 0 15px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 10px;
+}
+
+/* 테이블 */
+.transfer2-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: center;
+}
+
+.transfer2-table th {
+  background: #f5f8fa;
+  color: var(--text-dark);
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+.transfer2-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  color: var(--text-dark);
+}
+
+.transfer2-table .sub {
+  color: #777;
+  font-size: 12px;
+}
+
+.transfer2-actions {
+  text-align: center;
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.transfer2-btn-main {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 36px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(34,48,78,0.25);
+  transition: all 0.25s ease;
+}
+
+.transfer2-btn-main:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+}
+
+.transfer2-btn-sub {
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 30px;
+  margin-left: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.transfer2-btn-sub:hover {
+  background: #e5e5e5;
+}
+
+/* ============================================
+   계좌이체 3단계 (transfer3)
+   ============================================ */
+.transfer3-container {
+  width: 70%;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.transfer3-box {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 40px 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 단계 표시 */
+.transfer3-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 35px;
+}
+
+.transfer3-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.transfer3-step .num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.8px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  background: #fff;
+  color: #888;
+}
+
+.transfer3-step.active .num {
+  border-color: var(--main-color);
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.transfer3-step.active .text {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+/* 완료 박스 */
+.transfer3-complete-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  border: 1.5px solid #eee;
+  border-radius: 10px;
+  background: #fafafa;
+  padding: 25px 30px;
+  margin-bottom: 35px;
+}
+
+.transfer3-icon i {
+  font-size: 36px;
+  color: var(--main-color);
+}
+
+.transfer3-complete-text h2 {
+  font-size: 18px;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.transfer3-complete-text p {
+  font-size: 14px;
+  color: var(--text-gray);
+}
+
+/* 이체결과 */
+.transfer3-section {
+  margin-top: 25px;
+}
+
+.transfer3-subtitle {
+  text-align: left;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 15px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 10px;
+}
+
+.transfer3-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 14px;
+}
+
+.transfer3-table th {
+  background: #f5f8fa;
+  color: var(--text-dark);
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+.transfer3-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  color: var(--text-dark);
+}
+
+.transfer3-table .sub {
+  color: #777;
+  font-size: 12px;
+}
+
+.transfer3-success {
+  color: var(--main-color);
+  font-weight: 700;
+}
+
+.transfer3-guide {
+  font-size: 13px;
+  color: #777;
+  margin-top: 10px;
+  text-align: left;
+}
+
+/* 버튼 */
+.transfer3-actions {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.transfer3-btn-main {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 34px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(34,48,78,0.25);
+}
+
+.transfer3-btn-main:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+}
+
+.transfer3-btn-sub {
+  background: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 28px;
+  margin-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.transfer3-btn-sub:hover {
+  background: #e6e6e6;
+}
+
+:root {
+  --main-color: #22304E;       /* 브랜드 메인 컬러 */
+  --highlight: #2C5DE5;        /* hover 시 강조 컬러 */
+  --text-dark: #222;           /* 본문 텍스트 */
+  --text-gray: #777;           /* 설명 텍스트 */
+  --border-light: #ddd;        /* 테두리 색상 */
+}
+
+.transfer1-btn-next {
+  text-decoration: none;  /* 밑줄 제거 */
+  display: inline-block;  /* 버튼처럼 block 성질 */
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 34px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(34,48,78,0.25);
+}
+
+.transfer1-btn-next:hover {
+  background: var(--highlight);
+  transform: translateY(-2px);
+  text-decoration: none; /* hover 시에도 밑줄 방지 */
+}
+
+.transfer2-btn-sub {
+  text-decoration: none;         /* 밑줄 제거 */
+  display: inline-block;         /* 버튼처럼 보이게 */
+  background: #f1f1f1;           /* 기존 배경색 유지 */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 28px;
+  margin-left: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;                   /* ✅ 글자색 검정으로 고정 */
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.transfer2-btn-sub:hover {
+  background: #e6e6e6;
+  color: #000;                   /* ✅ hover 시에도 진한 검정 */
+}
+
+.transfer2-btn-main,
+.transfer2-btn-sub {
+  text-decoration: none;   /* ✅ 밑줄 제거 */
+  display: inline-block;   /* 버튼처럼 보이게 */
+}
+
+/* ------------------------------------
+   🔹 마이페이지 AI 챗봇 화면
+------------------------------------ */
+.chatbot-page {
+  max-width: 1200px;
+  margin: 60px auto 100px;
+  padding: 0 20px;
+}
+
+.chatbot-hero {
+  background: #f3f5fa;
+  color: #22304E;
+  border-radius: 20px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #d9dfeb;
+  box-shadow: 0 12px 28px rgba(34, 48, 78, 0.08);
+}
+
+.chatbot-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(74, 111, 165, 0.08);
+}
+
+.chatbot-hero .hero-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #e3e8f2;
+  color: #22304E;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  margin-bottom: 18px;
+}
+
+.chatbot-hero h1 {
+  font-size: 32px;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.chatbot-hero p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #4a5d7f;
+  max-width: 660px;
+}
+
+.chatbot-layout {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.quick-links {
+  border: 1px solid #d9dfeb;
+  border-radius: 16px;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(34, 48, 78, 0.06);
+}
+
+.quick-links h3 {
+  font-size: 16px;
+  color: #22304E;
+  margin-bottom: 14px;
+}
+
+.quick-links button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #d9dfeb;
+  background: #f6f8fc;
+  color: #22304E;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.quick-links button:hover {
+  background: #e9edf7;
+  transform: translateY(-1px);
+}
+
+.chatbot-console {
+  border-radius: 20px;
+  border: 1px solid #d9dfeb;
+  background: #fff;
+  padding: 28px;
+  box-shadow: 0 16px 32px rgba(34, 48, 78, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.console-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.console-header h2 {
+  font-size: 24px;
+  color: #22304E;
+  margin-bottom: 6px;
+}
+
+.console-header p {
+  color: #607092;
+  font-size: 14px;
+}
+
+.console-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.console-actions .outline {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid #4A6FA5;
+  background: transparent;
+  color: #4A6FA5;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.console-actions .outline:hover {
+  background: #4A6FA5;
+  color: #fff;
+}
+
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 560px;
+  min-height: 420px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.message {
+  display: flex;
+  gap: 14px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+
+.message .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.message.bot .avatar {
+  background: #22304E;
+  color: #fff;
+}
+
+.message.user .avatar {
+  background: #e3e7ec;
+  color: #22304E;
+}
+
+.message .bubble {
+  background: #f5f5f5;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px solid #e3e7ec;
+  max-width: 75%;
+  box-shadow: 0 10px 24px rgba(34, 48, 78, 0.05);
+}
+
+.message.bot .bubble {
+  background: rgba(74, 111, 165, 0.12);
+  border-color: rgba(74, 111, 165, 0.35);
+}
+
+.message .meta {
+  display: block;
+  font-size: 12px;
+  color: #607092;
+  margin-bottom: 6px;
+}
+
+.suggested-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+
+.suggested-actions button {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #4A6FA5;
+  color: #4A6FA5;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.chat-input {
+  border-top: 1px solid #e3e7ec;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prompt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.prompt-chips button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #d0d7e6;
+  background: #f5f5f5;
+  color: #22304E;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.prompt-chips button:hover {
+  background: #e3e7ec;
+  transform: translateY(-1px);
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.input-row .input-form{
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    display: flex;
+}
+
+.input-row input {
+    width: 680px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #d0d7e6;
+  font-size: 15px;
+}
+
+.send-btn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: #4A6FA5;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.send-btn:hover {
+  background: #22304E;
+  transform: scale(1.05);
+}
+
+.guide-text {
+  font-size: 13px;
+  color: #607092;
+}
+
+.chatbot-support {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chatbot-support .faq-card,
+.chatbot-support .notice-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #d9dfeb;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(34, 48, 78, 0.06);
+}
+
+.chatbot-support h3 {
+  font-size: 18px;
+  color: #22304E;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.faq-card .faq-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e3e7ec;
+  color: #22304E;
+  font-weight: 600;
+}
+
+.faq-card .faq-item:last-child {
+  border-bottom: none;
+}
+
+.notice-card p {
+  font-size: 14px;
+  color: #4a5d7f;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .chatbot-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chatbot-support {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .chatbot-support > * {
+    flex: 1 1 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chatbot-hero {
+    padding: 30px;
+  }
+
+  .chatbot-hero h1 {
+    font-size: 26px;
+  }
+
+  .chatbot-console {
+    padding: 22px;
+  }
+
+  .console-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .console-actions {
+    width: 100%;
+  }
+
+  .console-actions .outline {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .input-row {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .send-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+  }
+}
+
+
+
+/* =========================================================
+   출석 이벤트 페이지 전용 (FlowBank Event)
+   ========================================================= */
+body.event-page {
+  background-color: #F8FFFD !important;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+}
+
+/* ===== 메인 이벤트 컨테이너 ===== */
+.eventpage-container {
+  max-width: 1000px;
+  margin: 60px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
+  padding: 28px;
+}
+
+/* ===== 배너 ===== */
+.eventpage-banner {
+  width: 50%;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.eventpage-highlight {
+  color: #2C5DE5;       /* 플로뱅크 메인 컬러 */
+  font-weight: 700;
+}
+
+/* ===== 설명 문구 ===== */
+.eventpage-desc {
+  font-size: 16px;
+  color: #666;
+  margin: 10px 0 30px;
+  line-height: 1.5;
+}
+.eventpage-desc strong {
+  color: #4A6FA5;
+  font-weight: 700;
+}
+
+/* ===== 출석 그리드 ===== */
+.eventpage-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 14px;
+  justify-items: center;
+  margin-bottom: 25px;
+}
+
+/* ===== 각 출석 칸 ===== */
+.eventpage-box {
+  width: 90px;
+  height: 100px;
+  background-color: #f9fffc;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.eventpage-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+.eventpage-box img {
+  width: 70px;
+  height: 70px;
+  transition: transform 0.2s ease;
+}
+.eventpage-box img.checked {
+  transform: scale(1.15);
+}
+.eventpage-box p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #555;
+}
+
+/* ===== 출석 버튼 ===== */
+.eventpage-btn {
+  background-color: #4A6FA5;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.eventpage-btn:hover {
+  background-color: #3d5c88;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 600px) {
+  .eventpage-container {
+    max-width: 95%;
+    padding: 20px;
+  }
+
+  .eventpage-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .eventpage-box {
+    width: 80px;
+    height: 90px;
+  }
+
+  .eventpage-box img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .eventpage-btn {
+    width: 100%;
+  }
+}
+
+
+
+
+/* 🔹 모달 전체 배경 */
+.modal {
+  display: none; /* 기본 숨김 */
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5); /* 배경 어둡게 */
+  justify-content: center;
+  align-items: center;
+}
+
+/* 🔹 모달 박스 */
+.modal-content {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  width: 420px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* 🔹 닫기 버튼 */
+.close-btn {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.close-btn:hover {
+  color: #222;
+}
+
+/* 🔹 폼 스타일 */
+.user-info-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.user-info-form .form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.user-info-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 5px;
+}
+
+.user-info-form input {
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.user-info-form input:focus {
+  border-color: var(--point-color);
+  box-shadow: 0 0 4px rgba(74,111,165,0.3);
+}
+
+.user-info-form input[readonly] {
+  background-color: #f4f4f4;
+  color: #777;
+  cursor: not-allowed;
+}
+
+/* 🔹 저장 버튼 */
+.btn-save {
+  background: var(--main-color);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+  background: var(--point-color);
+  transform: translateY(-1px);
+}
+
+
+/* 🔹 주소 입력 그룹 */
+.address-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-inline input {
+  flex: 1;
+}
+
+.register-btn {
+  background: var(--point-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.register-btn:hover {
+  background: var(--main-color);
+}
+
+
+
+
+/*  왼쪽 컬럼 묶음 */
+.mypage-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px; /* 프로필-배너 간 간격 */
+}
+/*
+ 출석 이벤트 배너 */
+.event-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.event-banner {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.event-banner:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.event-banner:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+
+/* =========================================================
+   🔹 마이페이지 - 출석 이벤트 버튼형
+   ========================================================= */
+
+/* ✅ 출석 이벤트 버튼 (플로뱅크 블루 톤) */
+.btn-attendance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #805ff8 !important;  /* 🔵 플로뱅크 블루 */
+  color: #fff !important;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 3px 8px rgba(44, 93, 229, 0.25);
+}
+
+.btn-attendance i {
+  margin-right: 6px;
+  font-size: 15px;
+}
+
+.btn-attendance:hover {
+  background-color: #1F47C5 !important;  /* hover 시 진한 블루 */
+  box-shadow: 0 4px 12px rgba(44, 93, 229, 0.35);
+  transform: translateY(-1px);
+}
+
+
+/*  출석 이벤트 버튼 정렬 */
+.event-btn {
+  display: flex;
+  justify-content: center; /* 가로 중앙 정렬 */
+  width: 100%;
+  margin-top: 20px; /* 프로필 카드와 약간 간격 */
+}
+
+
+.open2-currency-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-top: 8px;
+}
+
+.open2-currency-box label {
+  font-size: 15px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.open2-currency-box input[type="checkbox"]:disabled {
+  accent-color: #2c5de5; /* ✅ 체크 표시 색상 (FlowBank 메인 컬러) */
+  cursor: not-allowed;
+}
+
+
+.open2-currency-guide {
+  color: #4A6FA5;
+  font-weight: 600;
+}
+
+
+
+/* =========================================================
+   💱 환전 상세 모달 (ex-modal)
+   ========================================================= */
+
+.ex-modal {
+  display: none; /* 기본 숨김 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.ex-modal-content {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 40px;
+  width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.ex-modal-content h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 18px;
+  text-align: center;
+  border-bottom: 1.5px solid #eee;
+  padding-bottom: 12px;
+}
+
+.ex-modal-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin: 28px 0 10px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 8px;
+}
+
+.ex-modal .close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.ex-modal .close-btn:hover {
+  color: var(--main-color);
+}
+
+.ex-modal .detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.ex-modal .detail-table th,
+.ex-modal .detail-table td {
+  border: 1px solid #ddd;
+  padding: 10px 14px;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.ex-modal .detail-table th {
+  width: 32%;
+  background: #f5f8fa;
+  color: #333;
+  font-weight: 600;
+}
+
+.ex-modal .detail-table td {
+  color: #444;
+}
+
+/* 링크 스타일 */
+.exchange-link {
+  background: none;
+  border: none;
+  color: #2C5DE5;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 0;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+.exchange-link:hover {
+  color: #4FBDBA;
+  text-decoration: underline;
+}
+
+/* 스크롤바 */
+.ex-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+.ex-modal-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.ex-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+
+
+/* =========================================================
+   💰 계좌 거래내역 모달
+   ========================================================= */
+
+.account-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.account-modal-content {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 40px;
+  width: 720px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.account-modal-content h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--main-color);
+  text-align: center;
+  margin-bottom: 18px;
+  border-bottom: 1.5px solid #eee;
+  padding-bottom: 12px;
+}
+
+.account-modal-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin: 28px 0 10px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 8px;
+}
+
+.account-modal .close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.account-modal .close-btn:hover {
+  color: var(--main-color);
+}
+
+.account-modal .detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.account-modal .detail-table th,
+.account-modal .detail-table td {
+  border: 1px solid #ddd;
+  padding: 10px 14px;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.account-modal .detail-table th {
+  width: 32%;
+  background: #f5f8fa;
+  color: #333;
+  font-weight: 600;
+}
+
+.account-modal .detail-table td {
+  color: #444;
+}
+
+/* 계좌번호 버튼 */
+.account-link {
+  background: none;
+  border: none;
+  color: #2C5DE5;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 15px;
+  padding: 0;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+.account-link:hover {
+  color: #4FBDBA;
+  text-decoration: underline;
+}
+
+/* 스크롤바 */
+.account-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+.account-modal-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.account-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* [1] 거래일시: 20% */
+.account-modal .transaction-table th:nth-child(1),
+.account-modal .transaction-table td:nth-child(1) {
+    width: 18%;
+    text-align: center;
+}
+
+/* [2] 구분: 8% (짧으니까 좁게) */
+.account-modal .transaction-table th:nth-child(2),
+.account-modal .transaction-table td:nth-child(2) {
+    width: 10%;
+    text-align: center;
+}
+
+/* [3] 거래전금액: 18% (새로 추가된 칸) */
+.account-modal .transaction-table th:nth-child(3),
+.account-modal .transaction-table td:nth-child(3) {
+    width: 18%;
+    text-align: center; /* 숫자는 우측 정렬 */
+    padding-right: 10px; /* 우측 여백 */
+}
+
+/* [4] 거래금액: 18% */
+.account-modal .transaction-table th:nth-child(4),
+.account-modal .transaction-table td:nth-child(4) {
+    width: 18%;
+    text-align: center;
+    padding-right: 10px;
+}
+
+/* [5] 잔액: 18% */
+.account-modal .transaction-table th:nth-child(5),
+.account-modal .transaction-table td:nth-child(5) {
+    width: 18%;
+    text-align: center;
+    padding-right: 10px;
+}
+
+/* [6] 메모: 18% (남은 공간) */
+.account-modal .transaction-table th:nth-child(6),
+.account-modal .transaction-table td:nth-child(6) {
+    width: 18%;
+    text-align: center;
+    padding-left: 10px;
+    /* 메모가 길면 ... 처리 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ✅ 스크롤 영역 유지 */
+.account-modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/*  거래내역 헤더 텍스트 중앙 정렬 + 고정 */
+.account-modal .transaction-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f5f8fa;
+  color: var(--main-color);
+  font-weight: 700;
+  text-align: center;   /* ✅ 가운데 정렬 */
+  vertical-align: middle;
+  border-bottom: 2px solid #ddd;
+  z-index: 2;
+}
+
+
+/* 확실하게 거래내역 헤더 중앙정렬 강제 */
+.account-modal .transaction-table thead th {
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.deposit-section {
+  margin-top: 40px;
+}
+
+.deposit-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deposit-table th, .deposit-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.deposit-name {
+  color: #2C5DE5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* 모달 */
+.deposit-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.deposit-modal-content {
+  background: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.deposit-close {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.deposit-detail-table th {
+  width: 40%;
+  background: #f5f5f5;
+  padding: 8px;
+  text-align: left;
+}
+
+.deposit-detail-table td {
+  padding: 8px;
+}
+
+.history-title {
+  margin-top: 25px;
+  font-size: 16px;
+  border-top: 2px solid #2C5DE5;
+  padding-top: 10px;
+}
+
+.deposit-history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deposit-history-table th, .deposit-history-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   💰 나의 외화예금 (deposit-section)
+   ========================================================= */
+.deposit-section {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 25px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-top: 35px;
+}
+
+/* 제목 스타일 통일 */
+.deposit-section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   💰 예금 상세 모달 (환전/계좌와 통일)
+   ========================================================= */
+#depositModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#depositModal .modal-content {
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 40px;
+  width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* 제목 */
+#depositModal .modal-content h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--main-color);
+  text-align: center;
+  margin-bottom: 18px;
+  border-bottom: 1.5px solid #eee;
+  padding-bottom: 12px;
+}
+
+#depositModal .modal-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin: 28px 0 10px;
+  border-left: 4px solid var(--main-color);
+  padding-left: 8px;
+}
+
+/* 닫기 버튼 */
+#depositModal .close-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+#depositModal .close-btn:hover {
+  color: var(--main-color);
+}
+
+/* 표 스타일 (환전/계좌와 동일) */
+#depositModal .detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+#depositModal .detail-table th,
+#depositModal .detail-table td {
+  border: 1px solid #ddd;
+  padding: 10px 14px;
+  text-align: left;
+  line-height: 1.6;
+}
+
+#depositModal .detail-table th {
+  background: #f5f8fa;
+  color: #333;
+  font-weight: 600;
+  width: 24%;
+}
+
+#depositModal .detail-table td {
+  color: #444;
+}
+
+/* 스크롤바 */
+#depositModal .modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+#depositModal .modal-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+#depositModal .modal-content::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+#depositInfoModal .cancel-link {
+    width: 100px;
+    display: block;
+    float: right;
+    padding: 7px 7px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    color: #dadada;
+    font-size: 15px;
+    background-color: #1a253a;
+    border-radius: 3px;
+}
+
+#depositInfoModal .withdraw-link {
+    width: 100px;
+    display: block;
+    float: right;
+    padding: 7px 7px;
+    margin-right: 7px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    color: #000000;
+    font-size: 15px;
+    background-color: #e1e1e1;
+    border-radius: 3px;
+}
+
+/*
+    외화예금 상세
+ */
+#depositInfoModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#depositInfoModal .modal-content {
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 40px;
+    width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+/* 제목 */
+#depositInfoModal .modal-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--main-color);
+    text-align: center;
+    margin-bottom: 18px;
+    border-bottom: 1.5px solid #eee;
+    padding-bottom: 12px;
+}
+
+#depositInfoModal .modal-content h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--main-color);
+    margin: 28px 0 10px;
+    border-left: 4px solid var(--main-color);
+    padding-left: 8px;
+}
+
+/* 닫기 버튼 */
+#depositInfoModal .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 22px;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+#depositInfoModal .close-btn:hover {
+    color: var(--main-color);
+}
+
+/* 표 스타일 (환전/계좌와 동일) */
+#depositInfoModal .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+#depositInfoModal .detail-table th,
+#depositInfoModal .detail-table td {
+    border: 1px solid #ddd;
+    padding: 10px 14px;
+    text-align: left;
+    line-height: 1.6;
+}
+
+#depositInfoModal .detail-table th {
+    background: #f5f8fa;
+    color: #333;
+    font-weight: 600;
+    width: 24%;
+}
+
+#depositInfoModal .detail-table td {
+    color: #444;
+    width: 26%;
+    white-space: normal;
+}
+
+/* 스크롤바 */
+#depositInfoModal .modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+#depositInfoModal .modal-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+#depositInfoModal .modal-content::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* ============================================
+   💰 나의 외화예금 (deposit-table 수정 완료)
+   ============================================ */
+.deposit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  color: #222;
+  background-color: #fff;
+  border-spacing: 0;
+}
+
+/* ✅ 제목행 - 왼쪽정렬 고정 */
+.deposit-table th {
+  text-align: left;
+  background-color: #f5f8fa;
+  padding: 12px 14px;
+  font-weight: 500;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+/* ✅ 데이터행 - 전부 왼쪽정렬 (가운데 금지) */
+.deposit-table td {
+  text-align: left;
+  padding: 12px 14px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+/* ✅ 예금이름 링크 */
+.deposit-name {
+  color: #2C5DE5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.deposit-name:hover {
+  color: #0048ff;
+  text-decoration: underline;
+}
+
+/* ✅ hover 효과 */
+.deposit-table tbody tr:hover td {
+  background-color: #f9fafc;
+}
+
+
+/* 예금자보호 안내 */
+.view-protection {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: #f8f9fb;
+    border: 1px solid #e0e3e7;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 25px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.view-protection img {
+    width: 130px;
+    height: auto;
+    flex-shrink: 0;
+}
+
+.view-protection strong {
+    color: #2C5DE5; /* 남색 포인트 */
+    font-weight: 700;
+}
+
+
+
+/* 언어번역 */
+
+.language-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.language-toggle {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ✅ 항상 닫힌 상태로 시작 */
+.language-menu {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  list-style: none;
+  padding: 6px 0;
+  margin: 6px 0 0 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  transition: opacity 0.2s ease;
+}
+
+/* ✅ 열릴 때 */
+.language-menu.show {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.language-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.language-menu li:hover {
+  background-color: #f2f4ff;
+  color: #2C5DE5;
+}
+
+/* 보안등급 전체 영역 */
+.security-info {
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* 뱃지 스타일 */
+.security-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #fff;
+  font-size: 13px;
+}
+
+/* 한도 문구 (회색, 작은 글씨) */
+.limit-text {
+  margin-top: 4px;
+  font-size: 9px;
+  color: #888;
+}
+
+/* 등급별 색상 */
+.grade-1 {
+  background-color: #00b86b; /* 초록색 */
+}
+
+.grade-2 {
+  background-color: #8c5ce7; /* 보라색 */
+}
+
+.grade-3 {
+  background-color: #f49b25; /* 주황색 */
+}
+
+.acct-name-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.acct-name-input {
+    width: 120px;
+    padding: 4px 6px;
+    font-size: 14px;
+    border: 1px solid #4A6FA5;
+    border-radius: 4px;
+}
+.edit-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+.edit-btn:hover {
+    color: #2C5DE5;
+}
+#detail {
+    color: black;           /* 검은색 글씨 */
+    text-decoration: none;  /* 밑줄 제거 */
+    font-size: 14px;        /* 폰트 크기 */
+    cursor: pointer;        /* 마우스 커서 모양 */
+    transition: color 0.2s; /* 색상 변경 시 부드럽게 전환 (선택사항) */
+    font-weight: 600;
+}
+
+/* 마우스를 올렸을 때(Hover) 스타일 */
+#detail:hover {
+    color: blue;            /* 파란색으로 변경 */
+}
+
+.error-msg {
+    color: #e74c3c; /* 빨간색 */
+    font-size: 13px;
+    margin-top: 5px;
+    display: none; /* 기본적으로 숨김 */
+    font-weight: bold;
+}
+.input-error {
+    border-color: #e74c3c !important; /* 에러 시 테두리 빨간색 */
+}
+
+/* 1. 환율 안내 박스 스타일 */
+.transfer1-rate-note {
+    background-color: #f8f9fa; /* 연한 회색 배경 */
+    color: #666;
+    font-size: 14px;
+    padding: 12px 15px;
+    border-radius: 6px;
+    border-left: 4px solid #4A6FA5; /* 왼쪽 포인트 컬러 */
+    margin: 10px 0 25px 0;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+}
+.transfer1-rate-note i {
+    color: #4A6FA5;
+}
+
+/* 2. 수취인 정보 옆 경고 문구 스타일 */
+.subtitle-warning {
+    font-size: 13px;
+    color: #E53935; /* 경고 빨간색 */
+    font-weight: normal;
+    margin-left: 12px;
+    letter-spacing: -0.5px;
+}
+
+/* 모바일 대응: 화면이 좁을 땐 줄바꿈 */
+@media (max-width: 768px) {
+    .subtitle-warning {
+        display: block;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
+
+
+
+/* 모달 하단 버튼 그룹 정렬 */
+.modal-btn-group {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 (저장이 위, 탈퇴가 아래) */
+    gap: 10px; /* 버튼 사이 간격 */
+    margin-top: 20px;
+}
+
+/* 회원 탈퇴 버튼 스타일 (빨간색) */
+.btn-withdraw {
+    width: 100%;
+    padding: 12px;
+    background-color: #fff;
+    color: #ff4d4d; /* 빨간 글씨 */
+    border: 1px solid #ff4d4d;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-withdraw:hover {
+    background-color: #fff0f0; /* 마우스 올리면 연한 빨강 배경 */
+}
+
+/*원화 통장 개설에 밑줄 없애기*/
+.btn-next {
+    text-decoration: none;
+}
+
+/*약관 관련 가로 스크롤 업애기*/
+.terms-content {
+    overflow-x: hidden;   /* 가로 스크롤 제거 */
+}
+
+.terms-content pre {
+    white-space: pre-wrap; /* 가로 스크롤 없이 줄바꿈 */
+}
+
+
+
+
+/*
+    원화 -> 외화 환전 환율 계산하기 테이블
+*/
+.prod-amt-container{
+    background-color: #eaeaea;
+    border-radius: 5px;
+    width: 647px;
+    padding: 30px 25px;
+}
+
+.prod-amt-left{
+    text-align: start;
+    width: 400px;
+}
+.prod-amt-right{
+    text-align: end;
+
+}
+
+.deposit-add-btn{
+    border: 0;
+    font-size: 13px;
+    padding: 3px 6px;
+    background-color: #dadada;
+    border-radius: 5px;
+    color: #1c1e21;
+    text-decoration: none;
+}
+
+.disabled-btn {
+    background-color: #aaa;
+    color: #1c1e21;
+    pointer-events: none;
+}
+
+
+
+/* 제목 */
+.terminate-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--main-color);
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* 안내문 */
+.terminate-info-box {
+    background: #fafafa;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    text-align: left;
+    font-size: 14px;
+    color: var(--text-gray);
+    padding: 15px 20px;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.terminate-info-box.small {
+    background: #fefefe;
+    font-size: 13px;
+    padding: 12px 18px;
+}
+
+/* 구역 제목 */
+.terminate-subtitle {
+    text-align: left;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--main-color);
+    margin: 25px 0 15px;
+    border-left: 4px solid var(--main-color);
+    padding-left: 10px;
+}
+
+/* 테이블 */
+.terminate-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: center;
+    border-top: 3px solid #9799a1;
+}
+
+.terminate-table th {
+    background: #f5f8fa;
+    color: var(--text-dark);
+    font-weight: 600;
+    padding: 10px;
+    /* border-bottom: 2px solid #ddd; */
+}
+
+.terminate-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    color: var(--text-dark);
+}
+
+.terminate-table .sub {
+    color: #777;
+    font-size: 12px;
+}
+
+
+.terminate-actions {
+    text-align: center;
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.terminate-btn-main {
+    background: var(--main-color);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 36px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(34,48,78,0.25);
+    transition: all 0.25s ease;
+}
+
+.terminate-btn-main:hover {
+    background: var(--highlight);
+    transform: translateY(-2px);
+}
+
+.terminate-btn-sub {
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px 30px;
+    margin-left: 15px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.terminate-btn-sub:hover {
+    background: #e5e5e5;
+}
+
+
+#terminateInfoModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#terminateInfoModal .modal-content {
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 40px;
+    width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+/* 제목 */
+#terminateInfoModal .modal-content h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--main-color);
+    text-align: center;
+    margin-bottom: 18px;
+    border-bottom: 1.5px solid #eee;
+    padding-bottom: 12px;
+}
+
+#terminateInfoModal .modal-content h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--main-color);
+    margin: 28px 0 10px;
+    border-left: 4px solid var(--main-color);
+    padding-left: 8px;
+}
+
+/* 닫기 버튼 */
+#terminateInfoModal .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 22px;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+#terminateInfoModal .close-btn:hover {
+    color: var(--main-color);
+}
+
+/* 표 스타일 (환전/계좌와 동일) */
+#terminateInfoModal .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+#terminateInfoModal .detail-table th,
+#terminateInfoModal .detail-table td {
+    border: 1px solid #ddd;
+    padding: 10px 14px;
+    text-align: left;
+    line-height: 1.6;
+}
+
+#terminateInfoModal .detail-table th {
+    background: #f5f8fa;
+    color: #333;
+    font-weight: 600;
+    width: 24%;
+}
+
+#terminateInfoModal .detail-table td {
+    color: #444;
+}
+
+/* 스크롤바 */
+#terminateInfoModal .modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+#terminateInfoModal .modal-content::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+#terminateInfoModal .modal-content::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+#terminateInfoModal .cancel-link {
+    width: 90px;
+    display: block;
+    float: right;
+    padding: 5px 7px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    color: #dadada;
+    font-size: 15px;
+    background-color: #1a253a;
+    border-radius: 3px;
+}

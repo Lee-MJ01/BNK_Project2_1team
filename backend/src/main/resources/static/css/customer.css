@@ -1,0 +1,1337 @@
+
+
+/* -----------------------------/* -----------------------------/* -----------------------------
+///. qna_list
+/* -----------------------------/* -----------------------------/* -----------------------------
+
+/* -----------------------------
+   Layout
+------------------------------ */
+.customer-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1100px;
+  margin: 80px auto;
+  align-items: flex-start;
+}
+
+/* -----------------------------
+   Sidebar
+------------------------------ */
+.customer-sidebar {
+  width: 230px;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 25px 20px;
+  height: fit-content;
+}
+
+.customer-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 20px;
+}
+
+.customer-category {
+  list-style: none;
+  padding: 0;
+}
+
+.customer-category > li {
+  margin-bottom: 14px;
+}
+
+.customer-category > li > a {
+  color: #222;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.customer-category > li > a:hover {
+  color: #2C5DE5;
+}
+
+/* 세부 카테고리 */
+.customer-subcategory {
+  list-style: none;
+  margin-top: 8px;
+  padding-left: 10px;
+}
+
+.customer-subcategory li {
+  margin-bottom: 6px;
+}
+
+.customer-subcategory a {
+  color: #666;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.customer-subcategory a:hover {
+  color: #2C5DE5;
+}
+
+/* ✅ Active 상태 */
+.customer-subcategory li.active a {
+  color: #2C5DE5;
+  font-weight: 700;
+}
+
+/* -----------------------------
+   Content
+------------------------------ */
+.customer-content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 30px 40px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+  min-height: 500px;
+}
+
+.customer-content h2 {
+  font-size: 20px;
+  color: #22304E;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+
+.customer-desc {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+
+
+
+/* --------------------------
+   Q&A 게시판 스타일
+---------------------------*/
+.qna-board {
+  margin-top: 20px;
+}
+
+.board-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-write {
+  border: 1px solid #ccc;     
+  background: #f5f5f5;        
+  color: #222; 
+  padding: 6px 14px;
+  border-radius: 4px;
+  box-shadow: none; 
+  text-decoration: none; 
+  transition: all 0.25s ease;
+}
+
+.board-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.board-table th, .board-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.board-table th {
+  background: #f7f7f7;
+}
+
+.board-table td a:hover {
+  text-decoration: underline;
+}
+
+
+/* 상세보기 */
+.qna-view {
+  border-top: 2px solid #007b83;
+  margin-top: 20px;
+}
+
+.view-header {
+  background: #f7f7f7;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.view-body {
+  padding: 20px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.view-footer {
+  text-align: right;
+  margin-top: 15px;
+}
+
+.btn-edit, .btn-delete, .btn-list {
+  border: 1px solid #ccc;        /* ✅ 연한 테두리 */
+  background: #f5f5f5;           /* ✅ 단색 회색 배경 */
+  color: #222;                   /* ✅ 검정 텍스트 */
+  box-shadow: none;              /* ✅ 그림자 제거 */
+  border-radius: 30px;
+  padding: 6px 10px;
+  margin-left: 6px;
+  
+}
+
+.btn-delete {
+ border: 1px solid #ccc;        /* ✅ 연한 테두리 */
+  background: #f5f5f5;           /* ✅ 단색 회색 배경 */
+  color: #222;                   /* ✅ 검정 텍스트 */
+  box-shadow: none;              /* ✅ 그림자 제거 */
+  border-radius: 30px;
+}
+
+.btn-edit {
+  background: #007b83;
+  color: #fff;
+}
+
+
+/* =========================================================
+   Q&A 게시판 - 게시글 제목 링크 스타일 (FLO BANK 톤)
+   ========================================================= */
+
+/* 기본 링크 (게시글 제목) */
+.board-table td a {
+  color: #22304E;                  /* 기본 네이비톤으로 통일 */
+  text-decoration: none !important; /* ✅ 밑줄 완전 제거 */
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+/* 마우스 올렸을 때 */
+.board-table td a:hover {
+  color: #4FBDBA;                  /* 포인트 민트 */
+  text-decoration: none !important; /* ✅ hover 시에도 밑줄 제거 */
+}
+
+/* 클릭 순간(active), 포커스 시에도 동일하게 */
+.board-table td a:active,
+.board-table td a:focus {
+  color: #4A6FA5;                  /* FLO 블루 */
+  text-decoration: none !important;
+  outline: none;
+}
+
+/* =========================================================
+   FLO BANK Q&A 수정 페이지 (qna_edit)
+   ========================================================= */
+
+/* 폼 영역 */
+.qna-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.qna-form label {
+  font-weight: 600;
+  color: #22304E;
+  font-size: 15px;
+}
+
+.qna-form input,
+.qna-form textarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.qna-form input:focus,
+.qna-form textarea:focus {
+  border-color: #4A6FA5;
+  box-shadow: 0 0 0 3px rgba(79, 189, 186, 0.15);
+  outline: none;
+}
+
+/* 버튼 영역 */
+.form-buttons {
+  text-align: right;
+  margin-top: 25px;
+}
+
+/* 수정 완료 버튼 */
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 26px;
+  border-radius: 30px;
+  border: 1px solid #ccc;   
+  background: #f5f5f5;      
+  color: #222;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+   box-shadow: none;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.btn-submit:hover {
+  background: #e0e0e0;
+ transform: translateY(-1px);
+}
+
+/* 취소 버튼 */
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 12px 26px;
+  border-radius: 30px;
+  background: #e9ecef;
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-cancel:hover {
+  background: #d9dee4;
+  color: #111;
+  transform: translateY(-2px);
+}
+
+/* 아이콘 크기 조정 */
+.btn-submit i,
+.btn-cancel i {
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   FLO BANK Q&A 상세보기 (qna_view)
+   ========================================================= */
+
+.qna-view {
+  margin-top: 25px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 35px 40px 40px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+  border-top: 3px solid #22304E;
+}
+
+/* 헤더 */
+.view-header {
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+}
+
+.view-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 8px;
+}
+
+.view-header .meta {
+  color: #666;
+  font-size: 14px;
+}
+
+.view-header strong {
+  color: #4A6FA5;
+}
+
+/* 본문 */
+.view-body {
+  color: #333;
+  font-size: 15px;
+  line-height: 1.8;
+  padding: 5px 0 25px;
+  white-space: pre-line;
+}
+
+/* 답변 영역 */
+.view-answer {
+  margin-top: 25px;
+  background: #F8FAFB;
+  border: 1px solid #dce3e7;
+  border-radius: 10px;
+  padding: 20px 25px;
+}
+
+.view-answer h4 {
+  color: #22304E;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-answer i {
+  color: #4A6FA5;
+  font-size: 18px;
+}
+
+.answer-box p {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.qna-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.qna-status.wait,
+.qna-status.mid,
+.qna-status.high {
+  background: #fff4e5;
+  color: #b65b00;
+}
+
+.qna-status.safe,
+.qna-status.answered {
+  background: #e7f5ec;
+  color: #16794c;
+}
+
+/* 버튼 영역 */
+.view-footer {
+  text-align: right;
+  margin-top: 30px;
+}
+
+.view-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+/* 수정 버튼 */
+.view-footer .btn-submit {
+border: 1px solid #ccc;   
+  background: #f5f5f5;      
+  color: #222;  
+   box-shadow: none; 
+  box-shadow: none;
+}
+
+.view-footer .btn-submit:hover {
+  background: #e0e0e0;    
+  transform: translateY(-1px);
+}
+
+/* 삭제 버튼 */
+.view-footer .btn-delete {
+   border: 1px solid #ccc;        /* ✅ 연한 테두리 */
+  background: #f5f5f5;           /* ✅ 단색 회색 배경 */
+  color: #222;                   /* ✅ 검정 텍스트 */
+  box-shadow: none;              /* ✅ 그림자 제거 */
+  border-radius: 30px;
+}
+
+.view-footer .btn-delete:hover {
+  background: #e0e0e0;           /* ✅ hover 시 약간 어둡게 */
+  transform: translateY(-1px);
+}
+
+/* 목록 버튼 */
+.view-footer .btn-cancel {
+  background: #e9ecef;
+  color: #333;
+  margin-left: 8px;
+}
+
+.view-footer .btn-cancel:hover {
+  background: #d9dee4;
+  color: #111;
+  transform: translateY(-2px);
+}
+
+/* 아이콘 크기 */
+.view-footer i {
+  font-size: 15px;
+}
+/* =========================================================
+   FLO BANK Q&A 등록 페이지 (qna_write)
+   ========================================================= */
+
+/* 공통 폼 */
+.qna-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.qna-form label {
+  font-weight: 600;
+  color: #22304E;
+  font-size: 15px;
+}
+
+.qna-form input,
+.qna-form textarea {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qna-form input:focus,
+.qna-form textarea:focus {
+  border-color: #4A6FA5;
+  box-shadow: 0 0 0 3px rgba(79, 189, 186, 0.15);
+  outline: none;
+}
+
+/* 버튼 영역 */
+.form-buttons {
+  text-align: right;
+  margin-top: 25px;
+}
+
+/* 등록 버튼 */
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 28px;
+  border-radius: 30px;
+   border: 1px solid #ccc;   
+  background: #f5f5f5;      
+  color: #222;   
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.btn-submit:hover {
+  background: #e0e0e0;      
+  transform: translateY(-1px);
+}
+
+/* 취소 버튼 */
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 12px 28px;
+  border-radius: 30px;
+  background: #e9ecef;
+  color: #333;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-cancel:hover {
+  background: #d9dee4;
+  color: #111;
+  transform: translateY(-2px);
+}
+
+/* 아이콘 크기 조정 */
+.btn-submit i,
+.btn-cancel i {
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   FLO BANK 이벤트/공지사항 전용 스타일 (수정 통합본)
+   ========================================================= */
+
+/* 이벤트 목록 */
+.event-board {
+  margin-top: 25px;
+}
+
+.event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.event-card {
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+.event-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.event-info {
+  padding: 18px 20px;
+  text-align: left;
+}
+
+.event-info h4 {
+  font-size: 17px;
+  color: #22304E;
+  margin-bottom: 6px;
+}
+
+.event-info p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+/* ✅ 진행중 / 종료 태그 스타일 (Q&A 페이지네이션 컬러와 동일) */
+.event-info .tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #333;          /* 리스트 페이지 active 색상과 동일 */
+  border: 1px solid #22304E; /* 페이지네이션 테두리 색상 */
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.event-info .tag.end {
+  background: #e5e5e5;       /* 플랫한 회색 */
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+/* 공지사항 테이블 */
+.notice-board {
+  margin-top: 20px;
+}
+
+.notice-board .board-table th {
+  background: #f7f9fa;
+  font-weight: 700;
+}
+
+.notice-board .board-table td a {
+  color: #22304E;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.notice-board .board-table td a:hover {
+  color: #4FBDBA;
+  text-decoration: underline;
+}
+
+
+/* 🔹 FAQ 전용 스타일 */
+.faq-container {
+  width: 100%;
+}
+
+.faq-category {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #22304E;
+  margin: 25px 0 10px;
+  border-left: 4px solid #22304E;
+  padding-left: 10px;
+}
+
+.faq-item {
+  border-bottom: 1px solid #ddd;
+  padding: 15px 0;
+}
+
+.faq-question {
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.3s;
+}
+
+.faq-question:hover {
+  color: #2C5DE5;
+}
+
+.faq-answer {
+  display: none;
+  padding: 10px 5px 10px 20px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.faq-item.active .faq-answer {
+  display: block;
+}
+
+.faq-item.active .faq-question i {
+  transform: rotate(180deg);
+  transition: transform 0.3s;
+}
+
+
+/* =========================================================
+   FLOBANK 소개 / 이벤트 / 공지 등 공통 소개 페이지 전용 스타일
+   ========================================================= */
+
+/* 전체 래퍼 */
+.intro-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+/* ===============================
+   HERO SECTION
+   =============================== */
+.intro-hero {
+  position: relative;
+  height: 320px; /* ✅ 더 커진 로고를 자연스럽게 배치하기 위한 높이 */
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 배경 */
+  background: #fff;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 중앙 로고 및 문구 */
+.hero-overlay {
+  text-align: center;
+  color: #22304E;
+  z-index: 10;
+  animation: fadeUp 1s ease forwards;
+}
+
+/* ✅ 로고 크게 + 그림자 완전 제거 */
+.hero-logo {
+  width: 300px; /* 기존보다 크게 확대 */
+  margin-bottom: 20px;
+  filter: none; /* ✅ 그림자 완전 제거 */
+  transition: transform 0.25s ease;
+}
+
+.hero-logo:hover {
+  transform: scale(1.02); /* 부드럽게 약간 확대 효과 */
+}
+
+/* 영문 슬로건 */
+.hero-overlay h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+  color: #2f3a5f;
+}
+
+/* 한글 설명 */
+.hero-overlay p {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+  letter-spacing: -0.2px;
+  opacity: 0.95;
+}
+
+/* 등장 애니메이션 */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+  .hero-logo {
+    width: 200px;
+  }
+  .hero-overlay h3 {
+    font-size: 22px;
+  }
+  .hero-overlay p {
+    font-size: 14px;
+  }
+}
+
+/* ===============================
+   공통 섹션 (본문)
+   =============================== */
+.intro-section h3 {
+  font-size: 18px;
+  color: #22304E;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.intro-section p {
+  font-size: 15px;
+  color: #444;
+  line-height: 1.8;
+}
+
+/* ===============================
+   비전 카드
+   =============================== */
+.vision-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.vision-card {
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+  border: 1px solid #e3e8f0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #f9fbff 0%, #eef3fa 100%);
+  padding: 25px 18px;
+  transition: all 0.25s ease;
+}
+
+.vision-card i {
+  font-size: 28px;
+  color: #4A6FA5;
+  margin-bottom: 8px;
+}
+
+.vision-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 6px;
+}
+
+.vision-card p {
+  font-size: 14px;
+  color: #555;
+}
+
+.vision-card:hover {
+  transform: translateY(-4px);
+  background: #f0f6ff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   서비스 카드
+   =============================== */
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.service-card {
+  text-align: center;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 25px 15px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+}
+
+.service-card i {
+  font-size: 26px;
+  color: #4A6FA5;
+  margin-bottom: 10px;
+}
+
+.service-card h4 {
+  font-size: 16px;
+  color: #22304E;
+  margin-bottom: 6px;
+}
+
+.service-card p {
+  font-size: 14px;
+  color: #555;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  background: #f5f9ff;
+}
+
+
+/* =========================================================
+   ✅ FLO BANK 고객센터 — 사이드바 Active 
+   ========================================================= */
+
+/* 🔹 사이드바 메뉴 (색상만 변경) */
+.customer-category a {
+  display: block;
+  color: #333;
+  text-decoration: none;
+  padding: 8px 12px;
+  transition: color 0.25s ease;
+}
+
+/* hover 시 색상 변화 */
+.customer-category a:hover {
+  color: var(--color-point); /* #3c4f76 (FLO 블루톤) */
+}
+
+/* active: 색상만 진하게 변경, 배경 변화 없음 */
+.customer-category a.active {
+  color: #2C5DE5; /* 포인트 파랑 */
+  font-weight: 700;
+  background: none;
+}
+
+
+/* =========================================================
+   페이지네이션 완전 통합 (이전/다음 포함, 중앙정렬)
+   ========================================================= */
+
+.notice-board .pagination,
+.qna-board .pagination,
+.event-board .pagination,
+.customer-content .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 25px auto 0;
+  text-align: center;
+}
+
+/* 모든 버튼 공통 스타일 */
+.notice-board .pagination a,
+.qna-board .pagination a,
+.event-board .pagination a,
+.customer-content .pagination a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+/* 🔹 이전 / 다음 버튼: 폭 넓게 */
+.notice-board .pagination .page-prev,
+.notice-board .pagination .page-next,
+.qna-board .pagination .page-prev,
+.qna-board .pagination .page-next,
+.event-board .pagination .page-prev,
+.event-board .pagination .page-next,
+.customer-content .pagination .page-prev,
+.customer-content .pagination .page-next {
+  width: 70px;              /* 동일 높이, 넓은 폭 */
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+/* 활성 페이지 */
+.notice-board .pagination a.active,
+.qna-board .pagination a.active,
+.event-board .pagination a.active,
+.customer-content .pagination a.active {
+  background: #22304E;
+  border-color: #22304E;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* hover 효과 */
+.notice-board .pagination a:hover,
+.qna-board .pagination a:hover,
+.event-board .pagination a:hover,
+.customer-content .pagination a:hover {
+  border-color: #4FBDBA;
+  color: #4FBDBA;
+  background: #f9fdfd;
+}
+
+/* 비활성 (첫/마지막 페이지) */
+.notice-board .pagination .page-prev.disabled,
+.notice-board .pagination .page-next.disabled,
+.qna-board .pagination .page-prev.disabled,
+.qna-board .pagination .page-next.disabled,
+.event-board .pagination .page-prev.disabled,
+.event-board .pagination .page-next.disabled,
+.customer-content .pagination .page-prev.disabled,
+.customer-content .pagination .page-next.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ✅ 반응형 (모바일 시 크기 축소) */
+@media (max-width: 600px) {
+  .notice-board .pagination a,
+  .qna-board .pagination a,
+  .event-board .pagination a,
+  .customer-content .pagination a {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .notice-board .pagination .page-prev,
+  .notice-board .pagination .page-next,
+  .qna-board .pagination .page-prev,
+  .qna-board .pagination .page-next,
+  .event-board .pagination .page-prev,
+  .event-board .pagination .page-next,
+  .customer-content .pagination .page-prev,
+  .customer-content .pagination .page-next {
+    width: 60px;
+    font-size: 12px;
+  }
+}
+
+/* 언어번역 */
+
+.language-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.language-toggle {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ✅ 항상 닫힌 상태로 시작 */
+.language-menu {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  list-style: none;
+  padding: 6px 0;
+  margin: 6px 0 0 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  transition: opacity 0.2s ease;
+}
+
+/* ✅ 열릴 때 */
+.language-menu.show {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.language-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.language-menu li:hover {
+  background-color: #f2f4ff;
+  color: #2C5DE5;
+}
+
+
+/* ---------------------------------
+   Terms download page
+---------------------------------- */
+.terms-download .terms-section {
+    background: #f9fbff;
+    border: 1px solid #e2e6ec;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+}
+
+.terms-section__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.terms-section__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #22304E;
+    margin: 0;
+}
+
+.terms-section__subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #5f6b7a;
+}
+
+.terms-section__count {
+    background: #e7edff;
+    color: #2c5de5;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.terms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.terms-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.terms-card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.terms-card__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #22304E;
+    margin: 0 0 6px;
+}
+
+.terms-card__meta {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: #5f6b7a;
+    margin-bottom: 8px;
+}
+
+.terms-card__desc {
+    margin: 0;
+    color: #444;
+    font-size: 14px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.terms-card__actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #2c5de5;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.btn-download:hover {
+    background: #244ec0;
+}
+
+.btn-download.disabled {
+    background: #cfd5e4;
+    color: #5f6b7a;
+    cursor: not-allowed;
+}
+
+.terms-empty {
+    border: 1px dashed #cdd4e0;
+    color: #5f6b7a;
+    font-size: 14px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    background: #fff;
+}
+
+
+
+/*event_view 페이지 수정*/
+/* 이벤트 혜택 본문 스타일 */
+.event-benefit {
+    margin-top: 30px;
+    padding: 0 5px;
+}
+
+.event-benefit h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #22304E;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.event-benefit i {
+    color: #4A6FA5;
+    font-size: 17px;
+}
+
+.event-benefit p {
+    font-size: 14.5px;
+    color: #444;
+    line-height: 1.75;
+    margin: 0;
+}
+
+
+
+/* ============================
+      공지사항 상세 전용 스타일
+   ============================ */
+.notice-view {
+    border-top: 3px solid #22304E;
+    border-radius: 10px;
+    padding: 30px 35px 35px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+/* 제목 */
+.notice-view .view-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #22304E;
+    margin-bottom: 10px;
+}
+
+/* 메타 정보 */
+.notice-view .meta {
+    font-size: 13.5px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.notice-view .meta strong {
+    color: #4A6FA5;
+}
+
+/* 본문 */
+.notice-view .view-body {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.85;
+    margin-bottom: 25px;
+}
+
+/* 버튼 */
+.notice-view .view-footer {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.notice-view .btn-cancel {
+    background: #e9ecef;
+    padding: 10px 22px;
+    border-radius: 25px;
+}
+
+.notice-view .btn-cancel:hover {
+    background: #d9dee4;
+    transform: translateY(-2px);
+}
+
+/* ===============================
+   이벤트 상세 · 공지 상세 — 박스 제거
+   =============================== */
+/* 이벤트 상세: 헤더 회색 제거 */
+.event-view .view-header {
+    background: none !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+}
+
+/* 공지 상세: 헤더 회색 제거 */
+.notice-view .view-header {
+    background: none !important;
+    border-bottom: none !important;
+    padding: 0 !important;
+}
