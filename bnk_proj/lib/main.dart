@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:test_main/app_colors.dart';
-import 'package:test_main/bank_homepage.dart';
-import 'package:test_main/sign_up_page.dart';
+import 'package:test_main/screens/member/signup_1.dart';
 
-import 'list.dart';
+import 'screens/app_colors.dart';
+import 'screens/main/bank_homepage.dart';
+
+
 
 void main() {
   runApp(const MyApp());
@@ -232,7 +233,7 @@ class _LoginShortcuts extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SignUpPage()),
+                  MaterialPageRoute(builder: (context) => const SignUp1Page()),
                 );
               },
             ),

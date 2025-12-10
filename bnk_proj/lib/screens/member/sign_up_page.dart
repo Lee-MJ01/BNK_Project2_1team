@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
-import 'bank_homepage.dart';
-import 'main.dart';
+
+import '../app_colors.dart';
+import '../../main.dart';
+
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
