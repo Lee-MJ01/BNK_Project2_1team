@@ -1,0 +1,273 @@
+/* ===============================
+      🔹 기사 페이지 전용 Wrapper
+   =============================== */
+.article-page {
+    background: #f5f7fb;
+    color: #1f2d3d;
+    min-height: 100vh;
+}
+
+/* ===============================
+      🔹 전체 레이아웃
+   =============================== */
+.article-page .article-layout {
+    max-width: 1200px;
+    margin: 60px auto 80px;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ===============================
+      🔹 브리핑 카드
+   =============================== */
+.article-page .article-briefing .briefing-card {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ===============================
+      🔹 브리핑 탭
+   =============================== */
+.article-page .briefing-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.article-page .briefing-tabs a {
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #eef1f7;
+    color: #324a7a;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.article-page .briefing-tabs a.active {
+    background: #4461d8;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(68, 97, 216, 0.22);
+}
+
+.article-page .briefing-tabs a:hover {
+    transform: translateY(-1px);
+}
+
+/* ===============================
+      🔹 브리핑 헤드라인
+   =============================== */
+.article-page .briefing-headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.article-page .briefing-headline h1 {
+    font-size: 22px;
+    margin: 6px 0 0;
+}
+
+.article-page .briefing-headline .label,
+.article-page .article-list-header .label {
+    font-size: 13px;
+    color: #6b7a90;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.article-page .briefing-headline .date {
+    font-size: 14px;
+    color: #6b7a90;
+}
+
+/* ===============================
+      🔹 브리핑 목록
+   =============================== */
+.article-page .briefing-lines {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+}
+
+.article-page .briefing-lines li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.article-page .briefing-lines li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #4461d8;
+    font-weight: 700;
+}
+
+/* ===============================
+      🔹 기사 리스트 박스
+   =============================== */
+.article-page .article-list-section {
+    background: #fff;
+    border: 1px solid #e2e6ec;
+    border-radius: 16px;
+    padding: 24px 28px 32px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
+      🔹 리스트 헤더
+   =============================== */
+.article-page .article-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.article-page .article-list-header h2 {
+    margin: 6px 0 0;
+}
+
+.article-page .article-list-header .count {
+    color: #6b7a90;
+    font-weight: 600;
+}
+
+/* ===============================
+      🔹 그리드
+   =============================== */
+.article-page .article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.article-page .article-card {
+    border: 1px solid #e8ecf3;
+    border-radius: 14px;
+    padding: 16px;
+    background: #fdfefe;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.article-page .article-card:hover {
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.article-page .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7a90;
+}
+
+/* 카테고리 Pill */
+.article-page .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef1f7;
+    font-weight: 700;
+    color: #324a7a;
+}
+
+.article-page .pill.category { background: #e8ecff; color: #3348b0; }
+.article-page .pill.company  { background: #e7f5ef; color: #2d8b57; }
+
+.article-page .article-card h3 {
+    font-size: 17px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.article-page .article-card a {
+    color: #1f2d3d;
+    text-decoration: none;
+}
+
+.article-page .article-card a:hover {
+    text-decoration: underline;
+}
+
+.article-page .article-card .summary {
+    margin: 0;
+    color: #4a5568;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-page .article-grid .empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px 0;
+    color: #6b7a90;
+}
+
+/* ===============================
+      🔹 페이징
+   =============================== */
+.article-page .pagination {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.article-page .pagination a {
+    display: inline-block;
+    padding: 8px 12px;
+    border: 1px solid #d5dae3;
+    border-radius: 8px;
+    color: #324a7a;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    min-width: 36px;
+}
+
+.article-page .pagination a.active {
+    background: #4461d8;
+    color: #fff;
+    border-color: #4461d8;
+    box-shadow: 0 8px 14px rgba(68, 97, 216, 0.2);
+}
+
+.article-page .pagination a:hover:not(.active) {
+    background: #eef1f7;
+}
+
+.article-page .pagination a.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .article-page .article-layout {
+        margin: 30px auto;
+    }
+
+    .article-page .article-list-section,
+    .article-page .article-briefing .briefing-card {
+        padding: 18px;
+    }
+}

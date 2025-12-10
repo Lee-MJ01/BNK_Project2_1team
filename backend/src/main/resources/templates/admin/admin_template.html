@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:fragment="admin_template(title, pageTitle, content, scripts)">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title th:text="${title}">관리자 페이지</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous"/>
+</head>
+
+<body>
+<div class="admin-layout">
+
+    <!-- 사이드바 -->
+    <aside th:replace="~{admin/admin_inc/admin_sidebar :: admin_sidebar}"></aside>
+
+    <main class="main-panel">
+
+        <!-- 헤더 -->
+        <header th:replace="~{admin/admin_inc/admin_header :: admin_header}"></header>
+
+        <!-- 페이지 본문(content fragment) -->
+        <div class="admin-content" th:replace="${content}"></div>
+
+        <!-- 개별 페이지 스크립트(script fragment) -->
+        <th:block th:if="${scripts != null}" th:replace="${scripts}"></th:block>
+
+    </main>
+</div>
+
+</body>
+</html>

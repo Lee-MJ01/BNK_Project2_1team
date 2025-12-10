@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "faqNo": { "type": "keyword" },
+    "faqQuestion": { "type": "text", "analyzer": "nori" },
+    "faqAnswer": { "type": "text", "analyzer": "nori" },
+    "suggest": {
+      "type": "completion",
+      "max_input_length": 100,
+      "analyzer": "standard",
+      "preserve_separators": true
+    }
+  }
+}

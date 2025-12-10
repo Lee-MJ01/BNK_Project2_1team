@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('외화예금 상품 상세', '외화예금 상품 상세', ~{::content}, ~{})}">
+<th:block th:fragment="content">
+
+<section class="product-view">
+
+    <!-- 가입자 정보 -->
+    <div class="product-view-stats">
+        <h2 class="product-view-subtitle">가입자 정보</h2>
+        <div class="product-view-graphs">
+            <div class="product-view-graph">
+                <h3>성별 그래프</h3>
+                <img th:src="@{/images/ex.png}" alt="성별 그래프" class="product-view-graph-img" />
+            </div>
+            <div class="product-view-graph">
+                <h3>나이 그래프</h3>
+                <img th:src="@{/images/ex.png}" alt="나이 그래프" class="product-view-graph-img" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 상품 상세 정보 -->
+    <div class="product-view-detail">
+        <h2>상품 기본정보</h2>
+        <table class="product-view-table">
+            <tbody>
+            <tr><th>상품 ID</th><td th:text="${product.dpstId}"></td></tr>
+            <tr><th>상품명</th><td th:text="${product.dpstName}"></td></tr>
+            <tr><th>상품 한줄설명</th><td th:text="${product.dpstInfo}"></td></tr>
+
+            <!-- 예금 유형 -->
+            <tr>
+                <th>예금 유형</th>
+                <td th:text="${product.dpstType == 1 ? '거치식' : '자유적립식'}"></td>
+            </tr>
+
+            <!-- 통화 코드 -->
+            <tr>
+                <th>통화 코드</th>
+                <td th:text="${product.dpstCurrency}"></td>
+            </tr>
+
+            <!-- 환율 적용 타입 -->
+            <tr>
+                <th>환율 적용 타입</th>
+                <td th:text="${product.dpstRateType == 1 ? '가입 시점' : '만기 시점'}"></td>
+            </tr>
+
+            <!-- 최소/최대 가입액 -->
+            <tr>
+                <th>가입 금액 조건</th>
+                <td>
+
+                    <!-- 1. 최소=N, 최대=N → 제한 없음 -->
+                    <span th:if="${product.dpstMinYn == 'N' and product.dpstMaxYn == 'N'}">
+                        제한 없음
+                    </span>
+
+                    <!-- 2. 최소=Y, 최대=Y → 각 통화별 범위 -->
+                    <div th:if="${product.dpstMinYn == 'Y' and product.dpstMaxYn == 'Y'}">
+                        <div th:each="limit : ${limits}">
+                            <span th:text="${limit.lmtCurrency}"></span>
+                            <span th:text="${limit.lmtMinAmt}"></span> ~
+                            <span th:text="${limit.lmtMaxAmt}"></span>
+                        </div>
+                    </div>
+
+                    <!-- 3. 최소=Y, 최대=N → 통화별 최소만 -->
+                    <div th:if="${product.dpstMinYn == 'Y' and product.dpstMaxYn == 'N'}">
+                        <div th:each="limit : ${limits}">
+                            <span th:text="${limit.lmtCurrency}"></span>
+                            <span th:text="${limit.lmtMinAmt}"></span> 이상
+                        </div>
+                    </div>
+
+                    <!-- 4. 최소=N, 최대=Y → 통화별 최대만 -->
+                    <div th:if="${product.dpstMinYn == 'N' and product.dpstMaxYn == 'Y'}">
+                        <div th:each="limit : ${limits}">
+                            <span th:text="${limit.lmtCurrency}"></span>
+                            <span th:text="${limit.lmtMaxAmt}"></span> 이하
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+
+
+
+            <!-- 상품 상태 -->
+            <tr>
+                <th>상품 상태</th>
+                <td>
+                    <span th:if="${product.dpstStatus == 3}" class="status-badge status-sale">판매중</span>
+                    <span th:if="${product.dpstStatus == 4}" class="status-badge status-stop">판매중단</span>
+                    <span th:if="${product.dpstStatus != 3 and product.dpstStatus != 4}" class="status-badge">기타</span>
+                </td>
+            </tr>
+
+            <!-- 상품 개요 -->
+            <tr>
+                <th>상품 개요</th>
+                <td th:text="${product.dpstDescript}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+
+        <h2>가입 조건</h2>
+        <table class="product-view-table">
+            <tbody>
+
+            <!-- 가입 기간 유형 -->
+            <tr>
+                <th>상품 가입기간</th>
+                <td th:text="${product.dpstPeriodType == 1 ? '자유형' : '고정형'}"></td>
+            </tr>
+
+            <tr>
+                <th>가입 조건(나이)</th>
+                <td>
+                    <span th:if="${product.dpstMinAge == null and product.dpstMaxAge == null}">
+                        제한 없음
+                    </span>
+
+                    <span th:if="${product.dpstMinAge != null and product.dpstMaxAge == null}">
+                        최소 [[${product.dpstMinAge}]]세 이상
+                    </span>
+
+                    <span th:if="${product.dpstMinAge == null and product.dpstMaxAge != null}">
+                        최대 [[${product.dpstMaxAge}]]세 이하
+                    </span>
+
+                    <span th:if="${product.dpstMinAge != null and product.dpstMaxAge != null}">
+                        [[${product.dpstMinAge}]]세 이상 ~ [[${product.dpstMaxAge}]]세 이하
+                    </span>
+                </td>
+            </tr>
+
+
+            <!-- 자동연장 여부 -->
+            <tr>
+                <th>자동 연장 여부</th>
+                <td th:text="${product.dpstAutoRenewYn == 'Y' ? '가능' : '불가능'}"></td>
+            </tr>
+
+            <!-- 추가납입 여부 -->
+            <tr>
+                <th>추가 납입 가능 여부</th>
+                <td th:text="${product.dpstAddPayYn == 'Y' ? '가능' : '불가능'}"></td>
+            </tr>
+
+            <!-- 추가납입 최대 회수 : 추가납입이 Y일 때만 보이기 -->
+            <tr th:if="${product.dpstAddPayYn == 'Y'}">
+                <th>추가 납입 최대 회수</th>
+                <td th:text="${product.dpstAddPayMax}"></td>
+            </tr>
+
+            <!-- 분할 인출 여부 -->
+            <tr>
+                <th>분할 인출 가능 여부</th>
+                <td th:text="${product.dpstPartWdrwYn == 'Y' ? '가능' : '불가능'}"></td>
+            </tr>
+
+            <tr th:if="${product.dpstPartWdrwYn == 'Y' and withdrawRule != null}">
+                <th>분할 인출 가능 시점</th>
+                <td th:text="${withdrawRule.minMonths} + '개월 이후'"></td>
+            </tr>
+
+            <tr th:if="${product.dpstPartWdrwYn == 'Y' and withdrawRule != null}">
+                <th>최대 인출 가능 횟수</th>
+                <td th:text="${withdrawRule.maxCount} + '회'"></td>
+            </tr>
+
+            <!-- 최소 출금 금액: 예치식 + 분할인출 Y + 실제 데이터 있을 때 -->
+            <tr th:if="${product.dpstType == 1
+            and product.dpstPartWdrwYn == 'Y'
+            and withdrawAmts != null
+            and #lists.size(withdrawAmts) > 0}">
+                <th>최소 출금 금액</th>
+                <td>
+                    <span th:each="w, stat : ${withdrawAmts}">
+                        <span th:text="${w.currency} + ' ' + ${#numbers.formatInteger(w.minAmt, 0)}"></span>
+                        <span th:if="${!stat.last}">, </span>
+                    </span>
+                </td>
+            </tr>
+
+            <tr>
+                <th>상품설명서</th>
+                <td>
+                    <a th:if="${product.dpstInfoPdf != null}"
+                       th:href="@{${product.dpstInfoPdf}}"
+                       class="btn-link"
+                       target="_blank">
+                        <i class="fa-solid fa-file-pdf"></i> 다운로드
+                    </a>
+                    <span th:unless="${product.dpstInfoPdf != null}" class="text-gray">
+                        파일 없음
+                    </span>
+                </td>
+            </tr>
+
+            <tr>
+                <th>약관 파일</th>
+                <td>
+                    <a th:if="${termsFilePath != null}"
+                       th:href="@{${termsFilePath}}"
+                       class="btn-link"
+                       target="_blank">
+                        <i class="fa-solid fa-file-contract"></i> 약관 보기
+                    </a>
+                    <span th:unless="${termsFilePath != null}" class="text-gray">
+                        연결된 약관 없음
+                    </span>
+                </td>
+            </tr>
+
+
+
+            </tbody>
+        </table>
+
+        <h2>상품 판매 및 승인 정보</h2>
+        <table class="product-view-table">
+            <tbody>
+
+            <tr><th>상품 판매개시일시</th>
+                <td th:text="${product.dpstRegDt}"></td>
+            </tr>
+
+            <tr><th>상품등록번호(공시승인)</th>
+                <td th:text="${product.dpstAppNo}"></td>
+            </tr>
+
+            <tr><th>공시승인일자</th>
+                <td th:text="${product.dpstAppDy}"></td>
+            </tr>
+
+            <tr><th>심의필번호</th>
+                <td th:text="${product.dpstDelibNo}"></td>
+            </tr>
+
+            <tr><th>심의일자</th>
+                <td th:text="${product.dpstDelibDy}"></td>
+            </tr>
+
+            <tr><th>심의 유효기일(시작일)</th>
+                <td th:text="${product.dpstDelibStartDy}"></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+
+
+    </div>
+</section>
+</th:block>
+
+</html>
