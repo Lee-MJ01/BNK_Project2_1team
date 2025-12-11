@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('챗봇 관리','챗봇 관리',~{::content},~{::script})}">
+
+
+
+
+<th:block th:fragment="content">
+<!-- 본문 시작 -->
+<section class="admin-content">
+    <!-- 챗봇 테스트 창 -->
+    <section class="board-section chatbot-test-admin">
+
+        <div class="board-header">
+            <h2>챗봇 테스트</h2>
+        </div>
+
+
+        <form method="post">
+            <input type="hidden" name="sessId" th:value="${sessId}">
+            <div class="board-row chatbot" style="padding-top: 5px; grid-template-columns: 8fr 1fr;">
+                <div class="board-control" style="gap: 0; width: 100%">
+                    <label for="faq-question" style="padding-bottom: 10px;">질문</label>
+                    <input name="q" type="text" placeholder="예: 환율은 얼마?" required />
+
+                </div>
+
+
+                <div class="board-control" style="justify-content: flex-end">
+                    <button type="submit" class="board-btn-primary" style="margin-top: 15px; width: 100%; gap: 0">테스트 실행</button>
+                </div>
+
+            </div>
+
+            <div class="board-control">
+                <label for="faq-answer">테스트 결과</label>
+                <textarea id="faq-answer" name="faqAnswer" rows="4"
+                          placeholder="예: 현재 기준 환율은 1,472.80원입니다.">[[${faHistDTO.botContent}]]</textarea>
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <section id="board-register" class="board-section chatbot">
+
+        <div class="board-header">
+            <h2>금칙어 등록</h2>
+        </div>
+
+        <!-- 등록 폼 -->
+        <form th:action="@{/admin/forbidden}" method="post">
+            <div class="board-row">
+
+                <div class="board-control">
+                    <label for="word">금칙어</label>
+                    <input id="word" name="badWord" type="text" placeholder="예: 바보, 주민등록번호" required />
+                </div>
+
+                <div class="board-control">
+                    <label for="type">유형</label>
+                    <select id="type" name="badType" required>
+                        <option value="1">욕설</option>
+                        <option value="2">개인정보</option>
+                        <option value="3">우회시도</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="board-btn-primary">등록</button>
+        </form>
+    </section>
+
+
+    <section class="board-section">
+        <h2>금칙어 카테고리별 기본 응답 설정</h2>
+
+        <form method="post">
+
+            <div class="board-row chatbot" style="padding-top: 5px; grid-template-columns: 8fr 1fr;">
+                <div class="board-control">
+                    <label>욕설(PROFANITY) 기본 응답</label>
+                    <input type="text" name="PROFANITY"
+                           th:value="${badTypeList[0].btAnswer}"
+                           placeholder="예: 표현은 조심해 주세요." />
+
+                </div>
+                <div class="board-control" style="justify-content: flex-end">
+                    <button class="board-btn-primary" style="margin-top: 15px; width: 100%; gap: 0">변경 저장</button>
+                </div>
+            </div>
+
+            <div class="board-row chatbot" style="padding-top: 5px; grid-template-columns: 8fr 1fr;">
+                <div class="board-control">
+                    <label>개인정보(PERSONAL_INFO) 기본 응답</label>
+                    <input type="text" name="PERSONAL_INFO"
+                           th:value="${badTypeList[1].btAnswer}"
+                           placeholder="예: 개인정보 관련 문의는 도와드릴 수 없습니다." />
+                </div>
+
+                <div class="board-control" style="justify-content: flex-end">
+                    <button class="board-btn-primary" style="margin-top: 15px; width: 100%; gap: 0">변경 저장</button>
+                </div>
+            </div>
+
+            <div class="board-row chatbot" style="padding-top: 5px; grid-template-columns: 8fr 1fr;">
+                <div class="board-control">
+                    <label>우회·강요형 질문(BYPASS_ATTEMPT) 기본 응답</label>
+                    <input type="text" name="PERSONAL_INFO"
+                           th:value="${badTypeList[2].btAnswer}"
+                           placeholder="예: 개인정보 관련 문의는 도와드릴 수 없습니다." />
+                </div>
+
+                <div class="board-control" style="justify-content: flex-end">
+                    <button class="board-btn-primary" style="margin-top: 15px; width: 100%; gap: 0">변경 저장</button>
+                </div>
+            </div>
+
+
+        </form>
+    </section>
+
+    <!-- 금칙어 관리 -->
+    <section class="board-section forbidden-admin">
+        <div class="board-header">
+            <h2>금칙어 관리</h2>
+        </div>
+
+
+        <!-- 목록 -->
+        <div class="bot-table-wrapper">
+            <table class="bot-table">
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>금칙어</th>
+                    <th>종류</th>
+                    <th>등록일</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="bw, stat: ${badWordList}">
+                    <td>[[${stat.count}]]</td>
+                    <td>[[${bw.badWord}]]</td>
+                    <td th:text="${bw.badType == 1 ? '욕설/비속어' : (bw.badType == 2 ? '개인정보' : (bw.badType == 3 ? '우회질문' : '기타'))}">욕설/비속어</td>
+                    <td th:text="${#temporals.format(bw.badRegDt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td>
+                        <button th:if="${bw.badUseYn=='y'}" class="bot-btn-edit" style="background-color:gray">미적용</button>
+                        <button th:if="${bw.badUseYn=='n'}" class="bot-btn-edit">적용</button>
+                        <button class="bot-btn-delete">삭제</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- FAQ / 응답 Override 관리 -->
+    <section class="board-section chatbot-faq-admin">
+
+        <div class="board-header">
+            <h2>챗봇 규칙 설정</h2>
+        </div>
+
+
+        <!-- 등록 폼 -->
+        <form th:action="@{/admin/chatbot/faq/register}" method="post">
+
+            <div class="board-row chatbot" style="padding-top: 5px; grid-template-columns: 8fr 1fr;">
+                <div class="board-control">
+                    <label for="faq-question">규칙 입력</label>
+                    <input id="faq-question" name="faqQuestion" type="text" placeholder="예: 불필요한 서론 없이 핵심만 간결하게 말해라." required />
+                </div>
+
+
+                <div class="board-control" style="justify-content: flex-end">
+                    <button class="board-btn-primary" style="margin-top: 15px; width: 100%; gap: 0">등록하기</button>
+                </div>
+
+            </div>
+
+
+        </form>
+    </section>
+
+
+    <!-- 규칙 관리 -->
+    <section class="board-section chatbot-faq-admin">
+
+        <div class="board-header">
+            <h2>규칙 관리</h2>
+        </div>
+
+        <!-- 목록 -->
+        <div class="bot-table-wrapper">
+            <table class="bot-table">
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>규칙 내용</th>
+                    <th>사용</th>
+                    <th>등록일</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="rule, stat : ${botRulesList}">
+                    <td>[[${stat.count}]]</td>
+                    <td>[[${rule.ruleTxt}]]</td>
+                    <td><span class="tag tag-normal">[[${rule.ruleUseYn}]]</span></td>
+                    <td th:text="${#temporals.format(rule.ruleRegDt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                    <td>
+                        <button class="bot-btn-edit">미적용</button>
+                        <button class="bot-btn-delete">삭제</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+
+
+
+
+    <!-- 챗봇 채팅 로그 관리 -->
+    <section class="board-section chatbot-log-admin">
+
+        <div class="board-header">
+            <h2>챗봇 채팅 로그</h2>
+        </div>
+
+
+
+        <!-- 로그 테이블 -->
+        <div class="board-table-wrapper">
+            <table class="board-table" id="botHistTable">
+                <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>채팅 시각</th>
+                    <th>사용자 메시지</th>
+                    <th>챗봇 응답</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="hist : ${histList}">
+                    <td>[[${hist.botNo}]]</td>
+                    <td style="width:100px">[[${hist.botDt}]]</td>
+                    <td style="width:160px">[[${hist.userQuestion}]]</td>
+                    <td th:utext="${hist.getBotAnswer()}" style="width:160px"></td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+
+
+
+</section>
+
+</th:block>
+
+<th:block th:fragment="script">
+    <script th:src="@{/js/admin_setting.js}"></script>
+</th:block>
+
+
+
+</html>

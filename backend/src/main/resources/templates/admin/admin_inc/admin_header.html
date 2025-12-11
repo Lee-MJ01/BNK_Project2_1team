@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<header th:fragment="admin_header" class="admin-header">
+    <div>
+        <h1 class="page-title" th:text="${pageTitle} ?: 'dashboard'">대시보드</h1>
+    </div>
+    <div class="user-info">
+        <div class="profile">
+            <div class="profile-info">
+                <strong th:text="|${#authentication.name} 관리자|">관리자</strong>
+            </div>
+        </div>
+    </div>
+</header>
+<!--</header>-->
+
+
+
+<!--<head>-->
+<!--    <head>-->
+<!--        <meta charset="UTF-8" />-->
+<!--        <meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+<!--        <title>관리자 메인</title>-->
+<!--        <link rel="stylesheet" href="/static/css/admin.css" />-->
+<!--        <link-->
+<!--                rel="stylesheet"-->
+<!--                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"-->
+<!--                crossorigin="anonymous"-->
+<!--        />-->
+<!--    </head>-->
+<!--<body>-->
+<!--<div class="admin-layout">-->
+<!--    <aside class="sidebar">-->
+<!--        <div class="logo">-->
+<!--            <span>FLOWBANK ADMIN</span>-->
+<!--        </div>-->
+
+
+<!--    </aside>-->
+
+<!--    <main class="main-panel">-->
+<!--        <header class="admin-header">-->
+<!--            <div>-->
+<!--                <h1 class="page-title">대시보드</h1>-->
+<!--            </div>-->
+<!--            <div class="user-info">-->
+<!--                <div class="profile">-->
+<!--                    <div class="profile-info">-->
+<!--                        <strong>홍길동 관리자</strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </header>-->
+<!--</head>-->
+<!--</div>-->

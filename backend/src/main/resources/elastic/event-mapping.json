@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "boardNo": { "type": "keyword" },
+    "boardTitle": { "type": "text", "analyzer": "nori" },
+    "boardContent": { "type": "text", "analyzer": "nori" },
+    "eventBenefit": { "type": "text", "analyzer": "nori" },
+    "boardRegDt": { "type": "date" },
+    "suggest": {
+      "type": "completion",
+      "max_input_length": 100,
+      "analyzer": "standard",
+      "preserve_separators": true
+    }
+  }
+}

@@ -3,7 +3,12 @@ import 'package:test_main/screens/product/list.dart';
 import '../app_colors.dart';
 import '../../main.dart';
 import '../mypage/transaction_history.dart';
+
 import '../remit/remit_step1.dart';
+
+import '../mypage/mypage.dart';
+import '../exchange/forex_insight.dart';
+
 
 
 
@@ -104,6 +109,18 @@ class _BankHomePageState extends State<BankHomePage> {
               onTap: () {},
             ),
             ListTile(
+              leading: const Icon(Icons.currency_exchange),
+              title: const Text("환율"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ExchangeRateScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.support_agent),
               title: const Text("고객센터"),
               onTap: () {},
@@ -128,7 +145,13 @@ class _BankHomePageState extends State<BankHomePage> {
         currentIndex: _currentIndex,
         onTap: (i) {
           if (i == 3) { // 마이페이지 탭
-            return; // _currentIndex 변경 방지
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MyPageScreen(),
+              ),
+            );
+            return;
           }
 
           setState(() => _currentIndex = i);
@@ -211,7 +234,18 @@ class _BankHomePageState extends State<BankHomePage> {
                 childAspectRatio: 0.9,
                 children: [
                   _QuickMenu("환전", "images/flobankicon1.png"),
-                  _QuickMenu("환율","images/flobankicon2.png"),
+                  _QuickMenu(
+                    "환율",
+                    "images/flobankicon2.png",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ExchangeRateScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _QuickMenu(
                     "외화예금",
                     "images/flobankicon3.png",
@@ -233,18 +267,30 @@ class _BankHomePageState extends State<BankHomePage> {
               //const SizedBox(height: 10),
 
               /// ✅ 실시간 환율 배너
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18)),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("오늘의 실시간 환율",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    Icon(Icons.arrow_forward_ios, size: 18),
-                  ],
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ForexInsightScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text(
+                        "오늘의 실시간 환율",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 18),
+                    ],
+                  ),
                 ),
               ),
 

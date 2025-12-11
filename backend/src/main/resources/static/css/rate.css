@@ -1,0 +1,551 @@
+
+
+
+/* -----------------------------
+   rate: 메인 레이아웃
+------------------------------ */
+.rate-container {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  max-width: 1100px;
+  margin: 80px auto;
+  align-items: flex-start;
+}
+
+/* -----------------------------
+   사이드바
+------------------------------ */
+.rate-sidebar {
+  width: 230px;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 25px 20px;
+  height: fit-content;
+}
+
+.rate-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 20px;
+}
+
+.rate-category {
+  list-style: none;
+  padding: 0;
+}
+
+.rate-category > li {
+  margin-bottom: 14px;
+}
+
+.rate-category > li > a {
+  color: #222;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.rate-category > li > a:hover {
+  color: #2C5DE5;
+}
+
+/* 세부 카테고리 */
+.rate-subcategory {
+  list-style: none;
+  margin-top: 8px;
+  padding-left: 10px;
+}
+
+.rate-subcategory li {
+  margin-bottom: 6px;
+}
+
+.rate-subcategory a {
+  color: #666;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.rate-subcategory a:hover {
+  color: #2C5DE5;
+}
+
+/* ✅ active */
+.rate-subcategory li.active a {
+  color: #2C5DE5;
+  font-weight: 700;
+}
+
+/* -----------------------------
+   info.1
+------------------------------ */
+.rate-content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 30px 40px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+  min-height: 500px;
+}
+
+.rate-content h2 {
+  font-size: 20px;
+  color: #22304E;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+
+.rate-desc {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.7;
+  margin-bottom: 25px;
+}
+
+/* 정보박스 */
+.rate-info-box, .rate-step-box {
+  background: #f7f9fc;
+  border: 1px solid #e3e7ec;
+  border-radius: 8px;
+  padding: 20px 25px;
+  margin-bottom: 25px;
+}
+
+.rate-info-box h4, .rate-step-box h4 {
+  color: #2C5DE5;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.rate-info-box ul, .rate-step-box ol {
+  margin-left: 18px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.rate-note {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.6;
+}
+
+
+/* =============================================
+   환율 조회 페이지 (rate_info)
+   ============================================= */
+
+/* 페이지 전체 레이아웃 */
+.rateinfo-layout {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+  padding: 50px 80px;
+  background: #fff;
+  align-items: flex-start;
+}
+
+/* 사이드바는 그대로 유지 */
+.rateinfo-sidebar {
+  width: 230px;
+  background: #fff;
+  border: 1px solid #e2e6ec;
+  border-radius: 10px;
+  padding: 25px 20px;
+  height: fit-content;
+}
+
+/* 🔹 본문 — 컨테이너 스타일 제거 */
+.rateinfo-section {
+  flex: 1;
+  padding: 0 10px; /* 내부 여백만 남김 */
+}
+
+/* 제목 */
+.rateinfo-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 10px;
+}
+
+/* 조회일자 박스 */
+.rateinfo-search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rateinfo-date-input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.rateinfo-btn-search {
+  background: #2C5DE5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.rateinfo-btn-search:hover {
+  background: #2048c8;
+}
+
+/* 조회결과 제목 */
+.rateinfo-subtitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #22304E;
+  margin-bottom: 15px;
+  padding-left: 4px;
+  border-left: 4px solid #2C5DE5;
+}
+
+.rateinfo-subtitle span {
+  font-size: 13px;
+  color: #666;
+  margin-left: 8px;
+  font-weight: 400;
+}
+
+/* 테이블 */
+.rateinfo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: center;
+  border-top: 2px solid #2C5DE5; /* 상단 강조선 */
+}
+
+.rateinfo-table th {
+  background: #f8f9fb;
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  font-weight: 700;
+  color: #333;
+}
+
+.rateinfo-table td {
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+  color: #444;
+}
+
+.rateinfo-btn-detail {
+  background: #fff;
+  border: 1px solid #2C5DE5;
+  color: #2C5DE5;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rateinfo-btn-detail:hover {
+  background: #2C5DE5;
+  color: #fff;
+}
+
+/* =============================================
+   환율 조회 중앙 정렬 버전
+   ============================================= */
+.rateinfo-center {
+  display: flex;
+  justify-content: center;  /* 가로 가운데 */
+  padding: 60px 0;
+  background: #fff;
+}
+
+.rateinfo-section {
+  width: 80%;
+  max-width: 1000px;
+  background: #fff;
+}
+
+.rateinfo-section h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #22304E;
+  text-align: center;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #E3E7EC;
+  padding-bottom: 10px;
+}
+
+.rateinfo-search-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.rateinfo-subtitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #22304E;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.rateinfo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: center;
+  border-top: 2px solid #2C5DE5;
+}
+
+.rateinfo-table th {
+  background: #f8f9fb;
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  font-weight: 700;
+  color: #333;
+}
+
+.rateinfo-table td {
+  border-bottom: 1px solid #eee;
+  padding: 10px;
+  color: #444;
+}
+
+/* 행 hover 효과 */
+.rateinfo-table tr:hover {
+  background: #f7faff;
+}
+
+
+
+/* 날짜 input과 select 통일 */
+.rateinfo-input,
+.rateinfo-select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: 38px; /* 동일 높이로 정렬 */
+}
+
+/* hover & focus 효과 */
+.rateinfo-input:hover,
+.rateinfo-select:hover {
+  border-color: #2C5DE5;
+}
+
+.rateinfo-input:focus,
+.rateinfo-select:focus {
+  outline: none;
+  border-color: #2C5DE5;
+  box-shadow: 0 0 3px rgba(44, 93, 229, 0.4);
+}
+
+/* input[type=date] 기본 달력 아이콘 정렬 보정 */
+.rateinfo-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(40%) sepia(70%) saturate(400%) hue-rotate(190deg);
+}
+
+
+.exchange-container {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 40px;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.exchange-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #222;
+}
+
+.rate-type select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  margin-bottom: 25px;
+}
+
+.calculator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.currency-box {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fafafa;
+}
+
+.currency-select {
+  background: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flag {
+  width: 28px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.currency-input {
+  width: 60%;
+  padding: 8px;
+  text-align: right;
+  font-size: 18px;
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid #ccc;
+}
+
+.result-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2C5DE5;
+  margin-top: 10px;
+}
+
+.equal {
+  font-size: 26px;
+  font-weight: 700;
+  color: #333;
+}
+
+.exchange-info {
+  margin-top: 30px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #555;
+  border-top: 1px dashed #ccc;
+  padding-top: 15px;
+}
+
+/* 언어번역 */
+
+.language-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.language-toggle {
+  cursor: pointer;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ✅ 항상 닫힌 상태로 시작 */
+.language-menu {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  list-style: none;
+  padding: 6px 0;
+  margin: 6px 0 0 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+  transition: opacity 0.2s ease;
+}
+
+/* ✅ 열릴 때 */
+.language-menu.show {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+}
+
+.language-menu li {
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.language-menu li:hover {
+  background-color: #f2f4ff;
+  color: #2C5DE5;
+}
+
+
+.rateinfo-api-info {
+    font-size: 14px;
+    color: #888;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    text-align: center;      /* 가운데 정렬 */
+}
+
+.rate-date-text {
+    margin-top: -10px;
+    margin-bottom: 20px;
+    color: #555;
+    font-size: 12px;
+    text-align: right;
+}
+
+.rateinfo-message {
+    margin-top: 10px;
+    color: #d9534f;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+
+
+.rate-notice-text {
+    color: #888;
+    font-size: 13px;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    text-align: left;
+}
