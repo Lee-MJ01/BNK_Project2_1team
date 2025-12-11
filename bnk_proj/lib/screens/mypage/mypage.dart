@@ -35,6 +35,14 @@ class MyPageScreen extends StatelessWidget {
             const _MyPageSection(
               title: '나의 계좌정보',
               description: '대표계좌 / 입출금계좌 요약',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const MyAccountInfoScreen(),
+                  ),
+                );
+              },
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -263,3 +271,133 @@ class _SummaryRow extends StatelessWidget {
     );
   }
 }
+class MyAccountInfoScreen extends StatelessWidget {
+  const MyAccountInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: 나중에 API 연동해서 실제 계좌 리스트로 교체
+    final accounts = <_AccountSummary>[
+      const _AccountSummary(
+        name: '원화 입출금 통장',
+        number: '123-456-789012',
+        currency: 'KRW',
+        balance: '1,235,000원',
+      ),
+      const _AccountSummary(
+        name: '외화예금 (USD)',
+        number: '245-111-998877',
+        currency: 'USD',
+        balance: '1,250 USD',
+      ),
+      const _AccountSummary(
+        name: '외화예금 (JPY)',
+        number: '987-222-333444',
+        currency: 'JPY',
+        balance: '230,000 JPY',
+      ),
+    ];
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundOffWhite,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundOffWhite,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.pointDustyNavy),
+        centerTitle: true,
+        title: const Text(
+          '나의 계좌정보',
+          style: TextStyle(
+            color: AppColors.pointDustyNavy,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: accounts.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final acc = accounts[index];
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 상품명
+                Text(
+                  acc.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.pointDustyNavy,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // 계좌번호
+                Text(
+                  acc.number,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // 잔액 + 통화 배지
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      acc.balance,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.pointDustyNavy,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        acc.currency,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AccountSummary {
+  final String name;
+  final String number;
+  final String currency;
+  final String balance;
+
+  const _AccountSummary({
+    required this.name,
+    required this.number,
+    required this.currency,
+    required this.balance,
+  });
+}
+

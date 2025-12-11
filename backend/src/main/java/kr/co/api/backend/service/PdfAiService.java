@@ -1,7 +1,7 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.PdfAiDTO;
-import kr.co.api.flobankapi.mapper.PdfAiMapper;
+import kr.co.api.backend.dto.PdfAiDTO;
+import kr.co.api.backend.mapper.PdfAiMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

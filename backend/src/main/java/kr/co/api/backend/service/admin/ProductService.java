@@ -1,9 +1,9 @@
 package kr.co.api.backend.service.admin;
 
-import kr.co.api.flobankapi.config.FilePathConfig;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.mapper.admin.ProductMapper;
-import kr.co.api.flobankapi.service.PdfAiService;
+import kr.co.api.backend.config.FilePathConfig;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.mapper.admin.ProductMapper;
+import kr.co.api.backend.service.PdfAiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

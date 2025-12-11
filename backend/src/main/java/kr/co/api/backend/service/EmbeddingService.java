@@ -2,7 +2,7 @@ package kr.co.api.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.api.flobankapi.dto.EmbeddingRespDTO;
+import kr.co.api.backend.dto.EmbeddingRespDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 

@@ -1,6 +1,6 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.ExtAcctDTO;
+import kr.co.api.backend.dto.ExtAcctDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

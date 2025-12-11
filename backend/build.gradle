@@ -1,6 +1,8 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.0'
+    id 'org.springframework.boot' version '3.5.7'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -25,20 +27,64 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // 1. HTTP 요청을 받기 위한 Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // (DB 연결 에러 해결용)
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // 2. Integration 기본
+    implementation 'org.springframework.boot:spring-boot-starter-integration'
+
+    // 3. TCP/IP Client 기능을 위한 라이브러리
+    implementation 'org.springframework.integration:spring-integration-ip'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:4.0.0'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // DTO <-> JSON 문자열 변환
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
+
+    // 유틸리티
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:4.0.0'
+
+    // openAI
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.integration:spring-integration-test'
+    runtimeOnly 'com.oracle.database.jdbc:ojdbc11'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Spring Security: 인증 및 권한 제어의 핵심 프레임워크
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JWT 라이브러리 (jjwt): 토큰 생성 및 검증 담당
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON 변환용
+
+    // 타임리프용 시큐리티 확장 라이브러리 (화면 처리용)
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // 솔라피 라이브러리
+    implementation 'com.solapi:sdk:1.0.3'
+
+    // 메일 인증 관련
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.3.3'
+    implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.2.1'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    //Spring Boot WebFlux 의존성 추가 WebClient사용 위함
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // 엘라스틱 서치
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 }
 
 tasks.named('test') {

@@ -1,7 +1,7 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.CouponDTO;
-import kr.co.api.flobankapi.dto.FrgnExchTranDTO;
+import kr.co.api.backend.dto.CouponDTO;
+import kr.co.api.backend.dto.FrgnExchTranDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

@@ -3,7 +3,7 @@ package kr.co.api.backend.controller;
 import com.solapi.sdk.message.exception.SolapiEmptyResponseException;
 import com.solapi.sdk.message.exception.SolapiMessageNotReceivedException;
 import com.solapi.sdk.message.exception.SolapiUnknownException;
-import kr.co.api.flobankapi.service.SmsService;
+import kr.co.api.backend.service.SmsService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

@@ -1,0 +1,241 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.admin.ExchangeAdminMapper">
+
+    <!--
+    ===========================================================
+    [1] 일자별 통화 환전 금액 조회
+    - 그래프 ① "일자별 통화 환전금액" 에 사용
+    - exch_to_currency = KRW 이면, 실제 환전 대상 통화는 exch_from_currency
+      (예: 외화→KRW 환전)
+    - 각 일자(IN LAST 7 DAYS)의 통화별 합계를 KRW기준으로 계산
+    ===========================================================
+    -->
+    <select id="selectDailyCurrencyAmounts"
+            resultType="kr.co.api.backend.dto.admin.exchange.CurrencyDailyAmountDTO">
+
+        SELECT
+            -- 날짜(일 단위로 잘라서 YYYY-MM-DD 로 표시)
+            TO_CHAR(TRUNC(exch_req_dt), 'YYYY-MM-DD') AS baseDate,
+
+            -- 환전된 대상 통화 결정
+            CASE
+                WHEN exch_to_currency = 'KRW' THEN exch_from_currency
+                ELSE exch_to_currency
+                END AS currency,
+
+            -- KRW 환산 금액
+            SUM(NVL(exch_amount, 0) * NVL(exch_applied_rate, 0)) AS amountKrw
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE exch_req_dt IS NOT NULL
+          -- 최근 7일만 집계
+          AND exch_req_dt >= TRUNC(SYSDATE) - 6
+        GROUP BY TRUNC(exch_req_dt),
+                 CASE WHEN exch_to_currency = 'KRW'
+                          THEN exch_from_currency
+                      ELSE exch_to_currency
+                     END
+        ORDER BY TRUNC(exch_req_dt), currency
+    </select>
+
+
+    <!--
+    ===========================================================
+    [2] 일자별 총 환전 금액 조회
+    - 그래프 ② "일자별 환전액" 에 사용
+    - 통화 구분 없이 총액만 KRW기준으로 산출
+    ===========================================================
+    -->
+    <select id="selectDailyTotalAmounts"
+            resultType="kr.co.api.backend.dto.admin.exchange.DailyExchangeAmountDTO">
+        SELECT
+            TO_CHAR(TRUNC(exch_req_dt), 'YYYY-MM-DD') AS baseDate,
+            SUM(NVL(exch_amount, 0) * NVL(exch_applied_rate, 0)) AS amountKrw
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE exch_req_dt IS NOT NULL
+          AND exch_req_dt >= TRUNC(SYSDATE) - 6
+        GROUP BY TRUNC(exch_req_dt)
+        ORDER BY TRUNC(exch_req_dt)
+    </select>
+
+
+    <!--
+    ===========================================================
+    [3] 환전 이력 개수 조회 (검색 적용)
+    - 검색 타입:
+       customer → 고객번호(CUST_CODE or EXCH_ACCT_NO)
+       exchange → 환전번호(EXCH_NO)
+    ===========================================================
+    -->
+    <select id="countExchangeHistory" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_FRGN_EXCH_TRAN t
+        LEFT JOIN TB_CUST_INFO ci ON ci.CUST_CODE = t.EXCH_ACCT_NO
+        WHERE 1 = 1
+
+        <!-- 고객번호 검색 -->
+        <if test="searchType != null and searchType == 'customer'
+                  and keyword != null and keyword != ''">
+            AND NVL(ci.CUST_CODE, t.EXCH_ACCT_NO)
+            LIKE '%' || #{keyword} || '%'
+        </if>
+
+        <!-- 환전번호 검색 -->
+        <if test="searchType != null and searchType == 'exchange'
+                  and keyword != null and keyword != ''">
+            AND TO_CHAR(t.EXCH_NO)
+            LIKE '%' || #{keyword} || '%'
+        </if>
+    </select>
+
+
+    <!--
+    ===========================================================
+    [4] 환전 이력 목록 조회 (페이징 + 검색)
+    - Oracle ROWNUM 기반 페이징
+    - 환전 번호 DESC, 요청 일자 DESC 정렬
+    ===========================================================
+    -->
+    <select id="selectExchangeHistory"
+            resultType="kr.co.api.backend.dto.admin.exchange.ExchangeHistoryDTO">
+
+        SELECT *
+        FROM (
+        SELECT ROW_NUMBER() OVER (ORDER BY t.EXCH_REQ_DT DESC, t.EXCH_NO DESC) AS rnum,
+        t.EXCH_NO                   AS exchNo,
+        NVL(ci.CUST_CODE, t.EXCH_ACCT_NO) AS custCode,
+        t.EXCH_FROM_CURRENCY        AS exchFromCurrency,
+        t.EXCH_TO_CURRENCY          AS exchToCurrency,
+        t.EXCH_APPLIED_RATE         AS exchAppliedRate,
+        t.EXCH_REQ_DT               AS exchReqDt
+        FROM TB_FRGN_EXCH_TRAN t
+        LEFT JOIN TB_CUST_INFO ci ON ci.CUST_CODE = t.EXCH_ACCT_NO
+        WHERE 1 = 1
+
+        <!-- 고객번호 검색 -->
+        <if test="searchType != null and searchType == 'customer'
+                      and keyword != null and keyword != ''">
+            AND NVL(ci.CUST_CODE, t.EXCH_ACCT_NO)
+            LIKE '%' || #{keyword} || '%'
+        </if>
+
+        <!-- 환전번호 검색 -->
+        <if test="searchType != null and searchType == 'exchange'
+                      and keyword != null and keyword != ''">
+            AND TO_CHAR(t.EXCH_NO)
+            LIKE '%' || #{keyword} || '%'
+        </if>
+
+        )
+        WHERE rnum BETWEEN #{start} AND #{end}
+        ORDER BY rnum
+    </select>
+
+
+    <!--
+    ===========================================================
+    [5] 통계 기준 시간 조회
+    - 그래프 상단 "○○ 기준"에 표시되는 최신 환전 데이터 시간
+    ===========================================================
+    -->
+    <select id="selectStatsBaseTime" resultType="java.time.LocalDateTime">
+        SELECT MAX(exch_req_dt)
+        FROM TB_FRGN_EXCH_TRAN
+    </select>
+
+
+    <!--
+    ===========================================================
+    [6] 쿠폰 발급 현황 총 개수 조회
+    ===========================================================
+    -->
+    <select id="countCouponIssues" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_COUPON
+    </select>
+
+
+    <!--
+    ===========================================================
+    [7] 쿠폰 발급 현황 조회 (페이징)
+    - 오름차순이 아닌 최신 발급일 우선 ORDER BY 적용
+    ===========================================================
+    -->
+    <select id="selectCouponIssues"
+            resultType="kr.co.api.backend.dto.admin.exchange.CouponIssueDTO">
+
+        SELECT *
+        FROM (
+                 SELECT ROW_NUMBER() OVER (ORDER BY coup_issued_dy DESC, coup_no DESC) AS rnum,
+                     coup_no         AS couponNo,
+                        coup_cust_code  AS custCode,
+                        coup_rate       AS coupRate,
+                        coup_issued_dy  AS issuedDate,
+                        coup_status     AS coupStatus
+                 FROM TB_COUPON
+             )
+        WHERE rnum BETWEEN #{start} AND #{end}
+        ORDER BY rnum
+    </select>
+
+    <select id="selectDailyCurrencyAmountsByDate"
+            resultType="kr.co.api.backend.dto.admin.exchange.CurrencyDailyAmountDTO">
+
+        SELECT
+            TO_CHAR(TRUNC(exch_req_dt),'YYYY-MM-DD') AS baseDate,
+            CASE
+                WHEN exch_to_currency = 'KRW' THEN exch_from_currency
+                ELSE exch_to_currency
+                END AS currency,
+            SUM(NVL(exch_amount,0) * NVL(exch_applied_rate,0)) AS amountKrw
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE TRUNC(exch_req_dt) = TO_DATE(#{date}, 'YYYY-MM-DD')
+        GROUP BY TRUNC(exch_req_dt),
+                 CASE
+                     WHEN exch_to_currency = 'KRW' THEN exch_from_currency
+                     ELSE exch_to_currency
+                     END
+    </select>
+
+
+    <select id="selectDailyTotalAmountsByDate"
+            resultType="kr.co.api.backend.dto.admin.exchange.DailyExchangeAmountDTO">
+
+        SELECT
+            TO_CHAR(TRUNC(exch_req_dt),'YYYY-MM-DD') AS baseDate,
+            SUM(NVL(exch_amount,0) * NVL(exch_applied_rate,0)) AS amountKrw
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE TRUNC(exch_req_dt) = TO_DATE(#{date}, 'YYYY-MM-DD')
+        GROUP BY TRUNC(exch_req_dt)
+    </select>
+
+
+    <select id="selectCurrencyAmountsByPeriod"
+            resultType="kr.co.api.backend.dto.admin.exchange.CurrencyDailyAmountDTO">
+        SELECT
+            -- 기간 라벨을 baseDate에 담아서 클라이언트 툴팁에 활용
+            TO_CHAR(TO_DATE(#{startDate}, 'YYYY-MM-DD'), 'YYYY-MM-DD') || ' ~ ' ||
+            TO_CHAR(TO_DATE(#{endDate}, 'YYYY-MM-DD'), 'YYYY-MM-DD')    AS baseDate,
+
+            CASE
+                WHEN exch_to_currency = 'KRW' THEN exch_from_currency
+                ELSE exch_to_currency
+                END                                                   AS currency,
+
+            SUM(NVL(exch_amount, 0) * NVL(exch_applied_rate, 0))      AS amountKrw
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE TRUNC(exch_req_dt) BETWEEN TO_DATE(#{startDate}, 'YYYY-MM-DD')
+                  AND TO_DATE(#{endDate}, 'YYYY-MM-DD')
+        GROUP BY CASE
+                     WHEN exch_to_currency = 'KRW' THEN exch_from_currency
+                     ELSE exch_to_currency
+                     END
+    </select>
+
+
+
+
+
+</mapper>

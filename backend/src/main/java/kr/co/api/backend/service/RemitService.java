@@ -1,10 +1,10 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.CustAcctDTO;
-import kr.co.api.flobankapi.dto.CustFrgnAcctDTO;
-import kr.co.api.flobankapi.dto.FrgnRemtTranDTO;
-import kr.co.api.flobankapi.mapper.MypageMapper;
-import kr.co.api.flobankapi.mapper.RemitMapper;
+import kr.co.api.backend.dto.CustAcctDTO;
+import kr.co.api.backend.dto.CustFrgnAcctDTO;
+import kr.co.api.backend.dto.FrgnRemtTranDTO;
+import kr.co.api.backend.mapper.MypageMapper;
+import kr.co.api.backend.mapper.RemitMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

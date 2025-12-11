@@ -1,7 +1,7 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.document.*;
-import kr.co.api.flobankapi.dto.search.SearchLogDTO;
+import kr.co.api.backend.document.*;
+import kr.co.api.backend.dto.search.SearchLogDTO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;

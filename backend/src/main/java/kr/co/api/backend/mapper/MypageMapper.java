@@ -1,6 +1,6 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.*;
+import kr.co.api.backend.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.math.BigDecimal;

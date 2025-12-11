@@ -1,8 +1,8 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.ChatbotBadTypeDTO;
-import kr.co.api.flobankapi.dto.ChatbotBadWordDTO;
-import kr.co.api.flobankapi.dto.ChatbotRulesDTO;
+import kr.co.api.backend.dto.ChatbotBadTypeDTO;
+import kr.co.api.backend.dto.ChatbotBadWordDTO;
+import kr.co.api.backend.dto.ChatbotRulesDTO;
 
 import java.util.List;
 

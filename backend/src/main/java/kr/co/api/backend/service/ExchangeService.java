@@ -2,9 +2,9 @@ package kr.co.api.backend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.jwt.CustomUserDetails;
-import kr.co.api.flobankapi.mapper.*;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.jwt.CustomUserDetails;
+import kr.co.api.backend.mapper.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

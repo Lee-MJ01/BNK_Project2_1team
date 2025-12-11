@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.MemberMapper" >
+    <select id="findByCodeCustInfo">
+        select * from tb_cust_info where cust_code = #{custCode}
+    </select>
+
+    <select id="findByIdCustInfo">
+        select * from tb_cust_info where cust_id = #{custId}
+    </select>
+
+    <insert id="registerCustInfo" parameterType="kr.co.api.backend.dto.CustInfoDTO">
+        INSERT INTO
+            tb_cust_info(CUST_ID, cust_pw, CUST_NAME, CUST_JUMIN, CUST_EMAIL, CUST_HP, CUST_BIRTH_DT, CUST_GEN, CUST_ENG_NAME, CUST_ZIP, CUST_ADDR1, CUST_ADDR2, CUST_REG_DT)
+        VALUES(#{custId}, #{custPw}, #{custName}, #{custJumin}, #{custEmail}, #{custHp}, #{custBirthDt}, #{custGen}, #{custEngName}, #{custZip}, #{custAddr1}, #{custAddr2}, SYSDATE)
+    </insert>
+
+    <update id="insertLastLogin">
+        UPDATE TB_CUST_INFO
+        SET CUST_LAST_LOGIN_DT = SYSDATE
+        WHERE CUST_ID = #{custId}
+    </update>
+
+</mapper>

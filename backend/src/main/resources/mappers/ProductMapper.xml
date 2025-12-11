@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.admin.ProductMapper">
+
+    <insert id="insertProduct"
+            parameterType="kr.co.api.backend.dto.ProductDTO"
+            useGeneratedKeys="true"
+            keyProperty="dpstId"
+            keyColumn="dpst_id">
+
+        INSERT INTO TB_DPST_PROD_INFO (
+        dpst_name,
+        dpst_info,
+        dpst_type,
+        dpst_currency,
+        dpst_rate_type,
+        dpst_min_yn,
+        dpst_max_yn,
+        dpst_status,
+        dpst_descript,
+        dpst_period_type,
+        dpst_min_age,
+        dpst_max_age,
+        dpst_auto_renew_yn,
+        dpst_add_pay_yn,
+        dpst_add_pay_max,
+        dpst_part_wdrw_yn,
+        dpst_reg_dt,
+        dpst_info_pdf
+        ) VALUES (
+        #{dpstName},
+        #{dpstInfo},
+        #{dpstType},
+        #{dpstCurrency},
+        #{dpstRateType},
+        #{dpstMinYn, jdbcType=INTEGER},
+        #{dpstMaxYn, jdbcType=INTEGER},
+        #{dpstStatus},
+        #{dpstDescript},
+        #{dpstPeriodType},
+        #{dpstMinAge, jdbcType=INTEGER},
+        #{dpstMaxAge, jdbcType=INTEGER},
+        #{dpstAutoRenewYn},
+        #{dpstAddPayYn},
+        #{dpstAddPayMax, jdbcType=INTEGER},
+        #{dpstPartWdrwYn},
+        #{dpstRegDt},
+        #{dpstInfoPdf, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <insert id="insertProductLimits" parameterType="map">
+        INSERT INTO TB_DPST_AMT_LMT (
+        lmt_dpst_id,
+        lmt_currency,
+        lmt_min_amt,
+        lmt_max_amt
+        )
+        <foreach collection="limits" item="l" separator="UNION ALL">
+            SELECT
+            #{dpstId},
+            #{l.lmtCurrency},
+            #{l.lmtMinAmt},
+            #{l.lmtMaxAmt}
+            FROM dual
+        </foreach>
+    </insert>
+
+
+
+
+
+    <insert id="insertProductPeriods" parameterType="java.util.Map"> INSERT INTO TB_DPST_PROD_PERIOD (
+        period_min_month,
+        period_max_month,
+        period_fixed_month,
+        period_dpst_id
+        )
+        <foreach collection="list" item="p" separator="UNION ALL">
+            SELECT
+            #{p.minMonth, jdbcType=INTEGER},
+            #{p.maxMonth, jdbcType=INTEGER},
+            #{p.fixedMonth, jdbcType=INTEGER},
+            #{dpstId, jdbcType=VARCHAR}  FROM dual
+        </foreach>
+    </insert>
+
+    <insert id="insertWithdrawalRule"
+            parameterType="kr.co.api.backend.dto.ProductWithdrawRuleDTO">
+        INSERT INTO TB_DPST_PARTIAL_WDRW_INFO (
+        wdrw_dpst_id,
+        wdrw_min_month,
+        wdrw_max
+        ) VALUES (
+        #{dpstId},
+        #{minMonths},
+        #{maxCount}
+        )
+    </insert>
+
+
+    <insert id="insertWithdrawalAmounts" parameterType="java.util.Map"> INSERT INTO TB_DPST_PARTIAL_WDRW_AMT (
+        amt_dpst_id,
+        amt_currency,
+        amt_min
+        )
+        <foreach collection="list" item="a" separator="UNION ALL">
+            SELECT
+            #{dpstId, jdbcType=VARCHAR}, #{a.currency},
+            #{a.minAmt}
+            FROM dual
+        </foreach>
+    </insert>
+
+
+    <update id="updateStatus">
+        UPDATE TB_DPST_PROD_INFO
+        SET dpst_status = #{status}
+        WHERE dpst_id = #{dpstId}
+    </update>
+
+
+    <select id="getProductsByStatus" resultType="kr.co.api.backend.dto.ProductDTO">
+        SELECT *
+        FROM TB_DPST_PROD_INFO
+        WHERE dpst_status = #{status}
+        ORDER BY dpst_reg_dt DESC
+    </select>
+
+    <select id="getProductById" resultType="kr.co.api.backend.dto.ProductDTO">
+        SELECT *
+        FROM TB_DPST_PROD_INFO
+        WHERE dpst_id = #{dpstId}
+    </select>
+
+
+    <select id="getPeriods" resultType="kr.co.api.backend.dto.ProductPeriodDTO">
+        SELECT
+        period_min_month AS minMonth,
+        period_max_month AS maxMonth,
+        period_fixed_month AS fixedMonth,
+        period_dpst_id AS dpstId
+        FROM TB_DPST_PROD_PERIOD
+        WHERE period_dpst_id = #{dpstId}
+    </select>
+
+
+    <select id="getWithdrawRule" resultType="kr.co.api.backend.dto.ProductWithdrawRuleDTO">
+        SELECT
+        wdrw_min_month AS minMonths,
+        wdrw_max AS maxCount,
+        wdrw_dpst_id AS dpstId
+        FROM TB_DPST_PARTIAL_WDRW_INFO
+        WHERE wdrw_dpst_id = #{dpstId}
+    </select>
+
+
+    <select id="getWithdrawAmts" resultType="kr.co.api.backend.dto.ProductWithdrawAmtDTO">
+        SELECT
+        amt_currency AS currency,
+        amt_min AS minAmt,
+        amt_dpst_id AS dpstId
+        FROM TB_DPST_PARTIAL_WDRW_AMT
+        WHERE amt_dpst_id = #{dpstId}
+    </select>
+
+    <select id="getLimits" parameterType="string"
+            resultType="kr.co.api.backend.dto.ProductLimitDTO">
+        SELECT
+            LMT_DPST_ID   AS lmtDpstId,
+            LMT_CURRENCY  AS lmtCurrency,
+            LMT_MIN_AMT   AS lmtMinAmt,
+            LMT_MAX_AMT   AS lmtMaxAmt
+        FROM TB_DPST_AMT_LMT
+        WHERE LMT_DPST_ID = #{dpstId}
+
+    </select>
+
+
+    <!-- 상품 자동 업데이트 !-->
+    <update id="updateStatusToOpened">
+        UPDATE TB_DPST_PROD_INFO
+        SET dpst_status = 3
+        WHERE dpst_status = 2
+        AND dpst_reg_dt &lt;= TRUNC(SYSDATE)
+    </update>
+
+
+
+    <select id="findTermsFileByTitle" parameterType="string" resultType="string">
+        SELECT THIST_FILE
+        FROM (
+        SELECT H.THIST_FILE
+        FROM TB_TERMS_HIST H
+        INNER JOIN TB_TERMS_MASTER M
+        ON H.THIST_TERM_CATE = M.TERM_CATE
+        AND H.THIST_TERM_ORDER = M.TERM_ORDER
+        WHERE M.TERM_TITLE = #{productName}
+        ORDER BY H.THIST_VERSION DESC
+        )
+        WHERE ROWNUM = 1
+    </select>
+
+
+
+
+</mapper>

@@ -1,8 +1,8 @@
 package kr.co.api.backend.controller.translate;
 
-import kr.co.api.flobankapi.dto.translate.TranslationRequestDTO;
-import kr.co.api.flobankapi.dto.translate.TranslationResponseDTO;
-import kr.co.api.flobankapi.service.translate.TranslationService;
+import kr.co.api.backend.dto.translate.TranslationRequestDTO;
+import kr.co.api.backend.dto.translate.TranslationResponseDTO;
+import kr.co.api.backend.service.translate.TranslationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

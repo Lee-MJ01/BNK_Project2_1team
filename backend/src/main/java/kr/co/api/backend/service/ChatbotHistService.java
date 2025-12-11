@@ -1,8 +1,8 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.ChatbotAdminDTO;
-import kr.co.api.flobankapi.dto.ChatbotHistDTO;
-import kr.co.api.flobankapi.mapper.ChatbotHistMapper;
+import kr.co.api.backend.dto.ChatbotAdminDTO;
+import kr.co.api.backend.dto.ChatbotHistDTO;
+import kr.co.api.backend.mapper.ChatbotHistMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.TermsDbMapper">
+
+    <!-- MASTER INSERT (term_order는 트리거가 자동 입력) -->
+    <insert id="insertTermsMaster">
+        INSERT INTO TB_TERMS_MASTER(term_cate, term_order, term_title, term_reg_dy)
+        VALUES(#{termCate}, #{termOrder}, #{termTitle}, #{termRegDy})
+    </insert>
+
+
+    <!-- 방금 생성된 term_order 조회 -->
+    <select id="selectMaxOrderByCate" resultType="int">
+        SELECT MAX(term_order)
+        FROM TB_TERMS_MASTER
+        WHERE term_cate = #{cate}
+    </select>
+
+    <!-- HIST INSERT -->
+    <insert id="insertTermsHist">
+        INSERT INTO TB_TERMS_HIST(
+            thist_term_cate,
+            thist_term_order,
+            thist_file,
+            thist_content,
+            thist_version,
+            thist_ver_memo,
+            thist_admin_id,
+            thist_reg_dy
+        )
+        VALUES(
+                  #{thistTermCate},
+                  #{thistTermOrder},
+                  #{thistFile, jdbcType=VARCHAR},
+                  #{thistContent, jdbcType=CLOB},
+                  #{thistVersion},
+                  #{thistVerMemo},
+                  #{thistAdminId},
+                  #{thistRegDy}
+              )
+    </insert>
+
+
+    <!-- 전체 약관 목록 + 최신 버전 -->
+    <select id="selectAllTermsWithLatestVersion"
+            resultType="kr.co.api.backend.dto.TermsMasterDTO">
+
+        SELECT
+            m.term_cate  AS termCate,
+            m.term_order AS termOrder,
+            m.term_title AS termTitle,
+            m.term_reg_dy AS termRegDy,
+
+            (SELECT MAX(h.thist_version)
+             FROM TB_TERMS_HIST h
+             WHERE h.thist_term_cate = m.term_cate
+               AND h.thist_term_order = m.term_order) AS latestVersion,
+
+            (SELECT MAX(h.thist_reg_dy)
+             FROM TB_TERMS_HIST h
+             WHERE h.thist_term_cate = m.term_cate
+               AND h.thist_term_order = m.term_order) AS latestRegDy
+
+        FROM TB_TERMS_MASTER m
+        ORDER BY m.term_cate, m.term_order
+    </select>
+
+
+    <!-- 최신 HIST 내용 조회 -->
+    <select id="selectLatestHist"
+            resultType="kr.co.api.backend.dto.TermsHistDTO">
+        SELECT *
+        FROM TB_TERMS_HIST
+        WHERE thist_term_cate = #{termCate}
+          AND thist_term_order = #{termOrder}
+        ORDER BY thist_version DESC
+            FETCH FIRST 1 ROW ONLY
+    </select>
+
+    <!-- MASTER 수정 -->
+    <update id="updateTermsMaster">
+        UPDATE TB_TERMS_MASTER
+        SET term_title = #{termTitle}
+        WHERE term_cate = #{termCate}
+          AND term_order = #{termOrder}
+    </update>
+
+
+    <!-- 고객 약관 동의 기록 저장 -->
+    <insert id="saveAgreeHist">
+        INSERT INTO TB_TERMS_AGREE_HIST(
+            agree_cust_code,
+            agree_term_order,
+            agree_term_cate,
+            agree_yn,
+            agree_dt
+        ) VALUES(
+                    #{agreeCustCode},
+                    #{agreeTermOrder},
+                    #{agreeTermCate},
+                    'Y',
+                    SYSDATE
+                )
+    </insert>
+
+    <!-- 고객 약관 조회: 카테고리별 최신 버전 약관 리스트 -->
+    <select id="selectTermsByCate"
+            parameterType="int"
+            resultType="kr.co.api.backend.dto.TermsHistDTO">
+
+        SELECT *
+        FROM (
+                 SELECT
+                     m.term_cate     AS termCate,
+                     m.term_order    AS termOrder,
+                     m.term_title    AS termTitle,
+
+                     h.thist_no         AS thistNo,
+                     h.thist_term_order AS thistTermOrder,
+                     h.thist_content    AS thistContent,
+                     h.thist_version    AS thistVersion,
+                     h.thist_reg_dy     AS thistRegDy,
+                     h.thist_file       AS thistFile,
+
+                     ROW_NUMBER() OVER (
+                         PARTITION BY m.term_cate, m.term_order
+                         ORDER BY h.thist_version DESC, h.thist_reg_dy DESC, h.thist_no DESC
+                     ) AS rn
+                 FROM TB_TERMS_MASTER m
+                          JOIN TB_TERMS_HIST h
+                               ON h.thist_term_cate = m.term_cate
+                                   AND h.thist_term_order = m.term_order
+                 WHERE m.term_cate = #{cate}
+             )
+        WHERE rn = 1
+        ORDER BY termCate, termOrder
+    </select>
+
+
+    <select id="selectTermsHist" parameterType="long"
+            resultType="kr.co.api.backend.dto.TermsHistDTO">
+        SELECT
+            h.thist_no        AS thistNo,
+            h.thist_term_cate AS thistTermCate,
+            h.thist_term_order AS thistTermOrder,
+            h.thist_file      AS thistFile,
+            h.thist_content   AS thistContent,
+            h.thist_version   AS thistVersion,
+            h.thist_ver_memo  AS thistVerMemo,
+            h.thist_admin_id  AS thistAdminId,
+            h.thist_reg_dy    AS thistRegDy,
+            m.term_cate       AS termCate,
+            m.term_order      AS termOrder,
+            m.term_title      AS termTitle
+        FROM TB_TERMS_HIST h
+                 JOIN TB_TERMS_MASTER m
+                      ON m.term_cate = h.thist_term_cate
+                          AND m.term_order = h.thist_term_order
+        WHERE h.thist_no = #{thistNo}
+        </select>
+
+
+
+
+
+
+    <select id="selectTermsPage" resultType="kr.co.api.backend.dto.TermsMasterDTO">
+        SELECT
+            m.term_cate AS termCate,
+            m.term_order AS termOrder,
+            m.term_title AS termTitle,
+            m.term_reg_dy AS termRegDy,
+            (SELECT MAX(h.thist_version)
+             FROM TB_TERMS_HIST h
+             WHERE h.thist_term_cate = m.term_cate
+               AND h.thist_term_order = m.term_order) AS latestVersion,
+            (SELECT MAX(h.thist_reg_dy)
+             FROM TB_TERMS_HIST h
+             WHERE h.thist_term_cate = m.term_cate
+               AND h.thist_term_order = m.term_order) AS latestRegDy
+        FROM TB_TERMS_MASTER m
+        ORDER BY m.term_cate, m.term_order
+        OFFSET #{start} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+    <select id="countTerms" resultType="int">
+        SELECT COUNT(*) FROM TB_TERMS_MASTER
+    </select>
+
+    <select id="selectTermsPageFiltered" resultType="kr.co.api.backend.dto.TermsMasterDTO">
+        SELECT
+        m.term_cate AS termCate,
+        m.term_order AS termOrder,
+        m.term_title AS termTitle,
+        m.term_reg_dy AS termRegDy,
+        (SELECT MAX(h.thist_version)
+        FROM TB_TERMS_HIST h
+        WHERE h.thist_term_cate = m.term_cate
+        AND h.thist_term_order = m.term_order) AS latestVersion,
+        (SELECT MAX(h.thist_reg_dy)
+        FROM TB_TERMS_HIST h
+        WHERE h.thist_term_cate = m.term_cate
+        AND h.thist_term_order = m.term_order) AS latestRegDy
+        FROM TB_TERMS_MASTER m
+        <where>
+            <if test="type == 'category' and keyword != null">
+                AND m.term_cate = #{keyword}
+            </if>
+
+            <if test="type == 'title' and keyword != null">
+                AND m.term_title LIKE '%' || #{keyword} || '%'
+            </if>
+
+            <if test="type == 'content' and keyword != null">
+                AND m.term_order IN (
+                SELECT thist_term_order
+                FROM TB_TERMS_HIST
+                WHERE thist_content LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+        </where>
+        ORDER BY m.term_cate, m.term_order
+        OFFSET #{start} ROWS FETCH NEXT #{pageSize} ROWS ONLY
+    </select>
+
+
+    <select id="countTermsFiltered" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_TERMS_MASTER m
+        <where>
+            <if test="type == 'category' and keyword != null">
+                AND m.term_cate = #{keyword}
+            </if>
+
+            <if test="type == 'title' and keyword != null">
+                AND m.term_title LIKE '%' || #{keyword} || '%'
+            </if>
+
+            <if test="type == 'content' and keyword != null">
+                AND m.term_order IN (
+                SELECT thist_term_order
+                FROM TB_TERMS_HIST
+                WHERE thist_content LIKE '%' || #{keyword} || '%'
+                )
+            </if>
+        </where>
+    </select>
+
+    <select id="selectMaster" resultType="kr.co.api.backend.dto.TermsMasterDTO">
+        SELECT *
+        FROM TB_TERMS_MASTER
+        WHERE term_cate = #{cate}
+          AND term_order = #{order}
+    </select>
+
+
+
+
+</mapper>

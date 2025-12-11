@@ -7,11 +7,11 @@
 
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.service.ExchangeService;
-import kr.co.api.flobankapi.service.FrgnAcctService;
-import kr.co.api.flobankapi.service.RateService;
-import kr.co.api.flobankapi.service.TermsDbService;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.service.ExchangeService;
+import kr.co.api.backend.service.FrgnAcctService;
+import kr.co.api.backend.service.RateService;
+import kr.co.api.backend.service.TermsDbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

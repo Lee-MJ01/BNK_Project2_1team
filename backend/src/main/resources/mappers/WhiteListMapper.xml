@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.api.backend.mapper.WhiteListMapper" >
+
+    <resultMap id="DpstResultMap" type="kr.co.api.backend.dto.ProductDTO">
+        <id     property="dpstId"        column="DPST_ID"/>
+        <result property="dpstName"     column="DPST_NAME"/>
+        <result property="dpstInfo"            column="DPST_INFO"/>
+        <result property="dpstType"            column="DPST_TYPE"/>
+        <result property="dpstCurrency"        column="DPST_CURRENCY"/>
+        <result property="dpstRateType"        column="DPST_RATE_TYPE"/>
+        <result property="dpstMinYn"           column="DPST_MIN_YN"/>
+        <result property="dpstMaxYn"           column="DPST_MAX_YN"/>
+        <result property="dpstPeriodType"      column="DPST_PERIOD_TYPE"/>
+        <result property="dpstDescript"        column="DPST_DESCRIPT"/>
+        <result property="dpstPartWdrwYn"      column="DPST_PART_WDRW_YN"/>
+        <result property="dpstMinAge"          column="DPST_MIN_AGE"/>
+        <result property="dpstMaxAge"          column="DPST_MAX_AGE"/>
+        <result property="dpstAutoRenewYn"     column="DPST_AUTO_RENEW_YN"/>
+        <result property="dpstAddPayYn"        column="DPST_ADD_PAY_YN"/>
+        <result property="dpstAddPayMax"       column="DPST_ADD_PAY_MAX"/>
+        <result property="dpstRegDt"     column="DPST_REG_DT" jdbcType="TIMESTAMP"/>
+
+        <!-- 분할 인출 조건 -->
+        <result property="wdrwMinMonth"        column="WDRW_MIN_MONTH"/>
+        <result property="wdrwMax"             column="WDRW_MAX"/>
+
+        <!-- 분할 인출 최소/최대 금액 (통화) -->
+        <result property="amtCurrency"         column="AMT_CURRENCY"/>
+        <result property="amtMin"              column="AMT_MIN"/>
+
+        <!-- 예치 기간 조건 -->
+        <result property="periodMinMonth"      column="PERIOD_MIN_MONTH"/>
+        <result property="periodMaxMonth"      column="PERIOD_MAX_MONTH"/>
+        <result property="periodFixedMonth"    column="PERIOD_FIXED_MONTH"/>
+
+        <!-- 가입 금액 제한 -->
+        <result property="lmtCurrency"       column="lmt_currency"/>
+        <result property="lmtMinAmt"         column="lmt_min_amt"/>
+        <result property="lmtMaxAmt"         column="lmt_max_amt"/>
+    </resultMap>
+
+    <select id="dpstIdList" resultType="String">
+        select dpst_id from TB_DPST_PROD_INFO
+    </select>
+
+
+    <select id="dpstAllInfo" resultMap="DpstResultMap">
+        SELECT
+            A.DPST_ID,
+            A.DPST_NAME,
+            A.dpst_info,
+            A.DPST_TYPE,
+            A.DPST_CURRENCY,
+            A.DPST_RATE_TYPE,
+            A.DPST_MIN_YN,
+            A.DPST_MAX_YN,
+            A.DPST_PERIOD_TYPE,
+            A.dpst_descript,
+            A.DPST_PART_WDRW_YN,
+            A.dpst_min_age,
+            A.dpst_max_age,
+            A.dpst_auto_renew_yn,
+            A.dpst_add_pay_yn,
+            A.dpst_add_pay_max,
+            A.dpst_reg_dt,
+            PF.WDRW_MIN_MONTH,
+            PF.WDRW_MAX,
+            PW.amt_currency,
+            PW.amt_min,
+            P.PERIOD_MIN_MONTH,
+            P.PERIOD_MAX_MONTH,
+            P.PERIOD_FIXED_MONTH,
+            L.lmt_currency,
+            L.lmt_min_amt,
+            L.lmt_max_amt
+        FROM TB_DPST_PROD_INFO A
+                 LEFT JOIN TB_DPST_PARTIAL_WDRW_INFO   PF ON A.DPST_ID = PF.WDRW_DPST_ID
+                 LEFT JOIN TB_DPST_PARTIAL_WDRW_AMT   PW ON A.DPST_ID = PW.AMT_DPST_ID
+                 LEFT JOIN TB_DPST_PROD_PERIOD         P  ON A.DPST_ID = P.PERIOD_DPST_ID
+                 LEFT JOIN TB_DPST_AMT_LMT       L  ON A.DPST_ID = L.LMT_DPST_ID
+        WHERE A.DPST_STATUS = 3
+          AND A.DPST_ID = #{dpstId}
+    </select>
+
+
+
+
+    <resultMap id="InterestResultMap" type="kr.co.api.backend.dto.InterestInfoDTO">
+        <id     property="interestCurrency"        column="INTEREST_CURRENCY"/>
+        <result property="interestMonth"     column="INTEREST_MONTH"/>
+        <result property="interestRate"            column="INTEREST_RATE"/>
+    </resultMap>
+
+    <select id="interestInfo" resultMap="InterestResultMap">
+        select * from TB_INTEREST_INFO order by INTEREST_CURRENCY, INTEREST_MONTH asc
+    </select>
+
+
+    <select id="interestsInfo" resultType="kr.co.api.backend.dto.DepositRateDTO">
+        select * from EXCHANGE_RATE_12M order by CREATED_AT desc
+        fetch first 6 rows only
+    </select>
+
+
+    <select id="selectLatestTermsByCate" resultType="kr.co.api.backend.dto.TermsHistDTO">
+        SELECT
+        m.TERM_TITLE,
+        h.THIST_CONTENT
+        FROM TB_TERMS_MASTER m
+        JOIN TB_TERMS_HIST h
+        ON m.TERM_CATE = h.THIST_TERM_CATE
+        AND m.TERM_ORDER = h.THIST_TERM_ORDER
+        WHERE m.TERM_CATE = #{termCate}
+        AND h.THIST_VERSION = (
+        SELECT MAX(h2.THIST_VERSION)
+        FROM TB_TERMS_HIST h2
+        WHERE h2.THIST_TERM_CATE = h.THIST_TERM_CATE
+        AND h2.THIST_TERM_ORDER = h.THIST_TERM_ORDER
+        )
+    </select>
+
+
+
+
+</mapper>

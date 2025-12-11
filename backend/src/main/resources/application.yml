@@ -1,3 +1,99 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /backend
+
+app-version: '@version@'
+
 spring:
-    application:
-        name: backend
+  application:
+    name: backend
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  datasource:
+    jdbc-url: jdbc:oracle:thin:@34.64.225.88:1521/XEPDB1
+    username: flobank
+    password: 1234
+    driver-class-name: oracle.jdbc.OracleDriver
+  #  profiles:
+  #    active: dev
+  elasticsearch:
+    uris: http://34.64.225.88:9200
+    username: elastic
+    password: bnk1234!
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: alswnstl23@gmail.com
+    password: "nkel ifue pjnh hzyj"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          timeout: 5000
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+  data:
+    redis:
+      host: 34.64.225.88
+      port: 6379
+
+
+flobank:
+  ap:
+    host: 34.64.225.88
+    port: 9090
+  aes:
+    secret: "01234567890123456789012345678901"
+
+mybatis:
+  mapper-locations: classpath:mappers/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+jwt:
+  secret: "v3rySecr3tKeyF0rFl0BankApiProjectMustBeLongerThan256Bits!!"
+
+eximbank:
+  api:
+    base-url: "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON"
+    auth-key: "LNyeb6x2OFLu289XSY1tokxFueROPpxI"
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  base-url: "https://api.openai.com/v1"
+
+solapi:
+  apiKey: NCSGTLVVAFB7GAHV
+  apiSecret: N7V7FAHACZ8KWKNQPQFUCGSDSWWL4K5E
+  phoneNumber: 01021098237
+
+terms:
+  base-dir: C:/Users/GGG/Desktop/workspace
+
+pinecone:
+  api-key: "pcsk_4WFJGX_DNAQ7nLt7pD7aLSzixdEp4yfHLDF4itTupWn5Rf7L2ehoDdv7eoXkuk5584Kzyx"
+  index-host: https://bank-db-46fp8tb.svc.aped-4627-b74a.pinecone.io
+  index-name: bank-db
+
+file:
+  upload:
+    pdf-ai-path: /app/uploads/pdf_ai
+    pdf-products-path: /app/uploads/pdf_products
+    pdf-terms-path: /app/uploads/terms
+
+deepl:
+  api:
+    key: 3df6a572-c72c-4544-8cd2-c5bfd6a27b53:fx
+
+ai-server:
+  url: http://34.64.84.82:8000
+
+ai-server-qna:
+  url: http://34.64.84.82:8000/api/qna/auto_process
+

@@ -1,9 +1,9 @@
 package kr.co.api.backend.mapper;
 
 
-import kr.co.api.flobankapi.dto.CustFrgnAcctDTO;
-import kr.co.api.flobankapi.dto.CustTranHistDTO;
-import kr.co.api.flobankapi.dto.FrgnAcctBalanceDTO;
+import kr.co.api.backend.dto.CustFrgnAcctDTO;
+import kr.co.api.backend.dto.CustTranHistDTO;
+import kr.co.api.backend.dto.FrgnAcctBalanceDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.math.BigDecimal;

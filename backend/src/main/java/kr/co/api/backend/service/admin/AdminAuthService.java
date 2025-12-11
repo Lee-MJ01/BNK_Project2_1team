@@ -2,9 +2,9 @@ package kr.co.api.backend.service.admin;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.co.api.flobankapi.dto.AdminInfoDTO;
-import kr.co.api.flobankapi.jwt.JwtTokenProvider;
-import kr.co.api.flobankapi.mapper.admin.AdminInfoMapper;
+import kr.co.api.backend.dto.AdminInfoDTO;
+import kr.co.api.backend.jwt.JwtTokenProvider;
+import kr.co.api.backend.mapper.admin.AdminInfoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;

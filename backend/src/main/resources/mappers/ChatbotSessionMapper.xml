@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.api.backend.mapper.ChatbotSessionMapper" >
+
+    <insert id="insertSession" parameterType="kr.co.api.backend.dto.ChatbotSessionDTO">
+        <selectKey keyProperty="sessId" resultType="String" order="BEFORE">
+            SELECT 'S' || LPAD(SEQ_CHATBOT_SESSION.NEXTVAL, 7, '0') FROM dual
+        </selectKey>
+
+        INSERT INTO TB_CHATBOT_SESSION
+        (sess_id, sess_cust_code, sess_start_dt)
+        VALUES
+        (#{sessId}, #{sessCustCode}, SYSDATE)
+    </insert>
+
+
+    <insert id="insertAnoSession" parameterType="kr.co.api.backend.dto.ChatbotSessionDTO">
+        <selectKey keyProperty="sessId" resultType="String" order="BEFORE">
+            SELECT 'S' || LPAD(SEQ_CHATBOT_SESSION.NEXTVAL, 7, '0') FROM dual
+        </selectKey>
+
+        INSERT INTO TB_CHATBOT_SESSION
+        (sess_id, sess_start_dt)
+        VALUES
+        (#{sessId}, SYSDATE)
+    </insert>
+
+
+
+
+</mapper>

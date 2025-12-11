@@ -1,8 +1,8 @@
 package kr.co.api.backend.service.admin;
 
 import jakarta.annotation.PostConstruct;
-import kr.co.api.flobankapi.dto.admin.dashboard.*;
-import kr.co.api.flobankapi.mapper.admin.DashboardMapper;
+import kr.co.api.backend.dto.admin.dashboard.*;
+import kr.co.api.backend.mapper.admin.DashboardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

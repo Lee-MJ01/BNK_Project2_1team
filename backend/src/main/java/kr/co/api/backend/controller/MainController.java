@@ -1,10 +1,10 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.BoardDTO;
-import kr.co.api.flobankapi.dto.BriefingViewDTO;
-import kr.co.api.flobankapi.service.BoardService;
-import kr.co.api.flobankapi.service.BriefingService;
-import kr.co.api.flobankapi.service.RateService;
+import kr.co.api.backend.dto.BoardDTO;
+import kr.co.api.backend.dto.BriefingViewDTO;
+import kr.co.api.backend.service.BoardService;
+import kr.co.api.backend.service.BriefingService;
+import kr.co.api.backend.service.RateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

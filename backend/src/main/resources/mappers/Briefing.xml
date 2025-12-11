@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.api.backend.mapper.BriefingMapper" >
+    <!-- 모드별 최신 브리핑 1건 조회 -->
+    <select id="selectLatestBriefingByMode"
+            parameterType="string"
+            resultType="kr.co.api.backend.dto.BriefingDTO">
+        SELECT
+            BRIEFING_ID      AS briefingId,
+            BRIEFING_MODE    AS briefingMode,
+            BRIEFING_DATE    AS briefingDate,
+            CONTENT          AS content,
+            CREATED_AT       AS createdAt
+        FROM TB_BRIEFING_LOG
+        WHERE BRIEFING_MODE = #{mode}
+        ORDER BY BRIEFING_DATE DESC
+            FETCH FIRST 1 ROWS ONLY
+    </select>
+
+
+</mapper>

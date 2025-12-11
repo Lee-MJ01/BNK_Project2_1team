@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/deposit/list.dart';
+import 'package:test_main/screens/main/search.dart';
 import '../app_colors.dart';
 import '../../main.dart';
 import '../mypage/transaction_history.dart';
@@ -9,7 +10,7 @@ import '../remit/remit_step1.dart';
 import '../mypage/mypage.dart';
 import '../exchange/forex_insight.dart';
 
-
+import 'alarm.dart';
 
 
 
@@ -60,24 +61,38 @@ class _BankHomePageState extends State<BankHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SearchScreen(),
+                  fullscreenDialog: true, // 아래에서 위로 올라오는 모달 효과 (원치 않으면 false)
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AlaramScreen()),
+              );
+            },
           ),
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu, color: Colors.black87),
               onPressed: () {
-                Scaffold.of(context).openEndDrawer(); // ✅ 오른쪽 슬라이드 메뉴
+                Scaffold.of(context).openEndDrawer();
               },
             ),
           ),
         ],
       ),
 
-      /// ✅ 오른쪽 슬라이드 메뉴 (햄버거 메뉴)
+
       endDrawer: Drawer(
         child: Column(
           children: [

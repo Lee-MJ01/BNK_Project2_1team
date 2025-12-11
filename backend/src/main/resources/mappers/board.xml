@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.BoardMapper">
+
+    <resultMap id="BoardResultMap" type="kr.co.api.backend.dto.BoardDTO">
+        <id     property="boardNo"        column="BOARD_NO"/>
+        <result property="boardTitle"     column="BOARD_TITLE"/>
+        <result property="boardContent"   column="BOARD_CONTENT"/>
+        <result property="boardAdminId"   column="BOARD_ADMIN_ID"/>
+        <result property="boardRegDt"     column="BOARD_REG_DT" jdbcType="TIMESTAMP"/>
+        <result property="boardHit"       column="BOARD_HIT"/>
+        <result property="boardType"      column="BOARD_TYPE"/>
+    </resultMap>
+
+    <!-- 단일 조회 -->
+    <select id="selectBoardListByType" resultMap="BoardResultMap">
+        SELECT *
+        FROM TB_BOARD_HDR
+        WHERE BOARD_TYPE = #{boardType}
+        ORDER BY BOARD_NO DESC
+    </select>
+
+    <select id="selectBoardByNo" resultMap="BoardResultMap">
+        SELECT *
+        FROM TB_BOARD_HDR
+        WHERE BOARD_NO = #{boardNo}
+    </select>
+
+    <update id="updateBoardHit">
+        UPDATE TB_BOARD_HDR
+        SET BOARD_HIT = BOARD_HIT + 1
+        WHERE BOARD_NO = #{boardNo}
+    </update>
+
+    <select id="countBoard" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_BOARD_HDR
+        WHERE BOARD_TYPE = #{boardType}
+    </select>
+
+    <select id="selectBoardPage" resultMap="BoardResultMap">
+        SELECT *
+        FROM (
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY BOARD_NO DESC) AS RNUM,
+        BOARD_NO, BOARD_TITLE, BOARD_CONTENT,
+        BOARD_ADMIN_ID, BOARD_REG_DT, BOARD_HIT, BOARD_TYPE
+        FROM TB_BOARD_HDR
+        WHERE BOARD_TYPE = #{boardType}
+        ) A
+        WHERE A.RNUM BETWEEN #{start} AND #{end}
+    </select>
+
+    <insert id="insertBoard">
+        INSERT INTO TB_BOARD_HDR
+        (BOARD_TITLE, BOARD_CONTENT, BOARD_ADMIN_ID, BOARD_REG_DT, BOARD_HIT, BOARD_TYPE)
+        VALUES
+        (#{boardTitle}, #{boardContent}, #{boardAdminId}, SYSDATE, 0, #{boardType})
+    </insert>
+
+    <!-- 🔹 공지 + 이벤트 통합 페이징 -->
+    <select id="selectAllBoardPage" resultMap="BoardResultMap">
+        SELECT *
+        FROM (
+        SELECT
+        ROW_NUMBER() OVER (ORDER BY BOARD_NO DESC) AS RNUM,
+        BOARD_NO, BOARD_TITLE, BOARD_CONTENT,
+        BOARD_ADMIN_ID, BOARD_REG_DT, BOARD_HIT, BOARD_TYPE
+        FROM TB_BOARD_HDR
+        WHERE BOARD_TYPE IN (1,2)
+        ) A
+        WHERE A.RNUM BETWEEN #{start} AND #{end}
+    </select>
+
+    <select id="countAllBoard" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_BOARD_HDR
+        WHERE BOARD_TYPE IN (1,2)
+    </select>
+
+    <delete id="deleteBoard">
+        DELETE FROM TB_BOARD_HDR
+        WHERE BOARD_NO = #{boardNo}
+    </delete>
+
+    <update id="updateBoard">
+        UPDATE TB_BOARD_HDR
+        SET
+        BOARD_TITLE = #{boardTitle},
+        BOARD_CONTENT = #{boardContent},
+        BOARD_TYPE = #{boardType}
+        WHERE BOARD_NO = #{boardNo}
+    </update>
+
+
+</mapper>

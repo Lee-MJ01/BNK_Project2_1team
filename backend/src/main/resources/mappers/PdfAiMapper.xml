@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.PdfAiMapper">
+
+    <resultMap id="PdfAiResultMap" type="kr.co.api.backend.dto.PdfAiDTO">
+        <id property="pdfId" column="PDF_ID" />
+        <result property="orgFileName" column="ORG_FILE_NAME" />
+        <result property="storedFileName" column="STORED_FILE_NAME" />
+        <result property="filePath" column="FILE_PATH" />
+        <result property="extractedText" column="EXTRACTED_TEXT" />
+        <result property="aiComment" column="AI_COMMENT" />
+        <result property="aiOverallRisk" column="AI_OVERALL_RISK" />
+        <result property="status" column="STATUS" />
+        <result property="errorMessage" column="ERROR_MESSAGE" />
+        <result property="productName" column="PRODUCT_NAME" />
+        <result property="productShortDesc" column="PRODUCT_SHORT_DESC" />
+        <result property="productFeatures" column="PRODUCT_FEATURES" />
+        <result property="depositType" column="DEPOSIT_TYPE" />
+        <result property="currencies" column="CURRENCIES" />
+        <result property="exchangeRatePolicy" column="EXCHANGE_RATE_POLICY" />
+        <result property="termType" column="TERM_TYPE" />
+        <result property="minMonth" column="MIN_MONTH" />
+        <result property="maxMonth" column="MAX_MONTH" />
+        <result property="eligibility" column="ELIGIBILITY" />
+        <result property="partialWithdrawal" column="PARTIAL_WITHDRAWAL" />
+        <result property="autoRenewal" column="AUTO_RENEWAL" />
+        <result property="additionalDeposit" column="ADDITIONAL_DEPOSIT" />
+        <result property="createdAt" column="CREATED_AT" />
+        <result property="updatedAt" column="UPDATED_AT" />
+    </resultMap>
+
+    <!-- 1) Insert -->
+    <insert id="insertPdf" parameterType="kr.co.api.backend.dto.PdfAiDTO">
+        INSERT INTO TB_PDF_AI (
+            ORG_FILE_NAME,
+            STORED_FILE_NAME,
+            FILE_PATH,
+            STATUS
+        ) VALUES (
+                     #{orgFileName},
+                     #{storedFileName},
+                     #{filePath},
+                     #{status}
+                 )
+    </insert>
+
+    <select id="findInsertedId" resultType="long">
+        SELECT PDF_ID
+        FROM TB_PDF_AI
+        WHERE ORG_FILE_NAME = #{orgFileName}
+          AND STORED_FILE_NAME = #{storedFileName}
+          AND FILE_PATH = #{filePath}
+        ORDER BY CREATED_AT DESC
+            FETCH FIRST 1 ROW ONLY
+    </select>
+
+
+    <!-- 2) 상태별 조회 -->
+    <select id="findByStatus" resultMap="PdfAiResultMap">
+        SELECT *
+        FROM TB_PDF_AI
+        WHERE STATUS = #{status}
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <!-- 3) ID 조회 -->
+    <select id="findById" resultMap="PdfAiResultMap">
+        SELECT *
+        FROM TB_PDF_AI
+        WHERE PDF_ID = #{pdfId}
+    </select>
+
+    <!-- 4) 상태 업데이트 -->
+    <update id="updateStatus">
+        UPDATE TB_PDF_AI
+        SET STATUS = #{status},
+            UPDATED_AT = CURRENT_TIMESTAMP
+        WHERE PDF_ID = #{pdfId}
+    </update>
+
+    <select id="findAll" resultMap="PdfAiResultMap">
+        SELECT *
+        FROM TB_PDF_AI
+        ORDER BY CREATED_AT DESC
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM TB_PDF_AI
+        WHERE PDF_ID = #{pdfId}
+    </delete>
+
+</mapper>

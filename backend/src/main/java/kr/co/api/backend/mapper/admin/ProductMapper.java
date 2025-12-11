@@ -1,7 +1,7 @@
 package kr.co.api.backend.mapper.admin;
 
 
-import kr.co.api.flobankapi.dto.*;
+import kr.co.api.backend.dto.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

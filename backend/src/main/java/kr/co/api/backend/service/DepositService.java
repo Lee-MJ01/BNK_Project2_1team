@@ -2,9 +2,9 @@ package kr.co.api.backend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.mapper.DepositMapper;
-import kr.co.api.flobankapi.mapper.EventMapper;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.mapper.DepositMapper;
+import kr.co.api.backend.mapper.EventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

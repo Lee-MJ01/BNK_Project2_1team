@@ -1,11 +1,11 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.BoardDTO;
-import kr.co.api.flobankapi.dto.FaqDTO;
-import kr.co.api.flobankapi.dto.QnaDTO;
-import kr.co.api.flobankapi.dto.TermsHistDTO;
-import kr.co.api.flobankapi.jwt.CustomUserDetails;
-import kr.co.api.flobankapi.service.*;
+import kr.co.api.backend.dto.BoardDTO;
+import kr.co.api.backend.dto.FaqDTO;
+import kr.co.api.backend.dto.QnaDTO;
+import kr.co.api.backend.dto.TermsHistDTO;
+import kr.co.api.backend.jwt.CustomUserDetails;
+import kr.co.api.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
