@@ -1,7 +1,7 @@
 package kr.co.api.backend.controller.admin;
 
-import kr.co.api.flobankapi.dto.admin.exchange.ExchangeStatsDTO;
-import kr.co.api.flobankapi.service.admin.ExchangeAdminService;
+import kr.co.api.backend.dto.admin.exchange.ExchangeStatsDTO;
+import kr.co.api.backend.service.admin.ExchangeAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

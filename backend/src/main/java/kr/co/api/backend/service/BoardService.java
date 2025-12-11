@@ -1,7 +1,7 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.BoardDTO;
-import kr.co.api.flobankapi.mapper.BoardMapper;
+import kr.co.api.backend.dto.BoardDTO;
+import kr.co.api.backend.mapper.BoardMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

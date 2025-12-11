@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.RemitMapper" >
+
+    <insert id="insertFrgnRemtTran" parameterType="kr.co.api.backend.dto.FrgnRemtTranDTO">
+        INSERT INTO TB_FRGN_REMT_TRAN(
+            REMT_ACCT_NO, REMT_CUST_NAME, REMT_AMOUNT,
+            REMT_DT, REMT_REC_ACC_NO, REMT_REC_NAME, REMT_REC_BK_CODE, REMT_CURRENCY,
+            REMT_APPLIED_RATE, REMT_FEE, REMT_STATUS, REMT_ADDR, REMT_CITY, REMT_STATE,
+            REMT_COUNTRY, REMT_ESIGN_YN, REMT_ESIGN_DT
+        )
+        VALUES (
+            #{remtAcctNo}, #{remtCustName}, #{remtAmount},
+            sysdate, #{remtRecAccNo}, #{remtRecName}, #{remtRecBkCode}, #{remtCurrency},
+            #{remtAppliedRate}, #{remtFee}, #{remtStatus}, #{remtAddr}, #{remtCity}, #{remtState},
+            #{remtCountry}, #{remtEsignYn}, sysdate
+        )
+    </insert>
+
+    <update id="updateMinusBal">
+        UPDATE TB_FRGN_ACCT_BALANCE SET BAL_BALANCE = BAL_BALANCE - #{amount}
+        WHERE BAL_NO = #{acctNo}
+    </update>
+
+    <select id="selectParAcctNo">
+        SELECT CFA.*
+        FROM TB_FRGN_ACCT_BALANCE FAB
+        JOIN TB_CUST_FRGN_ACCT CFA ON FAB.BAL_FRGN_ACCT_NO = CFA.FRGN_ACCT_NO
+        WHERE FAB.BAL_NO = #{balNo}
+    </select>
+</mapper>

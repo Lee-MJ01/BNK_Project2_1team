@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @MapperScan(
-        basePackages = "kr.co.api.flobankapi.mapper",
+        basePackages = "kr.co.api.backend.mapper",
         sqlSessionFactoryRef = "sqlSessionFactory"
 )
 public class MyBatisConfig {
@@ -46,7 +46,7 @@ public class MyBatisConfig {
         );
 
         // DTO 패키지
-        sessionFactory.setTypeAliasesPackage("kr.co.api.flobankapi.model, kr.co.api.flobankapi.dto.search, kr.co.api.flobankapi.dto");
+        sessionFactory.setTypeAliasesPackage("kr.co.api.backend.model, kr.co.api.backend.dto.search, kr.co.api.backend.dto");
 
         // 설정
         org.apache.ibatis.session.Configuration configuration = new org.apache.ibatis.session.Configuration();

@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.DepositMapper">
+
+
+
+
+    <select id="selectDpstProduct" resultType="kr.co.api.backend.dto.ProductDTO">
+        select * from TB_DPST_PROD_INFO
+        WHERE dpst_id=#{dpstId}
+    </select>
+
+    <select id="limitOfDpst" resultType="kr.co.api.backend.dto.ProductLimitDTO">
+        SELECT * FROM tb_dpst_amt_lmt
+        WHERE LMT_DPST_ID = #{dpstId}
+    </select>
+
+    <select id="dpstMinMaxPeriod" resultType="kr.co.api.backend.dto.ProductPeriodDTO">
+        SELECT PERIOD_MIN_MONTH as minMonth, period_max_month as maxMonth FROM TB_DPST_PROD_PERIOD
+        WHERE period_dpst_id=#{dpstId}
+    </select>
+
+    <select id="dpstFixedPeriods" resultType="kr.co.api.backend.dto.ProductPeriodDTO">
+        SELECT PERIOD_FIXED_MONTH as fixedMonth FROM TB_DPST_PROD_PERIOD
+        WHERE period_dpst_id=#{dpstId}
+        order by PERIOD_FIXED_MONTH asc
+    </select>
+
+    <select id="getDpstWdrwInfo" resultType="kr.co.api.backend.dto.ProductWithdrawRuleDTO">
+        SELECT
+        wdrw_min_month AS minMonths,
+        wdrw_max AS maxCount,
+        wdrw_dpst_id AS dpstId
+        FROM TB_DPST_PARTIAL_WDRW_INFO
+        WHERE wdrw_dpst_id = #{dpstId}
+    </select>
+
+
+    <select id="getDpstAmtList" resultType="kr.co.api.backend.dto.ProductWithdrawAmtDTO">
+        SELECT
+        amt_currency AS currency,
+        amt_min AS minAmt,
+        amt_dpst_id AS dpstId
+        FROM TB_DPST_PARTIAL_WDRW_AMT
+        WHERE amt_dpst_id = #{dpstId}
+    </select>
+
+    <select id="getKRWAccts" resultType="kr.co.api.backend.dto.CustAcctDTO">
+        SELECT acct_no, acct_pw, acct_balance from tb_cust_acct
+        where acct_cust_code=#{acctCustCode} AND acct_status=1
+    </select>
+
+    <select id="getFrgnAcct" resultType="kr.co.api.backend.dto.CustFrgnAcctDTO">
+        SELECT frgn_acct_no, frgn_acct_pw
+        from tb_cust_frgn_acct
+        where frgn_acct_cust_code=#{frgnAcctCustCode} AND frgn_acct_status=1
+    </select>
+
+    <select id="getFrgnAcctBalList" resultType="kr.co.api.backend.dto.FrgnAcctBalanceDTO">
+        SELECT * FROM TB_FRGN_ACCT_BALANCE
+        WHERE BAL_FRGN_ACCT_NO = #{balFrgnAcctNo}
+    </select>
+
+    <select id="getAllCurrencies" resultType="kr.co.api.backend.dto.CurrencyInfoDTO">
+        select * from TB_CURRENCY_INFO
+    </select>
+
+    <select id="getCurrency" resultType="kr.co.api.backend.dto.CurrencyInfoDTO">
+        select * from TB_CURRENCY_INFO
+        where cur_code=#{curCode}
+    </select>
+
+
+    <select id="getPrefRate" resultType="int">
+        select pref_rate from TB_PREF_RATE_INFO
+        where pref_currency=#{currency}
+    </select>
+
+
+
+
+    <select id="findActiveProducts" resultType="kr.co.api.backend.dto.ProductDTO">
+        SELECT
+        DPST_ID,
+        DPST_NAME,
+        DPST_INFO,
+        DPST_STATUS
+        FROM
+        TB_DPST_PROD_INFO
+        WHERE
+        DPST_STATUS = 3
+        ORDER BY DPST_REG_DT DESC
+    </select>
+
+    <select id="countActiveProducts" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_DPST_PROD_INFO
+        WHERE DPST_STATUS = 3
+    </select>
+
+
+    <resultMap id="ProductDetailMap" type="kr.co.api.backend.dto.ProductDTO" autoMapping="true">
+
+        <id property="dpstId" column="DPST_ID"/>
+
+        <result property="wdrwMinMonth" column="WDRW_MIN_MONTH"/>
+        <result property="wdrwMax" column="WDRW_MAX"/>
+        <result property="amtCurrency" column="AMT_CURRENCY"/>
+        <result property="amtMin" column="AMT_MIN"/>
+
+        <collection property="periodList" ofType="kr.co.api.backend.dto.ProductPeriodDTO">
+            <result property="minMonth" column="PERIOD_MIN_MONTH"/>
+            <result property="maxMonth" column="PERIOD_MAX_MONTH"/>
+            <result property="fixedMonth" column="PERIOD_FIXED_MONTH"/>
+        </collection>
+
+        <collection property="limits" ofType="kr.co.api.backend.dto.ProductLimitDTO" autoMapping="true">
+            <id property="lmtCurrency" column="LMT_CURRENCY"/>
+            <result property="lmtMinAmt" column="LMT_MIN_AMT"/>
+            <result property="lmtMaxAmt" column="LMT_MAX_AMT"/>
+        </collection>
+
+    </resultMap>
+
+    <select id="findProductById" parameterType="string" resultMap="ProductDetailMap">
+        SELECT
+        I.DPST_ID,
+        I.DPST_NAME,
+        I.DPST_INFO,
+        I.DPST_TYPE,
+        I.DPST_CURRENCY,
+        I.DPST_RATE_TYPE,
+        I.DPST_MIN_YN,
+        I.DPST_MAX_YN,
+        I.DPST_STATUS,
+        I.DPST_DESCRIPT,
+        I.DPST_PERIOD_TYPE,
+        I.DPST_MIN_AGE,
+        I.DPST_MAX_AGE,
+        I.DPST_AUTO_RENEW_YN,
+        I.DPST_ADD_PAY_YN,
+        I.DPST_ADD_PAY_MAX,
+        I.DPST_PART_WDRW_YN,
+        I.DPST_REG_DT,
+        I.DPST_APP_NO,
+        I.DPST_APP_DY,
+        I.DPST_DELIB_NO,
+        I.DPST_DELIB_DY,
+        I.DPST_DELIB_START_DY,
+        I.DPST_INFO_PDF,
+
+        W.WDRW_MIN_MONTH,
+        W.WDRW_MAX,
+        WA.AMT_CURRENCY,
+        WA.AMT_MIN,
+
+        P.PERIOD_MIN_MONTH,
+        P.PERIOD_MAX_MONTH,
+        P.PERIOD_FIXED_MONTH,
+
+        L.LMT_CURRENCY,
+        L.LMT_MIN_AMT,
+        L.LMT_MAX_AMT
+
+        FROM TB_DPST_PROD_INFO I
+        LEFT JOIN TB_DPST_PROD_PERIOD P ON TRIM(I.DPST_ID) = TRIM(P.PERIOD_DPST_ID)
+        LEFT JOIN TB_DPST_PARTIAL_WDRW_INFO W ON TRIM(I.DPST_ID) = TRIM(W.WDRW_DPST_ID)
+        LEFT JOIN TB_DPST_PARTIAL_WDRW_AMT WA ON TRIM(I.DPST_ID) = TRIM(WA.AMT_DPST_ID)
+        LEFT JOIN TB_DPST_AMT_LMT L ON TRIM(I.DPST_ID) = TRIM(L.LMT_DPST_ID)
+
+        WHERE TRIM(I.DPST_ID) = TRIM(#{dpstId})
+    </select>
+
+
+
+
+
+    <select id="findTermsFileByTitle" parameterType="string" resultType="string">
+        SELECT THIST_FILE
+        FROM (
+        SELECT H.THIST_FILE
+        FROM TB_TERMS_HIST H
+        INNER JOIN TB_TERMS_MASTER M
+        ON H.THIST_TERM_CATE = M.TERM_CATE
+        AND H.THIST_TERM_ORDER = M.TERM_ORDER
+        WHERE M.TERM_TITLE = #{productName}
+        ORDER BY H.THIST_VERSION DESC
+        )
+        WHERE ROWNUM = 1
+    </select>
+
+
+    <select id="findRatesByBaseDate"
+            parameterType="java.util.Date"
+            resultType="kr.co.api.backend.dto.DepositRateDTO">
+
+        SELECT
+        BASE_DATE,
+        CURRENCY,
+        RATE_1M,
+        RATE_2M,
+        RATE_3M,
+        RATE_4M,
+        RATE_5M,
+        RATE_6M,
+        RATE_7M,
+        RATE_8M,
+        RATE_9M,
+        RATE_10M,
+        RATE_11M,
+        RATE_12M
+        FROM
+        EXCHANGE_RATE_12M
+        WHERE
+        BASE_DATE = #{baseDate}
+        ORDER BY
+        CURRENCY
+    </select>
+
+    <select id="getAcctPw" resultType="String">
+        select acct_pw from tb_cust_acct
+        where acct_no=#{acctNo}
+    </select>
+
+    <select id="getFrgnAcctPw" resultType="String">
+        select frgn_acct_pw from tb_cust_frgn_acct
+        where frgn_acct_no=#{frgnAcctNo}
+    </select>
+
+    <select id="getRecentInterest" resultType="kr.co.api.backend.dto.InterestRateDTO">
+        SELECT
+        BASE_DATE AS baseDate,
+        CURRENCY AS currency,
+        RATE_1M AS rate1M,
+        RATE_2M AS rate2M,
+        RATE_3M AS rate3M,
+        RATE_4M AS rate4M,
+        RATE_5M AS rate5M,
+        RATE_6M AS rate6M,
+        RATE_7M AS rate7M,
+        RATE_8M AS rate8M,
+        RATE_9M AS rate9M,
+        RATE_10M AS rate10M,
+        RATE_11M AS rate11M,
+        RATE_12M AS rate12M,
+        CREATED_AT AS createdAt
+        FROM EXCHANGE_RATE_12M
+        WHERE CURRENCY = #{currency}
+        ORDER BY BASE_DATE DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+
+    <insert id="insertDpstAcctHdr">
+        INSERT INTO TB_DPST_ACCT_HDR (
+        DPST_HDR_DPST_ID,
+        DPST_HDR_PW,
+        DPST_HDR_CUST_CODE,
+        DPST_HDR_MONTH,
+        DPST_HDR_START_DY,
+        DPST_HDR_FIN_DY,
+        DPST_HDR_CURRENCY,
+        DPST_HDR_BALANCE,
+        DPST_HDR_INTEREST,
+        DPST_HDR_STATUS,
+        DPST_HDR_LINKED_ACCT_NO,
+        DPST_HDR_AUTO_RENEW_YN,
+        DPST_HDR_PART_WDRW_CNT,
+        DPST_HDR_INFO_AGREE_YN,
+        DPST_HDR_INFO_AGREE_DT,
+        DPST_HDR_CONTRACT_DT,
+        DPST_HDR_RATE,
+        DPST_HDR_CURRENCY_EXP,
+        DPST_HDR_EXP_ACCT_NO,
+        DPST_HDR_LINKED_ACCT_TYPE
+        <if test="dpstHdrAutoRenewYn != null and dpstHdrAutoRenewYn.equalsIgnoreCase('y')">
+            , DPST_HDR_AUTO_RENEW_TERM
+            , DPST_HDR_AUTO_RENEW_CNT
+        </if>
+        )
+        VALUES (
+        #{dpstHdrDpstId},
+        #{dpstHdrPw},
+        #{dpstHdrCustCode},
+        #{dpstHdrMonth},
+        #{dpstHdrStartDy},
+        #{dpstHdrFinDy},
+        #{dpstHdrCurrency},
+        #{dpstHdrBalance},
+        #{dpstHdrInterest},
+        #{dpstHdrStatus},
+        #{dpstHdrLinkedAcctNo},
+        #{dpstHdrAutoRenewYn, jdbcType=CHAR},
+        #{dpstHdrPartWdrwCnt},
+        #{dpstHdrInfoAgreeYn},
+        #{dpstHdrInfoAgreeDt},
+        SYSDATE,
+        #{dpstHdrRate},
+        #{dpstHdrCurrencyExp},
+        #{dpstHdrExpAcctNo},
+        #{dpstHdrLinkedAcctType}
+        <if test="dpstHdrAutoRenewYn != null and dpstHdrAutoRenewYn.equalsIgnoreCase('y')">
+            , #{dpstHdrAutoRenewTerm}
+            , #{dpstHdrAutoRenewCnt}
+        </if>
+        )
+    </insert>
+
+    <select id="selectInsertedAcct" resultType="kr.co.api.backend.dto.DpstAcctHdrDTO">
+        SELECT *
+        FROM TB_DPST_ACCT_HDR
+        WHERE DPST_HDR_CUST_CODE = #{dpstHdrCustCode}
+        AND DPST_HDR_DPST_ID = #{dpstHdrDpstId}
+        ORDER BY DPST_HDR_CONTRACT_DT DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <insert id="insertDpstAcctDtl">
+        INSERT INTO TB_DPST_ACCT_DTL (
+        DPST_DTL_TYPE,
+        DPST_DTL_APPLIED_RATE,
+        DPST_DTL_AMOUNT,
+        DPST_TRAN_DT,
+        DPST_DTL_HDR_NO,
+        DPST_DTL_ESIGN_YN
+        <if test="dpstDtlEsignYn != null and dpstDtlEsignYn.equalsIgnoreCase('y')">
+            , DPST_DTL_ESIGN_DT
+        </if>
+        )
+        VALUES (
+        #{dpstDtlType},
+        #{dpstDtlAppliedRate},
+        #{dpstDtlAmount},
+        SYSDATE,
+        #{dpstDtlHdrNo},
+        #{dpstDtlEsignYn}
+        <if test="dpstDtlEsignYn != null and dpstDtlEsignYn.equalsIgnoreCase('y')">
+            , #{dpstDtlEsignDt}
+        </if>
+        )
+    </insert>
+
+    <insert id="insertCustTranHist">
+        INSERT INTO TB_CUST_TRAN_HIST (
+        TRAN_ACCT_NO,
+        TRAN_CUST_NAME,
+        TRAN_TYPE,
+        TRAN_AMOUNT,
+        TRAN_REC_ACCT_NO,
+        TRAN_REC_NAME,
+        TRAN_REC_BK_CODE,
+        TRAN_ESIGN_YN,
+        TRAN_ESIGN_DT,
+        TRAN_DT,
+        TRAN_CURRENCY
+        )
+        VALUES (
+        #{tranAcctNo},
+        #{tranCustName},
+        #{tranType},
+        #{tranAmount},
+        #{tranRecAcctNo},
+        #{tranRecName},
+        #{tranRecBkCode},
+        #{tranEsignYn},
+        TO_TIMESTAMP(#{tranEsignDt}, 'YYYY-MM-DD HH24:MI:SS.FF3'),
+        SYSDATE,
+        #{tranCurrency}
+        )
+    </insert>
+
+    <select id="selectKrwAcctBalance" resultType="kr.co.api.backend.dto.CustAcctDTO">
+        select acct_balance
+        from tb_cust_acct
+        where acct_no = #{acctNo}
+    </select>
+
+    <select id="selectFrgnAcctBalance" resultType="kr.co.api.backend.dto.FrgnAcctBalanceDTO">
+        select bal_balance
+        from TB_FRGN_ACCT_BALANCE
+        where bal_no = #{balNo}
+    </select>
+
+    <update id="updateAcctBalance">
+        UPDATE TB_CUST_ACCT
+        SET ACCT_BALANCE = #{acctBalance}
+        WHERE ACCT_NO = #{acctNo}
+    </update>
+
+    <update id="updateBalBalance">
+        UPDATE TB_FRGN_ACCT_BALANCE
+        SET BAL_BALANCE = #{balBalance}
+        WHERE BAL_NO = #{balNo}
+    </update>
+
+
+    <select id="selectDpstTermsMaster" resultType="kr.co.api.backend.dto.TermsHistDTO">
+        SELECT
+        TERM_TITLE,
+        thist_term_order,
+        thist_term_cate,
+        thist_file,
+        THIST_CONTENT
+        FROM TB_TERMS_MASTER m
+        JOIN tb_TERMS_HIST h
+        ON m.term_cate = h.thist_term_cate
+        AND m.term_order = h.thist_term_order
+        WHERE m.term_cate = 4
+        AND h.thist_version = (
+        SELECT MAX(thist_version)
+        FROM tb_TERMS_HIST
+        WHERE thist_term_cate = m.term_cate
+        AND thist_term_order = m.term_order
+        )
+    </select>
+
+    <select id="selectTermById" resultType="kr.co.api.backend.dto.TermsHistDTO">
+        select
+        thist_file,
+        thist_content
+        from tb_terms_hist
+        where thist_term_order=#{thistTermOrder}
+        and thist_term_cate=#{thistTermCate}
+        order by thist_version desc
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+</mapper>

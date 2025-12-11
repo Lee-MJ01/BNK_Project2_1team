@@ -2,8 +2,8 @@ package kr.co.api.backend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.api.flobankapi.dto.ChatbotRulesDTO;
-import kr.co.api.flobankapi.mapper.ChatbotRuleMapper;
+import kr.co.api.backend.dto.ChatbotRulesDTO;
+import kr.co.api.backend.mapper.ChatbotRuleMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;

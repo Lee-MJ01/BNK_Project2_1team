@@ -1,7 +1,7 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.PdfAiProgressDTO;
-import kr.co.api.flobankapi.service.PdfAiSseEmitterService;
+import kr.co.api.backend.dto.PdfAiProgressDTO;
+import kr.co.api.backend.service.PdfAiSseEmitterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

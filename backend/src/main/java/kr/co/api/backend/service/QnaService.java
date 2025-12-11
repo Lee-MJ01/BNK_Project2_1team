@@ -1,7 +1,7 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.QnaDTO;
-import kr.co.api.flobankapi.mapper.QnaMapper;
+import kr.co.api.backend.dto.QnaDTO;
+import kr.co.api.backend.mapper.QnaMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

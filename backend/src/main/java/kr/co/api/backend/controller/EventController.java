@@ -1,8 +1,8 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.MemberDTO;
-import kr.co.api.flobankapi.jwt.CustomUserDetails;
-import kr.co.api.flobankapi.service.EventService;
+import kr.co.api.backend.dto.MemberDTO;
+import kr.co.api.backend.jwt.CustomUserDetails;
+import kr.co.api.backend.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

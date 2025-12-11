@@ -4,7 +4,14 @@ import 'package:test_main/screens/member/signup_1.dart';
 import 'screens/app_colors.dart';
 import 'screens/main/bank_homepage.dart';
 
-
+import 'package:test_main/screens/deposit/view.dart';
+import 'package:test_main/screens/deposit/step_1.dart';
+import 'package:test_main/screens/deposit/step_2.dart';
+import 'package:test_main/screens/deposit/step_3.dart';
+import 'package:test_main/screens/deposit/signature.dart';
+import 'package:test_main/screens/deposit/recommend.dart';
+import 'package:test_main/screens/deposit/survey.dart';
+import 'package:test_main/screens/mypage/review_write.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +26,26 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'FLOBANK',
       theme: ThemeData(useMaterial3: true),
+
+
+      //예금 가입하기 관련 페이지 이동
+      routes: {
+        DepositViewScreen.routeName: (context) {
+          final title = ModalRoute.of(context)!.settings.arguments as String;
+          return DepositViewScreen(title: title);
+        },
+        DepositStep1Screen.routeName: (context) => const DepositStep1Screen(),
+        DepositStep2Screen.routeName: (context) => const DepositStep2Screen(),
+        DepositStep3Screen.routeName: (context) => const DepositStep3Screen(),
+        DepositSignatureScreen.routeName: (context) => const DepositSignatureScreen(),
+        RecommendScreen.routeName: (context) => const RecommendScreen(),
+        DepositSurveyScreen.routeName: (_) => const DepositSurveyScreen(),
+        DepositReviewWriteScreen.routeName: (_) => const DepositReviewWriteScreen(),
+
+      },
+
+
+
       home: const LoginPage(),
     );
   }

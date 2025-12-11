@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.EventMapper">
+
+    <!-- 1) 로그인 ID → 고객코드 조회 -->
+    <select id="findCustCodeByCustId" resultType="string" parameterType="string">
+        SELECT cust_code
+        FROM TB_CUST_INFO
+        WHERE TRIM(cust_id) = TRIM(#{custId})
+    </select>
+
+    <select id="getMemberInfoByCustCode" resultType="kr.co.api.backend.dto.MemberDTO">
+        SELECT
+        cust_code AS custCode,
+        cust_id AS custId,
+        cust_name AS custName,
+        cust_reg_dt AS custRegDt
+        FROM TB_CUST_INFO
+        WHERE cust_code = #{custCode}
+    </select>
+
+    <select id="checkTodayAttendance" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_EVENT_HIST
+        WHERE hist_cust_code = #{custCode}
+        AND hist_attend_dy = #{attendDate}
+    </select>
+
+    <insert id="insertAttendance">
+        INSERT INTO TB_EVENT_HIST (
+        hist_cust_code,
+        hist_attend_dy
+        ) VALUES (
+        #{custCode},
+        #{attendDate}
+        )
+    </insert>
+
+
+
+    <select id="getAttendanceHistory" resultType="string" parameterType="string">
+        SELECT hist_attend_dy
+        FROM TB_EVENT_HIST
+        WHERE hist_cust_code = #{custCode}
+    </select>
+
+
+    <select id="hasCoupon" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_COUPON
+        WHERE coup_cust_code = #{custCode}
+    </select>
+
+    <insert id="insertCoupon">
+        INSERT INTO TB_COUPON (
+        coup_cust_code,
+        coup_type,
+        coup_rate,
+        coup_issued_dy,
+        coup_status
+        ) VALUES (
+        #{custCode},
+        1,            #{coupRate},  TO_CHAR(SYSDATE, 'YYYYMMDD'),
+        1             )
+    </insert>
+
+
+
+
+
+</mapper>

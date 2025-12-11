@@ -1,8 +1,8 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.search.SearchLogDTO;
-import kr.co.api.flobankapi.dto.search.SearchResultResponseDTO;
-import kr.co.api.flobankapi.service.SearchService;
+import kr.co.api.backend.dto.search.SearchLogDTO;
+import kr.co.api.backend.dto.search.SearchResultResponseDTO;
+import kr.co.api.backend.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;

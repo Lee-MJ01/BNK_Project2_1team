@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.ChatbotRuleMapper">
+
+    <select id="selectBadTypeList" resultType="kr.co.api.backend.dto.ChatbotBadTypeDTO">
+        SELECT *
+        FROM TB_CHATBOT_BAD_TYPE
+        order by bt_no asc
+    </select>
+
+    <select id="selectBadWordList" resultType="kr.co.api.backend.dto.ChatbotBadWordDTO">
+        SELECT *
+        FROM TB_CHATBOT_BAD_WORD
+    </select>
+
+    <select id="getActiveWords" resultType="kr.co.api.backend.dto.ChatbotBadWordDTO">
+        SELECT *
+        FROM TB_CHATBOT_BAD_WORD
+        where BAD_USE_YN = 'y'
+    </select>
+
+    <select id="selectRulesList" resultType="kr.co.api.backend.dto.ChatbotRulesDTO">
+        SELECT *
+        FROM TB_CHATBOT_RULES
+    </select>
+
+    <insert id="insertBadWords">
+        insert into tb_chatbot_bad_word
+        (bad_word, bad_type, bad_use_yn, bad_reg_dt)
+        values (#{badWord}, #{badType}, #{badUseYn}, SYSDATE)
+    </insert>
+
+    <select id="getActiveRules" resultType="kr.co.api.backend.dto.ChatbotRulesDTO">
+        SELECT *
+        FROM TB_CHATBOT_RULES
+        where rule_use_yn='y'
+    </select>
+
+</mapper>

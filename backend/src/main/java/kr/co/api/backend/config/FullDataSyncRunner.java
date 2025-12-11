@@ -1,7 +1,7 @@
 package kr.co.api.backend.config;
 
-import kr.co.api.flobankapi.document.*;
-import kr.co.api.flobankapi.mapper.SearchDataMapper;
+import kr.co.api.backend.document.*;
+import kr.co.api.backend.mapper.SearchDataMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;

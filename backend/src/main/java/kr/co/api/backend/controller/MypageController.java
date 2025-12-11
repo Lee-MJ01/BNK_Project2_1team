@@ -1,11 +1,11 @@
 package kr.co.api.backend.controller;
 
 import jakarta.servlet.http.HttpSession;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.dto.TermsHistDTO;
-import kr.co.api.flobankapi.jwt.CustomUserDetails;
-import kr.co.api.flobankapi.service.*;
-import kr.co.api.flobankapi.util.AesUtil;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.dto.TermsHistDTO;
+import kr.co.api.backend.jwt.CustomUserDetails;
+import kr.co.api.backend.service.*;
+import kr.co.api.backend.util.AesUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

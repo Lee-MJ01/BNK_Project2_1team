@@ -1,7 +1,7 @@
 package kr.co.api.backend.schedule;
 
 
-import kr.co.api.flobankapi.service.admin.ProductService;
+import kr.co.api.backend.service.admin.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

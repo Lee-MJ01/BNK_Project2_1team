@@ -1,7 +1,7 @@
 package kr.co.api.backend.controller;
 
 
-import kr.co.api.flobankapi.service.RateService;
+import kr.co.api.backend.service.RateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

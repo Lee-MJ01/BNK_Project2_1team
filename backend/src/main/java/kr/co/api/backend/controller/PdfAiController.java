@@ -1,6 +1,6 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.service.PdfAiService;
+import kr.co.api.backend.service.PdfAiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

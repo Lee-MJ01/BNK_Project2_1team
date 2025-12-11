@@ -1,7 +1,7 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.CustFrgnAcctDTO;
-import kr.co.api.flobankapi.dto.FrgnRemtTranDTO;
+import kr.co.api.backend.dto.CustFrgnAcctDTO;
+import kr.co.api.backend.dto.FrgnRemtTranDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.math.BigDecimal;

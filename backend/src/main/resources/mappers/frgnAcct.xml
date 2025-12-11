@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.FrgnAcctMapper">
+    <select id="selectFrgnAcctByCustCode">
+        SELECT * FROM TB_CUST_FRGN_ACCT
+        WHERE FRGN_ACCT_CUST_CODE = #{custCode}
+    </select>
+
+    <select id="selectFrgnAcctByAcctNo">
+        SELECT * FROM TB_CUST_FRGN_ACCT
+        WHERE FRGN_ACCT_NO = #{acctNo}
+    </select>
+
+    <select id="selectSubFrgnAcctAll">
+        SELECT * FROM TB_FRGN_ACCT_BALANCE
+        WHERE BAL_FRGN_ACCT_NO = #{acctNo}
+    </select>
+
+    <update id="updateFrgnAcctBal">
+        UPDATE TB_FRGN_ACCT_BALANCE
+        SET BAL_BALANCE = BAL_BALANCE - #{amount}
+        WHERE BAL_FRGN_ACCT_NO = #{acctNo}
+        AND BAL_CURRENCY = #{currency}
+    </update>
+
+    <insert id="insertTranHist" parameterType="kr.co.api.backend.dto.CustTranHistDTO">
+        INSERT INTO TB_CUST_TRAN_HIST(
+        TRAN_ACCT_NO, TRAN_CUST_NAME, TRAN_TYPE,
+        TRAN_AMOUNT, TRAN_DT, TRAN_REC_ACCT_NO,
+        TRAN_REC_NAME, TRAN_REC_BK_CODE,
+        TRAN_MEMO, TRAN_ESIGN_YN, TRAN_ESIGN_DT,
+        TRAN_CURRENCY  )
+        VALUES (
+        #{tranAcctNo}, #{tranCustName}, #{tranType},
+        #{tranAmount}, sysdate,
+        #{tranRecAcctNo, jdbcType=VARCHAR},
+        #{tranRecName, jdbcType=VARCHAR},
+        #{tranRecBkCode, jdbcType=VARCHAR},
+        #{tranMemo, jdbcType=VARCHAR},
+        #{tranEsignYn}, sysdate,
+        #{tranCurrency, jdbcType=VARCHAR} )
+    </insert>
+
+</mapper>

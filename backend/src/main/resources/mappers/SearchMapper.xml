@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.SearchMapper">
+
+    <insert id="insertSearchToken" parameterType="string">
+        INSERT INTO TB_SEARCH_TOKEN (TOK_TXT)
+        VALUES (#{keyword})
+    </insert>
+
+    <insert id="insertSearchLog">
+        INSERT INTO TB_SEARCH_LOG (SEARCH_TXT, SEARCH_CUST_CODE)
+        VALUES (#{keyword}, #{custCode})
+    </insert>
+
+    <select id="selectPopularKeywords" resultType="kr.co.api.backend.dto.search.SearchLogDTO">
+        SELECT * FROM (
+                          SELECT TOK_TXT as keyword, COUNT(*) as count
+                          FROM TB_SEARCH_TOKEN
+                          WHERE TOK_TXT IS NOT NULL
+                          GROUP BY TOK_TXT
+                          ORDER BY COUNT(*) DESC
+                      ) WHERE ROWNUM &lt;= 10
+    </select>
+
+    <select id="selectRecentKeywords" resultType="kr.co.api.backend.dto.search.SearchLogDTO">
+        SELECT search_txt as keyword,
+               '' as "date"  FROM (
+        SELECT search_txt, search_no
+        FROM TB_SEARCH_LOG
+        WHERE search_cust_code = #{custCode}
+        ORDER BY search_no DESC  ) WHERE ROWNUM &lt;= 5
+     </select>
+
+    <delete id="deleteSearchLog">
+        DELETE FROM TB_SEARCH_LOG WHERE SEARCH_TXT = #{keyword} AND SEARCH_CUST_CODE = #{custCode}
+    </delete>
+
+    <delete id="deleteDuplicateSearchLog">
+        DELETE FROM TB_SEARCH_LOG
+        WHERE SEARCH_CUST_CODE = #{custCode}
+          AND SEARCH_TXT = #{keyword}
+    </delete>
+
+
+
+
+
+
+</mapper>

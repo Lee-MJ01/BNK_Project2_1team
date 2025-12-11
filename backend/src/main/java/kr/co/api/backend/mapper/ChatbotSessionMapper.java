@@ -1,6 +1,6 @@
 package kr.co.api.backend.mapper;
 
-import kr.co.api.flobankapi.dto.ChatbotSessionDTO;
+import kr.co.api.backend.dto.ChatbotSessionDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

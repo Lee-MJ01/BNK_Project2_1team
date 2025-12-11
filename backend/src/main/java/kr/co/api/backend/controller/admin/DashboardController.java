@@ -1,8 +1,8 @@
 package kr.co.api.backend.controller.admin;
 
 
-import kr.co.api.flobankapi.dto.admin.dashboard.DashboardDTO;
-import kr.co.api.flobankapi.service.admin.DashboardService;
+import kr.co.api.backend.dto.admin.dashboard.DashboardDTO;
+import kr.co.api.backend.service.admin.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;

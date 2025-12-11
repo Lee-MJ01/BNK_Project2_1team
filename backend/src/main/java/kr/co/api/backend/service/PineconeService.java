@@ -1,7 +1,7 @@
 package kr.co.api.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.api.flobankapi.dto.SearchResDTO;
+import kr.co.api.backend.dto.SearchResDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

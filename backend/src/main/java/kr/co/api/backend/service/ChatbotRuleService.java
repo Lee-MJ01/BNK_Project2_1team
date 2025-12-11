@@ -1,9 +1,9 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.ChatbotBadTypeDTO;
-import kr.co.api.flobankapi.dto.ChatbotBadWordDTO;
-import kr.co.api.flobankapi.dto.ChatbotRulesDTO;
-import kr.co.api.flobankapi.mapper.ChatbotRuleMapper;
+import kr.co.api.backend.dto.ChatbotBadTypeDTO;
+import kr.co.api.backend.dto.ChatbotBadWordDTO;
+import kr.co.api.backend.dto.ChatbotRulesDTO;
+import kr.co.api.backend.mapper.ChatbotRuleMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

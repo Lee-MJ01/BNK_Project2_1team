@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.MypageMapper" >
+    <insert id="insertAcct" parameterType="kr.co.api.backend.dto.CustAcctDTO">
+        INSERT INTO TB_CUST_ACCT(ACCT_PW, ACCT_REG_DT, ACCT_CUST_CODE, ACCT_FUND_SOURCE, ACCT_PURPOSE, ACCT_NAME)
+        values(#{acctPw}, sysdate, #{acctCustCode}, #{acctFundSource}, #{acctPurpose}, #{acctName})
+    </insert>
+
+    <insert id="insertFrgnAcct" parameterType="kr.co.api.backend.dto.CustFrgnAcctDTO">
+        INSERT INTO TB_CUST_FRGN_ACCT(FRGN_ACCT_PW, FRGN_ACCT_REG_DT, FRGN_ACCT_CUST_ENG_NAME, FRGN_ACCT_CUST_CODE, FRGN_ACCT_FUND_SOURCE, FRGN_PURPOSE, FRGN_ACCT_NAME)
+        values(#{frgnAcctPw}, sysdate, #{frgnAcctCustEngName}, #{frgnAcctCustCode}, #{frgnAcctFundSource}, #{frgnPurpose}, #{frgnAcctName})
+    </insert>
+
+    <select id="selectCustInfo">
+        select *
+        from tb_cust_info
+        where CUST_ID = #{custId}
+    </select>
+
+    <select id="selectCheckKoAcct">
+        SELECT max(ACCT_REG_DT) FROM TB_CUST_ACCT
+        WHERE ACCT_CUST_CODE = #{custCode}
+    </select>
+
+    <select id="selectCheckCntKoAcct">
+        SELECT count(*) from TB_CUST_ACCT
+        WHERE ACCT_CUST_CODE = #{custCode}
+    </select>
+
+    <select id="selectCheckCntEnAcct">
+        SELECT COUNT(*) FROM TB_CUST_FRGN_ACCT WHERE FRGN_ACCT_CUST_CODE = #{custCode}
+    </select>
+    
+    <select id="selectAllKoAcct">
+        SELECT * FROM TB_CUST_ACCT
+        WHERE ACCT_CUST_CODE = #{custCode}
+        ORDER BY ACCT_REG_DT
+    </select>
+
+    <select id="selectFrgnAcct">
+        SELECT * FROM TB_CUST_FRGN_ACCT
+        WHERE FRGN_ACCT_CUST_CODE = #{custCode}
+    </select>
+
+    <update id="updateAcctName">
+        UPDATE TB_CUST_ACCT
+        SET ACCT_NAME = #{acctName}
+        WHERE ACCT_NO = #{acctNo}
+    </update>
+
+    <update id="updateFrgnAcctName">
+        UPDATE TB_CUST_FRGN_ACCT
+        SET FRGN_ACCT_NAME = #{acctName}
+        WHERE FRGN_ACCT_NO = #{acctNo}
+    </update>
+
+    <select id="selectCustAcct" resultType="kr.co.api.backend.dto.CustAcctDTO">
+        SELECT
+        ca.*,
+        ci.CUST_NAME
+        FROM TB_CUST_ACCT ca
+        JOIN TB_CUST_INFO ci ON ca.ACCT_CUST_CODE = ci.CUST_CODE
+        WHERE ca.ACCT_NO = #{acctNo}
+    </select>
+
+    <insert id="insertTranHist" parameterType="kr.co.api.backend.dto.CustTranHistDTO">
+        INSERT INTO TB_CUST_TRAN_HIST(
+        TRAN_ACCT_NO, TRAN_CUST_NAME, TRAN_TYPE,
+        TRAN_AMOUNT, TRAN_DT, TRAN_REC_ACCT_NO,
+        TRAN_REC_NAME, TRAN_REC_BK_CODE,
+        TRAN_MEMO, TRAN_ESIGN_YN, TRAN_ESIGN_DT, TRAN_CURRENCY
+        )
+        VALUES (
+        #{tranAcctNo}, #{tranCustName}, #{tranType}, #{tranAmount},
+        sysdate,
+        #{tranRecAcctNo, jdbcType=VARCHAR},
+        #{tranRecName, jdbcType=VARCHAR},
+        #{tranRecBkCode, jdbcType=VARCHAR},
+
+        #{tranMemo, jdbcType=VARCHAR},
+
+        #{tranEsignYn}, sysdate, #{tranCurrency}
+        )
+    </insert>
+    
+    <update id="updateMinusAcct">
+        UPDATE TB_CUST_ACCT
+        SET ACCT_BALANCE = ACCT_BALANCE - #{amount}
+        WHERE ACCT_NO = #{acctNo}
+    </update>
+
+    <update id="updatePlusAcct">
+        UPDATE TB_CUST_ACCT
+        SET ACCT_BALANCE = ACCT_BALANCE + #{amount}
+        WHERE ACCT_NO = #{acctNo}
+    </update>
+
+    <select id="selectCntAcct">
+        SELECT count(*) FROM TB_CUST_ACCT
+        WHERE ACCT_CUST_CODE = #{custCode}
+    </select>
+    
+    <insert id="insertAllFrgnAcctBal" parameterType="java.util.List">
+        INSERT ALL
+        <foreach collection="list" item="item" separator=" ">
+            INTO TB_FRGN_ACCT_BALANCE(BAL_CURRENCY, BAL_REG_DT, BAL_FRGN_ACCT_NO)
+            VALUES (#{item.balCurrency}, sysdate, #{item.balFrgnAcctNo})
+        </foreach>
+        SELECT * FROM DUAL
+    </insert>
+    
+    <select id="selectAllFrgnAcctBal">
+        SELECT * FROM TB_FRGN_ACCT_BALANCE
+        WHERE BAL_FRGN_ACCT_NO = #{frgnAcctNo}
+    </select>
+
+
+
+    <select id="selectCustInfoByCode" resultType="kr.co.api.backend.dto.CustInfoDTO">
+        SELECT * FROM TB_CUST_INFO
+        WHERE CUST_CODE = #{custCode}
+    </select>
+
+    <update id="updateCustInfo" parameterType="kr.co.api.backend.dto.CustInfoDTO">
+        UPDATE TB_CUST_INFO
+        SET
+        CUST_ZIP = #{custZip},
+        CUST_ADDR1 = #{custAddr1},
+        CUST_ADDR2 = #{custAddr2}
+
+        <if test="custPw != null and custPw != ''">
+            , CUST_PW = #{custPw}
+        </if>
+
+        WHERE CUST_CODE = #{custCode}
+    </update>
+
+
+    <select id="selectTranHist" resultType="kr.co.api.backend.dto.CustTranHistDTO">
+        SELECT
+        TRAN_NO,
+        TRAN_ACCT_NO,
+        TRAN_CUST_NAME,
+        TRAN_TYPE,
+        TRAN_AMOUNT,
+        /* 날짜를 '2025-11-21 14:30' 형식의 문자열로 변환 */
+        TO_CHAR(TRAN_DT, 'YYYY-MM-DD HH24:MI') as TRAN_DT,
+        TRAN_REC_ACCT_NO,
+        TRAN_REC_NAME,
+        TRAN_REC_BK_CODE,
+        TRAN_MEMO,
+        TRAN_ESIGN_YN
+        FROM TB_CUST_TRAN_HIST
+        WHERE TRAN_ACCT_NO = #{acctNo}
+        ORDER BY TRAN_DT DESC, TRAN_NO DESC
+    </select>
+
+
+    <select id="selectCouponList" resultType="kr.co.api.backend.dto.CouponDTO">
+        SELECT
+        COUP_NO,
+        COUP_CUST_CODE,
+        COUP_TYPE,
+        COUP_RATE,
+        COUP_ISSUED_DY,
+        COUP_STATUS
+        FROM TB_COUPON
+        WHERE COUP_CUST_CODE = #{custCode}
+        ORDER BY COUP_STATUS DESC, COUP_ISSUED_DY DESC
+    </select>
+
+    <select id="selectDpstAccts" resultType="kr.co.api.backend.dto.MypageDpstDTO">
+        SELECT
+        th.*,
+        ti.DPST_ID            AS dpstId,
+        ti.DPST_NAME          AS dpstName,
+        ti.DPST_TYPE          AS dpstType,
+        ti.DPST_RATE_TYPE     AS dpstRateType,
+        ti.DPST_PART_WDRW_YN  AS dpstPartWdrwYn,
+        ti.DPST_ADD_PAY_YN    AS dpstAddPayYn,
+        ti.DPST_ADD_PAY_MAX    AS dpstAddPayMax,
+        wi.WDRW_MIN_MONTH     AS wdrwMinMonth,
+        wi.WDRW_MAX           AS wdrwMax,
+        wa.AMT_MIN            AS amtMin,
+
+        TO_CHAR(dt.LAST_TRAN_DT, 'YYYY.MM.DD') AS lastTranDt,
+        dt.FIRST_TRAN_AMT     AS dpstDtlInitialbal,
+        dt.TRAN_CNT           AS tranCnt
+
+        FROM TB_DPST_ACCT_HDR th
+        JOIN TB_DPST_PROD_INFO ti ON th.DPST_HDR_DPST_ID = ti.DPST_ID
+        LEFT JOIN TB_DPST_PARTIAL_WDRW_INFO wi ON th.DPST_HDR_DPST_ID = wi.WDRW_DPST_ID
+        LEFT JOIN TB_DPST_PARTIAL_WDRW_AMT wa
+        ON wa.AMT_DPST_ID = th.DPST_HDR_DPST_ID
+        AND wa.AMT_CURRENCY = th.DPST_HDR_CURRENCY
+
+        LEFT JOIN (
+        SELECT
+        d.DPST_DTL_HDR_NO,
+
+        COUNT(*) AS TRAN_CNT,
+        MAX(d.DPST_TRAN_DT) AS LAST_TRAN_DT,
+
+        MIN(d.DPST_DTL_AMOUNT)
+        KEEP (DENSE_RANK FIRST ORDER BY d.DPST_TRAN_DT) AS FIRST_TRAN_AMT
+        FROM TB_DPST_ACCT_DTL d
+        GROUP BY d.DPST_DTL_HDR_NO
+        ) dt
+        ON dt.DPST_DTL_HDR_NO = th.DPST_HDR_ACCT_NO
+
+        WHERE dpst_hdr_cust_code=#{dpstHdrCustCode} AND dpst_hdr_status=1
+    </select>
+
+    <select id="selectDpstAcctDtls" resultType="kr.co.api.backend.dto.DpstAcctDtlDTO">
+        SELECT
+        B.DPST_DTL_NO,
+        B.DPST_DTL_TYPE,
+        B.DPST_DTL_AMOUNT,
+        B.DPST_TRAN_DT,
+        B.DPST_DTL_HDR_NO,
+        B.DPST_DTL_ESIGN_YN,
+        B.DPST_DTL_ESIGN_DT,
+        B.DPST_DTL_APPLIED_RATE,
+        A.DPST_HDR_CUST_CODE,
+        A.DPST_HDR_CURRENCY_EXP,
+        A.DPST_HDR_BALANCE
+        FROM TB_DPST_ACCT_HDR A
+        JOIN TB_DPST_ACCT_DTL B
+        ON A.DPST_HDR_ACCT_NO = B.DPST_DTL_HDR_NO
+        WHERE A.DPST_HDR_CUST_CODE = #{dpstHdrCustCode}
+        ORDER BY B.DPST_TRAN_DT DESC
+    </select>
+
+    <select id="selectDpstAcctHdr" resultType="kr.co.api.backend.dto.DpstAcctHdrDTO">
+        select * from TB_DPST_ACCT_HDR
+        where dpst_hdr_acct_no=#{dpstHdrAcctNo}
+    </select>
+
+    <select id="selectDpstKrwAcctHdr" resultType="kr.co.api.backend.dto.DpstAcctHdrDTO">
+        select da.*, tca.ACCT_BALANCE as dpstHdrLinkedAcctBal from TB_DPST_ACCT_HDR da
+        JOIN TB_CUST_ACCT tca ON da.DPST_HDR_LINKED_ACCT_NO = tca.ACCT_NO
+        where dpst_hdr_acct_no=#{dpstHdrAcctNo}
+    </select>
+    <select id="selectDpstFrgnAcctHdr" resultType="kr.co.api.backend.dto.DpstAcctHdrDTO">
+        select da.*, tfab.BAL_BALANCE as dpstHdrLinkedAcctBal from TB_DPST_ACCT_HDR da
+        JOIN TB_CUST_FRGN_ACCT tcfa ON da.DPST_HDR_EXP_ACCT_NO  = tcfa.FRGN_ACCT_NO
+        JOIN TB_FRGN_ACCT_BALANCE tfab ON tcfa.FRGN_ACCT_NO = tfab.BAL_FRGN_ACCT_NO
+        where dpst_hdr_acct_no=#{dpstHdrAcctNo} AND tfab.BAL_CURRENCY = #{dpstHdrCurrency}
+    </select>
+
+    <select id="selectAcctBal" resultType="Double">
+        SELECT acct_balance FROM TB_CUST_ACCT
+        WHERE ACCT_NO = #{dpstHdrLinkedAcctNo}
+    </select>
+
+    <select id="selectFrgnAcctBal" resultType="kr.co.api.backend.dto.FrgnAcctBalanceDTO">
+        SELECT bal_balance, bal_frgn_acct_no FROM TB_FRGN_ACCT_BALANCE
+        WHERE bal_no = #{dpstHdrLinkedAcctNo}
+    </select>
+
+    <insert id="insertDpstCustTranHist">
+        insert into TB_CUST_TRAN_HIST
+        (tran_acct_no,
+        tran_cust_name,
+        tran_type,
+        tran_amount,
+        tran_dt,
+        tran_rec_acct_no,
+        tran_rec_name,
+        tran_rec_bk_code,
+        tran_esign_yn,
+        tran_esign_dt,
+        tran_currency)
+        values
+        (
+        #{tranAcctNo},
+        #{tranCustName},
+        #{tranType},
+        #{tranAmount},
+        SYSDATE,
+        #{tranRecAcctNo},
+        #{tranRecName},
+        #{tranRecBkCode},
+        #{tranEsignYn},
+        SYSDATE,
+        #{tranCurrency}
+        )
+    </insert>
+
+    <insert id="insertDpstAcctDtl">
+        insert into TB_DPST_ACCT_DTL
+        (dpst_dtl_type,
+        dpst_dtl_amount,
+        dpst_tran_dt,
+        dpst_dtl_hdr_no,
+        dpst_dtl_esign_yn,
+        dpst_dtl_esign_dt,
+        dpst_dtl_applied_rate
+        )
+        values
+        (
+        #{dpstDtlType},
+        #{dpstDtlAmount},
+        SYSDATE,
+        #{dpstDtlHdrNo},
+        #{dpstDtlEsignYn},
+        SYSDATE,
+        #{dpstDtlAppliedRate}
+        )
+    </insert>
+
+    <update id="updateDpstAcctHdr">
+        update TB_DPST_ACCT_HDR
+        set
+        DPST_HDR_ADD_PAY_CNT=#{dpstHdrAddPayCnt},
+        DPST_HDR_BALANCE=#{dpstHdrBalance}
+        where
+        DPST_HDR_ACCT_NO=#{dpstHdrAcctNo}
+    </update>
+
+    <update id="updateKrwAcctBal">
+        update TB_CUST_ACCT
+        set acct_balance=#{acctBalance}
+        where acct_no=#{acctNo}
+    </update>
+
+    <update id="updateFrgnAcctBal">
+        update TB_FRGN_ACCT_BALANCE
+        set bal_balance=#{balBalance}
+        where bal_no=#{balNo}
+    </update>
+
+    <select id="selectDpstAcctDtlHist" resultType="kr.co.api.backend.dto.DpstAcctDtlDTO">
+        SELECT
+        *
+        FROM TB_DPST_ACCT_DTL
+        WHERE DPST_DTL_HDR_NO = #{dpstDtlHdrNo}
+        ORDER BY DPST_TRAN_DT ASC
+    </select>
+
+    <select id="getRawCustInfo" resultType="kr.co.api.backend.dto.CustInfoDTO">
+        select * from TB_CUST_INFO
+        where cust_code=#{custCode}
+    </select>
+
+    <select id="getBalBalanceByAcctHdrNo" resultType="kr.co.api.backend.dto.FrgnAcctBalanceDTO">
+        SELECT
+        fb.BAL_NO,
+        fb.BAL_BALANCE,
+        fb.BAL_CURRENCY
+        FROM TB_DPST_ACCT_HDR dh
+        JOIN TB_CUST_FRGN_ACCT fa
+        ON fa.FRGN_ACCT_CUST_CODE = dh.DPST_HDR_CUST_CODE
+        JOIN TB_FRGN_ACCT_BALANCE fb
+        ON fb.BAL_FRGN_ACCT_NO = fa.FRGN_ACCT_NO
+        AND fb.BAL_CURRENCY = dh.DPST_HDR_CURRENCY
+        WHERE dh.DPST_HDR_ACCT_NO = #{dpstHdrAcctNo}
+    </select>
+
+    <update id="updateBalBalance">
+        update TB_FRGN_ACCT_BALANCE
+        set bal_balance=#{balBalance}
+        where bal_no=#{balNo}
+    </update>
+
+    <update id="updateHdrStatus">
+        update TB_DPST_ACCT_HDR
+        set DPST_HDR_STATUS=#{dpstHdrStatus}
+        where DPST_HDR_ACCT_NO=#{dpstHdrAcctNo}
+    </update>
+
+</mapper>

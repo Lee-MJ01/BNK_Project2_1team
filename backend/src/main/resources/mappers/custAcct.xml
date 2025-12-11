@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.CustAcctMapper">
+    <update id="updateAcctBal">
+        UPDATE TB_CUST_ACCT tca SET ACCT_BALANCE = ACCT_BALANCE - #{bal}
+        WHERE tca.ACCT_NO = #{acctNo}
+    </update>
+</mapper>

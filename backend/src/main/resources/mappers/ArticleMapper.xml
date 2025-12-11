@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.ArticleMapper">
+
+    <resultMap id="ArticleResultMap" type="kr.co.api.backend.dto.ArticleDTO">
+        <id property="articleId" column="ARTICLE_ID" />
+        <result property="company" column="COMPANY" />
+        <result property="category" column="CATEGORY" />
+        <result property="title" column="TITLE" />
+        <result property="url" column="URL" />
+        <result property="writtenAt" column="WRITTEN_AT" jdbcType="TIMESTAMP" />
+        <result property="summary" column="SUMMARY" />
+        <result property="summaryAi" column="SUMMARY_AI" />
+        <result property="content" column="CONTENT" />
+        <result property="createdAt" column="CREATED_AT" jdbcType="TIMESTAMP" />
+        <result property="updatedAt" column="UPDATED_AT" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <select id="countArticles" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_ARTICLE
+    </select>
+
+    <select id="selectArticlePage" resultMap="ArticleResultMap">
+        SELECT *
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY WRITTEN_AT DESC, ARTICLE_ID DESC) AS RNUM,
+                ARTICLE_ID, COMPANY, CATEGORY, TITLE, URL, WRITTEN_AT, SUMMARY, SUMMARY_AI, CONTENT, CREATED_AT, UPDATED_AT
+            FROM TB_ARTICLE
+        ) A
+        WHERE A.RNUM BETWEEN #{start} AND #{end}
+    </select>
+
+</mapper>

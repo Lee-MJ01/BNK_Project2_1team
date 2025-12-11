@@ -18,7 +18,7 @@ import org.springframework.messaging.MessageHandler;
 
 @Configuration
 @EnableIntegration
-@IntegrationComponentScan("kr.co.api.flobankapi.tcp") // ApGateway를 찾기 위한 스캔
+@IntegrationComponentScan("kr.co.api.backend.tcp") // ApGateway를 찾기 위한 스캔
 public class TcpClientConfig {
 
     // application.yml에서 서버 정보(localhost)를 가져옵니다.

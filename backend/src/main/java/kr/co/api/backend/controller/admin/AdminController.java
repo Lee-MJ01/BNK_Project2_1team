@@ -1,10 +1,10 @@
 package kr.co.api.backend.controller.admin;
 
 import jakarta.servlet.http.HttpServletResponse;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.service.*;
-import kr.co.api.flobankapi.service.admin.AdminAuthService;
-import kr.co.api.flobankapi.service.admin.DashboardService;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.service.*;
+import kr.co.api.backend.service.admin.AdminAuthService;
+import kr.co.api.backend.service.admin.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

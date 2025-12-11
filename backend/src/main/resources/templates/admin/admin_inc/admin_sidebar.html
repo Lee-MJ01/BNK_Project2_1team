@@ -16,6 +16,12 @@
                     <i class="fa-solid fa-gauge"></i>대시보드
                 </a>
             </li>
+            <li>
+                <a th:href="@{/admin/index}"
+                   th:classappend="${menu} == 'dashboard' ? ' active' : ''">
+                    <i class="fa-solid fa-gauge"></i>고객관리
+                </a>
+            </li>
 
             <li>
                 <a th:href="@{/admin/member}"
@@ -49,6 +55,13 @@
                 <a th:href="@{/admin/chatbot}"  style="padding-left: 13px"
                    th:classappend="${menu} == 'terms' ? ' active' : ''">
                     <i class="fa-solid fa-robot"></i>챗봇
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/index}"
+                   th:classappend="${menu} == 'dashboard' ? ' active' : ''">
+                    <i class="fa-solid fa-gauge"></i>알림관리
                 </a>
             </li>
 

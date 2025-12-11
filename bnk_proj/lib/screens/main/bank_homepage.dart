@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:test_main/screens/product/list.dart';
+import 'package:test_main/screens/deposit/list.dart';
+import 'package:test_main/screens/main/search.dart';
 import '../app_colors.dart';
 import '../../main.dart';
 import '../mypage/transaction_history.dart';
+
+import '../remit/remit_step1.dart';
+
 import '../mypage/mypage.dart';
 import '../exchange/forex_insight.dart';
 
+import 'alarm.dart';
 
 
 
@@ -56,24 +61,38 @@ class _BankHomePageState extends State<BankHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SearchScreen(),
+                  fullscreenDialog: true, // 아래에서 위로 올라오는 모달 효과 (원치 않으면 false)
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AlaramScreen()),
+              );
+            },
           ),
           Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu, color: Colors.black87),
               onPressed: () {
-                Scaffold.of(context).openEndDrawer(); // ✅ 오른쪽 슬라이드 메뉴
+                Scaffold.of(context).openEndDrawer();
               },
             ),
           ),
         ],
       ),
 
-      /// ✅ 오른쪽 슬라이드 메뉴 (햄버거 메뉴)
+
       endDrawer: Drawer(
         child: Column(
           children: [
@@ -103,6 +122,18 @@ class _BankHomePageState extends State<BankHomePage> {
               leading: const Icon(Icons.send),
               title: const Text("외화송금"),
               onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.currency_exchange),
+              title: const Text("환율"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ExchangeRateScreen(),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(Icons.support_agent),
@@ -218,7 +249,18 @@ class _BankHomePageState extends State<BankHomePage> {
                 childAspectRatio: 0.9,
                 children: [
                   _QuickMenu("환전", "images/flobankicon1.png"),
-                  _QuickMenu("환율","images/flobankicon2.png"),
+                  _QuickMenu(
+                    "환율",
+                    "images/flobankicon2.png",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ExchangeRateScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _QuickMenu(
                     "외화예금",
                     "images/flobankicon3.png",
@@ -510,22 +552,34 @@ class _AccountCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // 버튼 2개 (이체 / 전용 화면)
+          // 버튼 2개 (이체 / 내역)
           Row(
             children: [
+              // 🔵 이체 버튼
               Expanded(
-                child: Container(
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3E5D9C),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      "이체",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RemitStep1Page(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3E5D9C),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        "이체",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -534,13 +588,14 @@ class _AccountCard extends StatelessWidget {
 
               const SizedBox(width: 10),
 
+              // ⚪ 내역 버튼
               Expanded(
                 child: InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const TransactionHistoryPage(), // 이동할 화면
+                        builder: (_) => const TransactionHistoryPage(),
                       ),
                     );
                   },

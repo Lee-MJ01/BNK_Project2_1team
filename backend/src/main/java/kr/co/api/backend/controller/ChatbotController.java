@@ -1,10 +1,10 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.dto.ChatbotHistDTO;
-import kr.co.api.flobankapi.dto.ChatbotSessionDTO;
-import kr.co.api.flobankapi.dto.SearchResDTO;
-import kr.co.api.flobankapi.jwt.CustomUserDetails;
-import kr.co.api.flobankapi.service.*;
+import kr.co.api.backend.dto.ChatbotHistDTO;
+import kr.co.api.backend.dto.ChatbotSessionDTO;
+import kr.co.api.backend.dto.SearchResDTO;
+import kr.co.api.backend.jwt.CustomUserDetails;
+import kr.co.api.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.FaqMapper">
+
+    <!-- FAQ 전체 목록 -->
+    <select id="selectFaqList" resultType="kr.co.api.backend.dto.FaqDTO">
+        SELECT
+            FAQ_NO,
+            FAQ_ADMIN_ID,
+            FAQ_CATE,
+            FAQ_QUESTION,
+            FAQ_ANSWER
+        FROM TB_FAQ_HDR
+        ORDER BY FAQ_NO DESC
+    </select>
+
+    <!-- FAQ 상세 조회 -->
+    <select id="selectFaqByNo"
+            parameterType="long"
+            resultType="kr.co.api.backend.dto.FaqDTO">
+        SELECT
+            FAQ_NO,
+            FAQ_ADMIN_ID,
+            FAQ_CATE,
+            FAQ_QUESTION,
+            FAQ_ANSWER
+        FROM TB_FAQ_HDR
+        WHERE FAQ_NO = #{faqNo}
+    </select>
+
+    <!-- FAQ 등록 -->
+    <insert id="insertFaq" parameterType="kr.co.api.backend.dto.FaqDTO">
+        INSERT INTO TB_FAQ_HDR (
+            FAQ_NO,
+            FAQ_ADMIN_ID,
+            FAQ_CATE,
+            FAQ_QUESTION,
+            FAQ_ANSWER
+        ) VALUES (
+                     SEQ_FAQ_NO.NEXTVAL,
+                     #{faqAdminId},
+                     #{faqCate},
+                     #{faqQuestion},
+                     #{faqAnswer}
+                 )
+    </insert>
+
+    <!-- FAQ 수정 -->
+    <update id="updateFaq" parameterType="kr.co.api.backend.dto.FaqDTO">
+        UPDATE TB_FAQ_HDR
+        SET
+            FAQ_CATE = #{faqCate},
+            FAQ_QUESTION = #{faqQuestion},
+            FAQ_ANSWER = #{faqAnswer}
+        WHERE FAQ_NO = #{faqNo}
+    </update>
+
+    <!-- FAQ 삭제 -->
+    <delete id="deleteFaq" parameterType="long">
+        DELETE FROM TB_FAQ_HDR
+        WHERE FAQ_NO = #{faqNo}
+    </delete>
+
+    <!-- FAQ 전체 개수 -->
+    <select id="selectFaqCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_FAQ_HDR
+    </select>
+
+    <!-- FAQ 페이징 -->
+    <select id="selectFaqPage"
+            parameterType="map"
+            resultType="kr.co.api.backend.dto.FaqDTO">
+
+        SELECT *
+        FROM (
+                 SELECT T.*, ROWNUM AS RN
+                 FROM (
+                          SELECT
+                              FAQ_NO,
+                              FAQ_ADMIN_ID,
+                              FAQ_CATE,
+                              FAQ_QUESTION,
+                              FAQ_ANSWER
+                          FROM TB_FAQ_HDR
+                          ORDER BY FAQ_NO DESC
+                      ) T
+                 WHERE ROWNUM &lt;= (#{offset} + #{pageSize})
+             )
+        WHERE RN &gt; #{offset}
+    </select>
+
+    <select id="getFaqList" resultType="kr.co.api.backend.dto.FaqDTO">
+        SELECT *
+        FROM (
+                 SELECT a.*, ROWNUM rn
+                 FROM (
+                          SELECT *
+                          FROM FAQ
+                          ORDER BY faq_no DESC
+                      ) a
+                 WHERE ROWNUM &lt;= #{end}
+             )
+        WHERE rn &gt; #{start}
+    </select>
+
+
+
+</mapper>

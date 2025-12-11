@@ -1,8 +1,8 @@
 package kr.co.api.backend.controller.admin;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.service.admin.ProductService;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.service.admin.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

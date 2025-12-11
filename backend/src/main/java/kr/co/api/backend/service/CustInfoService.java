@@ -1,9 +1,9 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.CustInfoDTO;
-import kr.co.api.flobankapi.jwt.JwtTokenProvider;
-import kr.co.api.flobankapi.mapper.MemberMapper;
-import kr.co.api.flobankapi.util.AesUtil;
+import kr.co.api.backend.dto.CustInfoDTO;
+import kr.co.api.backend.jwt.JwtTokenProvider;
+import kr.co.api.backend.mapper.MemberMapper;
+import kr.co.api.backend.util.AesUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

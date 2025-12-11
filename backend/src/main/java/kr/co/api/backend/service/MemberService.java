@@ -1,8 +1,8 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.ApResponseDTO;
-import kr.co.api.flobankapi.dto.CustInfoDTO;
-import kr.co.api.flobankapi.mapper.MemberMapper;
+import kr.co.api.backend.dto.ApResponseDTO;
+import kr.co.api.backend.dto.CustInfoDTO;
+import kr.co.api.backend.mapper.MemberMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

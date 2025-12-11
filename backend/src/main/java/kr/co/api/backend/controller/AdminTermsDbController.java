@@ -1,6 +1,6 @@
 package kr.co.api.backend.controller;
 
-import kr.co.api.flobankapi.service.TermsDbService;
+import kr.co.api.backend.service.TermsDbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

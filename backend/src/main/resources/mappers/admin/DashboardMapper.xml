@@ -1,0 +1,177 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.admin.DashboardMapper">
+
+    <!-- 1) 오늘 총 거래 요약 (입출금 기준: TB_CUST_TRAN_HIST) -->
+    <select id="selectTodayTotalTxSummary"
+            resultType="kr.co.api.backend.dto.admin.dashboard.TotalTxSummaryDTO">
+        SELECT COUNT(*) AS count,
+               NVL(SUM(tran_amount), 0) AS amount
+        FROM TB_CUST_TRAN_HIST
+        WHERE tran_dt IS NOT NULL
+          AND TRUNC(tran_dt) = TRUNC(SYSDATE)
+    </select>
+
+    <select id="selectLast7DaysTotalTxSummary"
+            resultType="kr.co.api.backend.dto.admin.dashboard.DailyTxSummaryDTO">
+        SELECT TRUNC(tran_dt)           AS baseDate,
+               COUNT(*)                 AS count,
+               NVL(SUM(tran_amount), 0) AS amount
+        FROM TB_CUST_TRAN_HIST
+        WHERE tran_dt IS NOT NULL
+          AND TRUNC(tran_dt) BETWEEN TRUNC(SYSDATE) - 6
+          AND TRUNC(SYSDATE)
+        GROUP BY TRUNC(tran_dt)
+        ORDER BY baseDate
+    </select>
+
+    <!-- 오늘 외화송금 건수: TB_FRGN_REMT_TRAN -->
+    <select id="selectTodayFrgnRemtTxCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_FRGN_REMT_TRAN
+        WHERE remt_dt IS NOT NULL
+          AND remt_dt &gt;= TRUNC(SYSDATE)
+          AND remt_dt &lt;  TRUNC(SYSDATE) + 1
+    </select>
+    <!-- 환전 수 : Tb_frgn_exch_tran -->
+    <select id="selectTodayExChangeTxCount" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_FRGN_EXCH_TRAN
+        WHERE EXCH_REQ_DT &gt;= TRUNC(SYSDATE)
+        AND EXCH_REQ_DT &lt;  TRUNC(SYSDATE) + 1
+    </select>
+
+    <!-- 일별 가입 수 -->
+    <select id="selectDailyJoinStats"
+            resultType="kr.co.api.backend.dto.admin.dashboard.JoinStatsDTO">
+        <![CDATA[
+        WITH days AS (
+            SELECT TRUNC(SYSDATE) - (LEVEL - 1) AS base_date
+            FROM dual
+            CONNECT BY LEVEL <= 5
+        ),
+        joined AS (
+            SELECT
+                TRUNC(DPST_HDR_CONTRACT_DT) AS base_date,
+                COUNT(*) AS joinCount
+            FROM TB_DPST_ACCT_HDR
+            WHERE DPST_HDR_STATUS = 1
+              AND DPST_HDR_CONTRACT_DT >= TRUNC(SYSDATE) - 4
+              AND DPST_HDR_CONTRACT_DT <  TRUNC(SYSDATE) + 1
+            GROUP BY TRUNC(DPST_HDR_CONTRACT_DT)
+        )
+        SELECT
+            TO_CHAR(d.base_date, 'YYYY-MM-DD') AS baseDate,
+            NVL(j.joinCount, 0)                AS joinCount
+        FROM days d
+        LEFT JOIN joined j
+            ON j.base_date = d.base_date
+        ORDER BY d.base_date
+        ]]>
+    </select>
+
+    <select id="selectWeeklyJoinStats"
+            resultType="kr.co.api.backend.dto.admin.dashboard.JoinStatsDTO">
+         <![CDATA[
+        SELECT
+            TO_CHAR(w.week_start, 'YYYY-MM-DD') AS baseDate,
+            NVL(j.joinCount, 0) AS joinCount
+        FROM (
+             SELECT TRUNC(SYSDATE, 'IW') - 7 * (LEVEL - 1) AS week_start
+             FROM dual
+                 CONNECT BY LEVEL <= 6
+         ) w
+         LEFT JOIN (
+            SELECT
+                TRUNC(DPST_HDR_CONTRACT_DT, 'IW') AS week_start,
+                COUNT(*) AS joinCount
+            FROM TB_DPST_ACCT_HDR
+            WHERE DPST_HDR_STATUS = 1
+              AND DPST_HDR_CONTRACT_DT >= TRUNC(SYSDATE, 'IW') - 7 * 5
+              AND DPST_HDR_CONTRACT_DT <  TRUNC(SYSDATE, 'IW') + 7
+            GROUP BY TRUNC(DPST_HDR_CONTRACT_DT, 'IW')
+        ) j
+          ON j.week_start = w.week_start
+        ORDER BY w.week_start
+        ]]>
+    </select>
+
+    <select id="selectMonthlyJoinStats"
+            resultType="kr.co.api.backend.dto.admin.dashboard.JoinStatsDTO">
+        <![CDATA[
+        WITH months AS (
+            SELECT ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+                       + NUMTOYMINTERVAL(LEVEL - 1, 'MONTH') AS month_start
+            FROM dual
+            CONNECT BY LEVEL <= 6
+        ),
+        joined AS (
+            SELECT
+                TRUNC(DPST_HDR_CONTRACT_DT, 'MM') AS month_start,
+                COUNT(*)                           AS joinCount
+            FROM TB_DPST_ACCT_HDR
+            WHERE DPST_HDR_STATUS = 1
+              AND DPST_HDR_CONTRACT_DT >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5)
+              AND DPST_HDR_CONTRACT_DT <  ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1)
+            GROUP BY TRUNC(DPST_HDR_CONTRACT_DT, 'MM')
+        )
+        SELECT
+            TO_CHAR(m.month_start, 'YYYY-MM') AS baseDate,
+            NVL(j.joinCount, 0)               AS joinCount
+        FROM months m
+        LEFT JOIN joined j
+            ON j.month_start = m.month_start
+        ORDER BY m.month_start
+        ]]>
+    </select>
+
+    <!-- 연령대 분포 -->
+    <select id="selectAgeStats"
+            resultType="kr.co.api.backend.dto.admin.dashboard.AgeStatDTO">
+        SELECT age_band AS ageStats,
+               COUNT(*)  AS count
+        FROM (
+            SELECT CASE
+            WHEN age BETWEEN 0 AND 09 THEN '10대 미만'
+            WHEN age BETWEEN 10 AND 19 THEN '10대'
+            WHEN age BETWEEN 20 AND 29 THEN '20대'
+            WHEN age BETWEEN 30 AND 39 THEN '30대'
+            WHEN age BETWEEN 40 AND 49 THEN '40대'
+            WHEN age BETWEEN 50 AND 59 THEN '50대'
+            WHEN age >= 60 THEN '60대+'
+            ELSE '기타'
+            END AS age_band,
+            case
+            WHEN age BETWEEN 0  AND 9  THEN 1
+            WHEN age BETWEEN 10 AND 19 THEN 2
+            WHEN age BETWEEN 20 AND 29 THEN 3
+            WHEN age BETWEEN 30 AND 39 THEN 4
+            WHEN age BETWEEN 40 AND 49 THEN 5
+            WHEN age BETWEEN 50 AND 59 THEN 6
+            WHEN age >= 60            THEN 7
+            ELSE 99
+            END AS sort_no
+            FROM (
+            SELECT FLOOR(MONTHS_BETWEEN(SYSDATE, cust_birth_dt) / 12) AS age
+            FROM TB_CUST_INFO
+            WHERE cust_birth_dt IS NOT NULL
+            )
+            )
+        GROUP BY age_band, sort_no
+        ORDER BY sort_no
+    </select>
+
+    <!-- 성별 분포 -->
+    <select id="selectgenderStats"
+            resultType="kr.co.api.backend.dto.admin.dashboard.GenderStatsDTO">
+        SELECT DECODE(cust_gen, 'M', '남성', 'F', '여성', '기타') AS gender,
+               COUNT(*) AS count
+        FROM TB_CUST_INFO
+        WHERE cust_gen IS NOT NULL
+        GROUP BY cust_gen
+        ORDER BY cust_gen DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.ExchangeMapper" >
+    <select id="selectAllCoupon">
+        SELECT * FROM TB_COUPON
+        WHERE COUP_CUST_CODE = #{custCode}
+        AND COUP_STATUS = 1
+    </select>
+
+    <insert id="insertExchange" parameterType="kr.co.api.backend.dto.FrgnExchTranDTO">
+        INSERT INTO TB_FRGN_EXCH_TRAN(
+        EXCH_ACCT_NO, EXCH_FROM_CURRENCY,
+        EXCH_TO_CURRENCY, EXCH_AMOUNT,
+        EXCH_APPLIED_RATE, EXCH_REQ_DT,
+        EXCH_EXP_DY, EXCH_ADDR,
+        EXCH_FEE, EXCH_ESIGN_YN, EXCH_ESIGN_DT
+        )
+        VALUES(
+        #{exchAcctNo}, #{exchFromCurrency},
+        #{exchToCurrency}, #{exchAmount},
+        #{exchAppliedRate},
+
+        TO_DATE(#{exchReqDt}, 'YYYY-MM-DD HH24:MI:SS'),
+
+        TO_DATE(#{exchExpDy}, 'YYYY-MM-DD'),
+
+        #{exchAddr},
+        #{exchFee}, #{exchEsignYn},
+
+        TO_DATE(#{exchEsignDt}, 'YYYY-MM-DD HH24:MI:SS')
+        )
+    </insert>
+</mapper>

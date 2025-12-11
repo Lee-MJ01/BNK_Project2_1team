@@ -1,9 +1,9 @@
 package kr.co.api.backend.mapper.admin;
 
-import kr.co.api.flobankapi.dto.admin.exchange.CouponIssueDTO;
-import kr.co.api.flobankapi.dto.admin.exchange.CurrencyDailyAmountDTO;
-import kr.co.api.flobankapi.dto.admin.exchange.DailyExchangeAmountDTO;
-import kr.co.api.flobankapi.dto.admin.exchange.ExchangeHistoryDTO;
+import kr.co.api.backend.dto.admin.exchange.CouponIssueDTO;
+import kr.co.api.backend.dto.admin.exchange.CurrencyDailyAmountDTO;
+import kr.co.api.backend.dto.admin.exchange.DailyExchangeAmountDTO;
+import kr.co.api.backend.dto.admin.exchange.ExchangeHistoryDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

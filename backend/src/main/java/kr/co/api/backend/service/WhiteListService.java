@@ -1,10 +1,10 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.DepositRateDTO;
-import kr.co.api.flobankapi.dto.InterestInfoDTO;
-import kr.co.api.flobankapi.dto.ProductDTO;
-import kr.co.api.flobankapi.dto.TermsHistDTO;
-import kr.co.api.flobankapi.mapper.WhiteListMapper;
+import kr.co.api.backend.dto.DepositRateDTO;
+import kr.co.api.backend.dto.InterestInfoDTO;
+import kr.co.api.backend.dto.ProductDTO;
+import kr.co.api.backend.dto.TermsHistDTO;
+import kr.co.api.backend.mapper.WhiteListMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -6,9 +6,9 @@
 
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.config.FilePathConfig;
-import kr.co.api.flobankapi.dto.*;
-import kr.co.api.flobankapi.mapper.TermsDbMapper;
+import kr.co.api.backend.config.FilePathConfig;
+import kr.co.api.backend.dto.*;
+import kr.co.api.backend.mapper.TermsDbMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -302,7 +302,7 @@ public class TermsDbService {
     }
 
 
-    // import kr.co.api.flobankapi.dto.TermsHistDTO; 이미 위에 있으니 그대로 둬도 됨
+    // import kr.co.api.backend.dto.TermsHistDTO; 이미 위에 있으니 그대로 둬도 됨
     public List<TermsHistDTO> getTermsByLocation(int termCate) {
 
         // Mapper에서 이미 "카테고리별 최신버전 1개"만 가져오도록 쿼리가 짜져 있으므로

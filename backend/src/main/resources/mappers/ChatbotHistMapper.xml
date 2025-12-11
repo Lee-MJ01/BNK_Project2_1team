@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.api.backend.mapper.ChatbotHistMapper">
+
+
+    <insert id="insertHist">
+        insert into TB_CHATBOT_HIST (bot_content, bot_type, bot_sess_id, bot_dt)
+        values (#{botContent}, #{botType}, #{botSessId}, SYSDATE)
+    </insert>
+    <select id="selectHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
+        SELECT
+            bot_no,
+            bot_content,
+            bot_type,
+            bot_dt,
+            bot_sess_id
+        FROM TB_CHATBOT_HIST
+        WHERE bot_sess_id = #{sessId}
+        ORDER BY bot_no ASC
+    </select>
+
+    <select id="selectRecentHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
+        SELECT
+        bot_no,
+        bot_content,
+        bot_type,
+        bot_dt
+        FROM TB_CHATBOT_HIST
+        ORDER BY bot_no DESC
+        fetch first 30 rows ONLY
+    </select>
+</mapper>

@@ -1,8 +1,8 @@
 package kr.co.api.backend.service;
 
-import kr.co.api.flobankapi.dto.CustFrgnAcctDTO;
-import kr.co.api.flobankapi.dto.FrgnAcctBalanceDTO;
-import kr.co.api.flobankapi.mapper.FrgnAcctMapper;
+import kr.co.api.backend.dto.CustFrgnAcctDTO;
+import kr.co.api.backend.dto.FrgnAcctBalanceDTO;
+import kr.co.api.backend.mapper.FrgnAcctMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
