@@ -11,6 +11,7 @@ import '../mypage/mypage.dart';
 import '../exchange/forex_insight.dart';
 
 import 'alarm.dart';
+import '../chat/chat.dart';
 
 
 
@@ -35,7 +36,12 @@ class _BankHomePageState extends State<BankHomePage> {
           shape: const CircleBorder(),
           clipBehavior: Clip.antiAlias,
           onPressed: () {
-            print("챗봇 이동");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ChatScreen(),
+              ),
+            );
           },
           child: SizedBox.expand(
             child: Image.asset(

@@ -17,6 +17,9 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   String autoRenew = "no";
   String receiveMethod = "email";
 
+  int? autoRenewCycle;       // 선택된 연장주기 (1,2,3,6)
+
+
   bool isPwMatched = true;
   bool isKrwPwValid = true;
   bool isFxPwValid = true;
@@ -34,6 +37,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
   String depositPw = "";
   String depositPwCheck = "";
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +67,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
             _blockTitle("만기자동연장신청"),
             _autoRenewSection(),
-            const SizedBox(height: 25),
+            const SizedBox(height: 40),
 
             _blockTitle("정기예금 비밀번호 및 상품서류 수령방법"),
             _passwordAndReceiveMethod(),
@@ -191,6 +196,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
+
         const Text("원화출금계좌번호",
             style: TextStyle(color: AppColors.pointDustyNavy)),
         DropdownButton(
@@ -244,6 +251,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
         const Text("외화출금계좌번호",
             style: TextStyle(color: AppColors.pointDustyNavy)),
         DropdownButton(
@@ -314,6 +322,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
+
         const Text("신규 통화 종류",
             style: TextStyle(color: AppColors.pointDustyNavy)),
         DropdownButton(
@@ -372,13 +382,21 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ],
     );
   }
+
+
   // ----------------------------------------
   // ③ 자동 연장 선택
   // ----------------------------------------
+
   Widget _autoRenewSection() {
+    final List<int> cycleOptions = [1, 2, 3, 6];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+
+
+        // --------------------- 라디오 ---------------------
         Row(
           children: [
             Radio(
@@ -387,50 +405,100 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               activeColor: AppColors.pointDustyNavy,
               onChanged: (value) => setState(() => autoRenew = value!),
             ),
-            const Text("신청 (월 단위)",
-                style: TextStyle(color: AppColors.pointDustyNavy)),
-
+            const Text("신청 (월 단위)"),
+            const SizedBox(width: 16),
             Radio(
               value: "no",
               groupValue: autoRenew,
               activeColor: AppColors.pointDustyNavy,
               onChanged: (value) => setState(() => autoRenew = value!),
             ),
-            const Text("미신청",
-                style: TextStyle(color: AppColors.pointDustyNavy)),
+            const Text("미신청"),
           ],
         ),
 
-        if (autoRenew == "apply")
-          Row(
-            children: [
-              const Text("연장 주기",
-                  style: TextStyle(color: AppColors.pointDustyNavy)),
-              DropdownButton(
-                dropdownColor: Colors.white,
-                items: const [
-                  DropdownMenuItem(value: "1", child: Text("1")),
-                  DropdownMenuItem(value: "3", child: Text("3")),
-                  DropdownMenuItem(value: "6", child: Text("6")),
-                  DropdownMenuItem(value: "12", child: Text("12")),
-                ],
-                onChanged: (_) {},
-              ),
-              const Text("개월",
-                  style: TextStyle(color: AppColors.pointDustyNavy)),
-            ],
+        const SizedBox(height: 16),
+
+        // --------------------- 연장 주기 ---------------------
+        if (autoRenew == "apply") ...[
+          const Text(
+            "연장 주기",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.pointDustyNavy,
+            ),
           ),
+          const SizedBox(height: 12),
+
+          // ============= 전체를 감싸는 하나의 네모 =============
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.pointDustyNavy,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: cycleOptions.map((month) {
+                bool isSelected = (autoRenewCycle == month);
+                int index = cycleOptions.indexOf(month);
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => autoRenewCycle = month),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.pointDustyNavy
+                            : Colors.white,
+                        borderRadius: BorderRadius.horizontal(
+                          left: index == 0 ? const Radius.circular(8) : Radius.zero,
+                          right: index == cycleOptions.length - 1
+                              ? const Radius.circular(8)
+                              : Radius.zero,
+                        ),
+                        border: Border(
+                          right: index != cycleOptions.length - 1
+                              ? BorderSide(color: AppColors.pointDustyNavy, width: 1)
+                              : BorderSide.none,
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "$month개월",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? Colors.white : AppColors.pointDustyNavy,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ],
     );
   }
+
+
 
   // ----------------------------------------
   // ④ 비밀번호 및 서류 수령방법
   // ----------------------------------------
   Widget _passwordAndReceiveMethod() {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 16),
+
         const Text("정기예금 비밀번호",
             style: TextStyle(color: AppColors.pointDustyNavy)),
         SizedBox(
@@ -449,7 +517,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 20),
         const Text("비밀번호 확인",
             style: TextStyle(color: AppColors.pointDustyNavy)),
         SizedBox(
@@ -478,7 +546,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             ),
           ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 30),
 
         const Text("상품서류 수령방법",
             style: TextStyle(color: AppColors.pointDustyNavy)),
