@@ -105,6 +105,18 @@ class _BankHomePageState extends State<BankHomePage> {
               onTap: () {},
             ),
             ListTile(
+              leading: const Icon(Icons.currency_exchange),
+              title: const Text("환율"),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ExchangeRateScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.support_agent),
               title: const Text("고객센터"),
               onTap: () {},
@@ -218,7 +230,18 @@ class _BankHomePageState extends State<BankHomePage> {
                 childAspectRatio: 0.9,
                 children: [
                   _QuickMenu("환전", "images/flobankicon1.png"),
-                  _QuickMenu("환율","images/flobankicon2.png"),
+                  _QuickMenu(
+                    "환율",
+                    "images/flobankicon2.png",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ExchangeRateScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   _QuickMenu(
                     "외화예금",
                     "images/flobankicon3.png",
