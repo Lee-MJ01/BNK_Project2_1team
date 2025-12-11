@@ -10,7 +10,7 @@ import '../remit/remit_step1.dart';
 import '../mypage/mypage.dart';
 import '../exchange/forex_insight.dart';
 
-
+import 'alarm.dart';
 
 
 
@@ -74,7 +74,12 @@ class _BankHomePageState extends State<BankHomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.black87),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AlaramScreen()),
+              );
+            },
           ),
           Builder(
             builder: (context) => IconButton(
