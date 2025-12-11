@@ -16,10 +16,11 @@
                     <i class="fa-solid fa-gauge"></i>대시보드
                 </a>
             </li>
+
             <li>
                 <a th:href="@{/admin/index}"
-                   th:classappend="${menu} == 'dashboard' ? ' active' : ''">
-                    <i class="fa-solid fa-gauge"></i>고객관리
+                   th:classappend="${menu} == 'customers' ? ' active' : ''">
+                    <i class="fa-solid fa-users"></i>고객관리
                 </a>
             </li>
 
@@ -27,6 +28,13 @@
                 <a th:href="@{/admin/member}"
                    th:classappend="${menu} == 'member' ? ' active' : ''">
                     <i class="fa-solid fa-gear"></i>고객센터
+                </a>
+            </li>
+
+            <li>
+                <a th:href="@{/admin/member}"
+                   th:classappend="${menu} == 'ai-product' ? ' active' : ''">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>AI 상품추천
                 </a>
             </li>
 
@@ -52,20 +60,19 @@
             </li>
 
             <li>
+                <a th:href="@{/admin/index}"
+                   th:classappend="${menu} == 'notification' ? ' active' : ''">
+                    <i class="fa-solid fa-bell"></i>알림관리
+                </a>
+            </li>
+
+            <li>
                 <a th:href="@{/admin/chatbot}"  style="padding-left: 13px"
                    th:classappend="${menu} == 'terms' ? ' active' : ''">
                     <i class="fa-solid fa-robot"></i>챗봇
                 </a>
             </li>
 
-            <li>
-                <a th:href="@{/admin/index}"
-                   th:classappend="${menu} == 'dashboard' ? ' active' : ''">
-                    <i class="fa-solid fa-gauge"></i>알림관리
-                </a>
-            </li>
-
-            <!--  adminType=1 (ROLE_ADMIN) 사용자만 보임 -->
             <li sec:authorize="hasRole('ADMIN')">
                 <a href="http://34.64.124.33:5601/" target="_blank">
                     <i class="fa-solid fa-server"></i> 서버관리
