@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('알림 관리','알림 관리',~{::content},~{::script})}">
+
+<th:block th:fragment="content">
+    <style>
+        /* 알림 관리 전용 스타일 */
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-info h4 { margin: 0 0 8px 0; color: #64748b; font-size: 14px; font-weight: 500; }
+        .stat-info p { margin: 0; font-size: 24px; font-weight: 800; color: #1e293b; }
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            background: #eff6ff;
+            color: #3b82f6;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+
+        /* 작성 & 미리보기 레이아웃 */
+        .notification-grid {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .write-section { flex: 2; }
+        .preview-section {
+            flex: 1;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* 모바일 미리보기 프레임 */
+        .mobile-frame {
+            background: #1e1e1e; /* 베젤 색상 */
+            border-radius: 30px;
+            padding: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 320px;
+            margin: 0 auto;
+        }
+        .mobile-screen {
+            background: #f1f5f9;
+            border-radius: 20px;
+            height: 580px;
+            overflow: hidden;
+            position: relative;
+            font-family: 'Pretendard', sans-serif;
+        }
+        .mobile-header {
+            background: white;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 700;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            color: #333;
+        }
+
+        /* 알림 팝업 스타일 */
+        .push-preview {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(4px);
+            animation: slideDown 0.5s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .push-header {
+            display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #64748b;
+        }
+        .push-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .push-body { font-size: 13px; color: #475569; line-height: 1.4; }
+
+        /* 칩 선택 스타일 */
+        .target-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .chip-check { display: none; }
+        .chip-label {
+            padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 20px;
+            font-size: 13px; cursor: pointer; transition: all 0.2s; color: #64748b;
+        }
+        .chip-check:checked + .chip-label {
+            background: #eff6ff; border-color: #3b82f6; color: #3b82f6; font-weight: 700;
+        }
+
+    </style>
+
+    <div class="product-container">
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h4>금일 발송 건수</h4>
+                    <p>12,450건</p>
+                </div>
+                <div class="stat-icon"><i class="fa-regular fa-paper-plane"></i></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h4>평균 도달률</h4>
+                    <p>98.5%</p>
+                </div>
+                <div class="stat-icon" style="color: #10b981; background: #ecfdf5;"><i class="fa-solid fa-check-double"></i></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h4>예약 대기</h4>
+                    <p>3건</p>
+                </div>
+                <div class="stat-icon" style="color: #f59e0b; background: #fffbeb;"><i class="fa-regular fa-clock"></i></div>
+            </div>
+        </div>
+
+        <div class="notification-grid">
+
+            <section class="product-card write-section">
+                <h2 class="product-title">새 알림 보내기</h2>
+
+                <form id="notiForm" action="/admin/notification/send" method="post">
+
+                    <div class="form-section">
+                        <h3>발송 대상 설정</h3>
+                        <div class="form-group">
+                            <label>수신 대상 선택</label>
+                            <div class="target-chips">
+                                <input type="radio" name="target" id="t1" value="all" class="chip-check" checked>
+                                <label for="t1" class="chip-label">전체 사용자</label>
+
+                                <input type="radio" name="target" id="t2" value="marketing" class="chip-check">
+                                <label for="t2" class="chip-label">마케팅 동의자</label>
+
+                                <input type="radio" name="target" id="t3" value="dormant" class="chip-check">
+                                <label for="t3" class="chip-label">장기 미접속자</label>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>메시지 내용 작성</h3>
+
+                        <div class="form-group">
+                            <label>발송 채널</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="channel" value="PUSH" checked> 앱 푸시 (APP)</label>
+                                <label><input type="checkbox" name="channel" value="SMS"> 알림톡 / SMS</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notiTitle">알림 제목</label>
+                            <input type="text" id="notiTitle" name="title" placeholder="제목을 입력하세요 (예: 환율 우대 쿠폰 도착!🎁)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notiBody">알림 내용</label>
+                            <textarea id="notiBody" name="body" rows="4" placeholder="내용을 입력하세요. 고객님의 이름을 넣으려면 {name}을 사용하세요."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>이미지 첨부 (선택)</label>
+                            <input type="file" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>발송 시간</h3>
+                        <div class="radio-group">
+                            <label><input type="radio" name="sendTime" value="now" checked> 즉시 발송</label>
+                            <label><input type="radio" name="sendTime" value="reserve"> 예약 발송</label>
+                        </div>
+                        <div id="reserveTimeInput" style="display:none; margin-top:10px;">
+                            <input type="datetime-local" name="reservationDate">
+                        </div>
+                    </div>
+
+                    <div class="form-submit">
+                        <button type="submit" class="btn-submit">발송하기</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="preview-section">
+                <div class="mobile-frame">
+                    <div class="mobile-screen">
+                        <div class="mobile-header">FLOWBANK</div>
+
+                        <div class="push-preview">
+                            <div class="push-header">
+                                <span><i class="fa-solid fa-paper-plane"></i> FLOWBANK</span>
+                                <span>방금 전</span>
+                            </div>
+                            <div class="push-title" id="previewTitleText">제목이 여기에 표시됩니다</div>
+                            <div class="push-body" id="previewBodyText">작성하신 알림 내용이 실제 앱에서 어떻게 보이는지 확인해보세요.</div>
+                        </div>
+
+                        <div style="padding: 20px; opacity: 0.3; text-align: center;">
+                            <i class="fa-solid fa-wallet" style="font-size: 48px; color: #cbd5e1; margin-bottom: 10px;"></i>
+                            <div style="height: 10px; background: #cbd5e1; margin-bottom: 8px; border-radius: 4px;"></div>
+                            <div style="height: 10px; background: #cbd5e1; width: 60%; margin: 0 auto; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 10px; color: #64748b; font-size: 13px;">
+                    * 기기 설정에 따라 다르게 보일 수 있습니다.
+                </p>
+            </div>
+
+        </div>
+
+        <section class="product-card">
+            <h2 class="product-title">최근 알림 발송 이력</h2>
+            <div class="product-table-wrap">
+                <table class="product-table">
+                    <thead>
+                    <tr>
+                        <th>발송 일시</th>
+                        <th>유형</th>
+                        <th>제목</th>
+                        <th>대상</th>
+                        <th>발송 수</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>2024-05-20 14:00</td>
+                        <td><span class="status-badge" style="background:#e0f2fe; color:#0369a1;">PUSH</span></td>
+                        <td>[광고] 여름 휴가 환율 우대 90% 이벤트</td>
+                        <td>전체</td>
+                        <td>12,400</td>
+                        <td><span class="status-badge status-sale">발송완료</span></td>
+                        <td><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;">상세</button></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-19 09:30</td>
+                        <td><span class="status-badge" style="background:#f1f5f9; color:#475569;">SMS</span></td>
+                        <td>휴면 계정 전환 예정 안내</td>
+                        <td>개별</td>
+                        <td>53</td>
+                        <td><span class="status-badge status-sale">발송완료</span></td>
+                        <td><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;">상세</button></td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-25 10:00</td>
+                        <td><span class="status-badge" style="background:#e0f2fe; color:#0369a1;">PUSH</span></td>
+                        <td>시스템 점검 안내 (5/26)</td>
+                        <td>전체</td>
+                        <td>-</td>
+                        <td><span class="status-badge status-pending">발송대기</span></td>
+                        <td><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border-color:#ef4444;">취소</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</th:block>
+
+<th:block th:fragment="script">
+    <script>
+        /* ============================
+           📱 실시간 미리보기 스크립트
+        ============================= */
+        const titleInput = document.getElementById('notiTitle');
+        const bodyInput = document.getElementById('notiBody');
+        const previewTitle = document.getElementById('previewTitleText');
+        const previewBody = document.getElementById('previewBodyText');
+
+        // 입력 시 미리보기 업데이트
+        function updatePreview() {
+            previewTitle.textContent = titleInput.value || "제목이 여기에 표시됩니다";
+            previewBody.textContent = bodyInput.value || "작성하신 알림 내용이 실제 앱에서 어떻게 보이는지 확인해보세요.";
+        }
+
+        titleInput.addEventListener('input', updatePreview);
+        bodyInput.addEventListener('input', updatePreview);
+
+        /* ============================
+           ⏰ 예약 발송 토글
+        ============================= */
+        const sendTimeRadios = document.querySelectorAll('input[name="sendTime"]');
+        const reserveInput = document.getElementById('reserveTimeInput');
+
+        sendTimeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if(e.target.value === 'reserve') {
+                    reserveInput.style.display = 'block';
+                } else {
+                    reserveInput.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</th:block>
+
+</html>

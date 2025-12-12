@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+      th:replace="~{admin/admin_template :: admin_template('관리자 - AI 상품 추천', 'AI 상품 추천', ~{::content}, ~{::script})}">
+
+<th:block th:fragment="content">
+
+    <section class="admin-content">
+
+        <style>
+            /* =========================================
+               페이지 전용 스타일
+               ========================================= */
+            .board-admin {
+                display: flex; flex-direction: column; gap: 30px;
+            }
+
+            .board-section {
+                background: #fff; padding: 25px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+
+            /* 1. 상단 통계 카드 영역 */
+            .stats-container {
+                display: flex; gap: 20px;
+                margin-bottom: 10px;
+            }
+
+            .stat-card {
+                flex: 1;
+                background: #fff;
+                padding: 20px 25px;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-left: 5px solid #22304e;
+            }
+
+            .stat-info h4 { margin: 0 0 5px 0; font-size: 0.9rem; color: #666; font-weight: 500; }
+            .stat-info p { margin: 0; font-size: 1.8rem; font-weight: 700; color: #22304e; }
+
+            /* 아이콘 스타일 삭제됨 (HTML에서 태그 제거함) */
+
+            /* 2. 테이블 스타일 */
+            .board-table-wrapper {
+                overflow-x: auto; min-width: 1000px;
+            }
+            .ai-table {
+                width: 100%; table-layout: fixed !important;
+                border-collapse: collapse;
+            }
+            .ai-table th, .ai-table td {
+                vertical-align: middle; text-align: center !important;
+                padding: 12px 5px; border-bottom: 1px solid #eee;
+                font-size: 13px; white-space: nowrap;
+                overflow: hidden; text-overflow: ellipsis;
+            }
+            .ai-table th {
+                background-color: #f8f9fa; font-weight: 700; color: #495057;
+                border-top: 2px solid #22304e; height: 45px;
+            }
+            .ai-table td { height: 50px; color: #444; }
+
+            /* 3. 배지 스타일 */
+            .tendency-badge {
+                padding: 4px 10px; border-radius: 4px; font-size: 11px;
+                color: #5e35b1; background-color: #ede7f6;
+                border: 1px solid #d1c4e9; font-weight: 600;
+            }
+
+            /* 상태 배지 */
+            .status-rec { background-color: #17a2b8; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; }
+            .status-join { background-color: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; }
+            .status-wait { background-color: #6c757d; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; }
+
+            /* 설문 상태 배지 */
+            .survey-active { color: #28a745; font-weight: bold; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+            .survey-inactive { color: #999; font-weight: bold; background: #f1f1f1; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+
+            /* 버튼 */
+            .btn-push {
+                background-color: #22304e; color: #fff; border: 1px solid #22304e;
+                padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;
+            }
+            .btn-push:hover { opacity: 0.9; }
+
+            .btn-detail {
+                background-color: #fff; border: 1px solid #ddd; color: #333;
+                padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;
+            }
+            .btn-detail:hover { background-color: #f8f9fa; }
+
+            /* 신규 등록 버튼 */
+            .btn-create {
+                background-color: #22304e; color: #fff; border: none;
+                padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600;
+                display: flex; align-items: center; gap: 5px;
+            }
+            .btn-create:hover { opacity: 0.9; }
+
+            /* 헤더 컨트롤 */
+            .board-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+            .board-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #333; }
+
+            .search-form-inline { display: flex; align-items: center; gap: 5px; }
+            .search-select-mini { width: 110px; height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 0 8px; }
+            .search-input-mini { width: 200px; height: 36px; border: 1px solid #ddd; border-radius: 4px; padding: 0 10px; }
+            .btn-search-mini { height: 36px; padding: 0 15px; background: #22304e; color: #fff; border:none; border-radius: 4px; cursor: pointer; }
+
+        </style>
+
+        <div class="board-admin">
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h4>오늘의 AI 추천 건수</h4>
+                        <p>142 <span style="font-size: 1rem; color: #28a745;">(+12)</span></p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left-color: #28a745;">
+                    <div class="stat-info">
+                        <h4>추천 대비 가입률</h4>
+                        <p>34.5% <span style="font-size: 1rem; color: #666;">(전일대비 ▲)</span></p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left-color: #17a2b8;">
+                    <div class="stat-info">
+                        <h4>인기 추천 상품 (1위)</h4>
+                        <p style="font-size: 1.2rem; margin-top:5px;">슈카 달러 풀링 예금</p>
+                    </div>
+                </div>
+            </div>
+
+            <section class="board-section">
+                <div class="board-header">
+                    <h2>AI 기반 상품 추천 이력 관리</h2>
+                    <div class="header-controls">
+                        <form class="search-form-inline">
+                            <select class="search-select-mini">
+                                <option>전체</option>
+                                <option>가입완료</option>
+                                <option>추천완료(미가입)</option>
+                            </select>
+                            <input type="text" class="search-input-mini" placeholder="고객명 또는 상품명">
+                            <button type="submit" class="btn-search-mini">조회</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="board-table-wrapper">
+                    <table class="ai-table">
+                        <colgroup>
+                            <col style="width: 5%">  <col style="width: 8%">  <col style="width: 15%"> <col style="width: 32%"> <col style="width: 12%"> <col style="width: 12%"> <col style="width: 16%"> </colgroup>
+                        <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>고객명</th>
+                            <th>AI 분석 성향</th>
+                            <th>추천 외화 상품</th>
+                            <th>추천 일자</th>
+                            <th>진행 상태</th>
+                            <th>관리</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>124</td>
+                            <td>김철수</td>
+                            <td><span class="tendency-badge">공격적 환테크형</span></td>
+                            <td style="font-weight: bold; color: #333;">슈카 달러 풀링 예금</td>
+                            <td>2024-12-12</td>
+                            <td><span class="status-join">가입완료</span></td>
+                            <td><button class="btn-detail">상세내역</button></td>
+                        </tr>
+                        <tr>
+                            <td>123</td>
+                            <td>이영희</td>
+                            <td><span class="tendency-badge">실속 추구형</span></td>
+                            <td>FLOBANK 더 와이드 외화적금</td>
+                            <td>2024-12-12</td>
+                            <td><span class="status-rec">추천발송</span></td>
+                            <td><button class="btn-push"><i class="fa-regular fa-bell"></i> 재알림</button></td>
+                        </tr>
+                        <tr>
+                            <td>122</td>
+                            <td>박민수</td>
+                            <td><span class="tendency-badge">단기 유동성 중시</span></td>
+                            <td>FLOBANK 외화보통예금</td>
+                            <td>2024-12-11</td>
+                            <td><span class="status-wait">미가입</span></td>
+                            <td><button class="btn-push"><i class="fa-regular fa-paper-plane"></i> 프로모션</button></td>
+                        </tr>
+                        <tr>
+                            <td>121</td>
+                            <td>정우성</td>
+                            <td><span class="tendency-badge">고액 자산 운용</span></td>
+                            <td style="font-weight: bold; color: #333;">FLOBANK 외화 고단위 플러스</td>
+                            <td>2024-12-10</td>
+                            <td><span class="status-join">가입완료</span></td>
+                            <td><button class="btn-detail">상세내역</button></td>
+                        </tr>
+                        <tr>
+                            <td>120</td>
+                            <td>최지혜</td>
+                            <td><span class="tendency-badge">안정 지향형</span></td>
+                            <td>FLOBANK 외화정기예금</td>
+                            <td>2024-12-09</td>
+                            <td><span class="status-rec">추천발송</span></td>
+                            <td><button class="btn-push"><i class="fa-regular fa-bell"></i> 재알림</button></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" style="display: flex; justify-content: center; margin-top: 20px; gap: 5px;">
+                    <a href="#" class="page-btn prev" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; color: #333; text-decoration: none;">〈</a>
+                    <a href="#" class="page-btn active" style="padding: 5px 10px; border: 1px solid #22304e; background-color: #22304e; color: #fff; border-radius: 4px; text-decoration: none;">1</a>
+                    <a href="#" class="page-btn" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; color: #333; text-decoration: none;">2</a>
+                    <a href="#" class="page-btn" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; color: #333; text-decoration: none;">〉</a>
+                </div>
+            </section>
+
+            <section class="board-section">
+
+                <div class="board-header">
+                    <h2>AI 설문지 콘텐츠 관리</h2>
+                    <div class="header-controls">
+                        <button class="btn-create">
+                            <i class="fa-solid fa-plus"></i> 신규 설문 등록
+                        </button>
+                    </div>
+                </div>
+
+                <div class="board-table-wrapper">
+                    <table class="ai-table">
+                        <colgroup>
+                            <col style="width: 5%">  <col style="width: 12%"> <col style="width: 25%"> <col style="width: 8%">  <col style="width: 10%"> <col style="width: 12%"> <col style="width: 10%"> <col style="width: 18%"> </colgroup>
+                        <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>카테고리</th>
+                            <th>설문지 제목 (클라이언트 노출)</th>
+                            <th>문항 수</th>
+                            <th>AI 가중치</th>
+                            <th>최종 수정일</th>
+                            <th>상태</th>
+                            <th>콘텐츠 관리</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>투자 성향</td>
+                            <td style="font-weight: bold; text-align: left !important; padding-left: 15px;">글로벌 시장 트렌드 및 위험 감수성 조사</td>
+                            <td>12문항</td>
+                            <td><span style="color:#d32f2f; font-weight:bold;">High</span></td>
+                            <td>2024-12-01</td>
+                            <td><span class="survey-active">사용중</span></td>
+                            <td>
+                                <button class="btn-detail">문항 수정</button>
+                                <button class="btn-detail" style="color:#666;">미리보기</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>소비/지출</td>
+                            <td style="font-weight: bold; text-align: left !important; padding-left: 15px;">환테크 입문자용 기초 설문</td>
+                            <td>8문항</td>
+                            <td><span style="color:#f57c00; font-weight:bold;">Medium</span></td>
+                            <td>2024-11-20</td>
+                            <td><span class="survey-active">사용중</span></td>
+                            <td>
+                                <button class="btn-detail">문항 수정</button>
+                                <button class="btn-detail" style="color:#666;">미리보기</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>목적 자금</td>
+                            <td style="font-weight: bold; text-align: left !important; padding-left: 15px;">해외 여행 및 유학 자금 계획</td>
+                            <td>10문항</td>
+                            <td><span style="color:#f57c00; font-weight:bold;">Medium</span></td>
+                            <td>2024-10-15</td>
+                            <td><span class="survey-inactive">미사용</span></td>
+                            <td>
+                                <button class="btn-detail">문항 수정</button>
+                                <button class="btn-detail" style="color:#666;">미리보기</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>자산 규모</td>
+                            <td style="font-weight: bold; text-align: left !important; padding-left: 15px;">고액 자산가 전용 포트폴리오 진단</td>
+                            <td>15문항</td>
+                            <td><span style="color:#d32f2f; font-weight:bold;">High</span></td>
+                            <td>2024-12-10</td>
+                            <td><span class="survey-active">사용중</span></td>
+                            <td>
+                                <button class="btn-detail">문항 수정</button>
+                                <button class="btn-detail" style="color:#666;">미리보기</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </section>
+        </div>
+
+    </section>
+
+</th:block>
+
+<th:block th:fragment="script">
+    <script>
+        $(document).ready(function() {
+            console.log("AI 상품 추천 및 설문 관리 페이지 로드 완료");
+
+            // 버튼 클릭 이벤트 예시
+            $('.btn-push').click(function() {
+                alert('해당 고객에게 푸시 알림을 발송했습니다.');
+            });
+
+            $('.btn-create').click(function() {
+                alert('새로운 설문지를 등록하는 팝업이 열립니다.');
+            });
+        });
+    </script>
+</th:block>
+
+</html>

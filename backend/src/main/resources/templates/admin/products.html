@@ -4,7 +4,9 @@
 
 <th:block th:fragment="content">
     <style>
-        /* 카드 전체 컨테이너 */
+        /* ============================
+           기본 카드 스타일
+        ============================= */
         .ai-card-preview {
             background: #fff;
             border-radius: 16px;
@@ -15,9 +17,8 @@
             font-family: 'Pretendard', sans-serif;
         }
 
-        /* 1. 헤더 (파란색) */
         .preview-header {
-            background-color: #1e3a8a; /* 짙은 파란색 */
+            background-color: #1e3a8a;
             color: white;
             padding: 24px 30px;
             display: flex;
@@ -28,19 +29,17 @@
         .preview-header p { margin: 0; font-size: 13px; opacity: 0.8; font-weight: 400; color: #dbeafe;}
         .preview-flag { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
 
-        /* 2. 바디 (내용) */
         .preview-body {
             padding: 30px;
             display: flex;
             gap: 30px;
         }
 
-        /* 왼쪽: 텍스트 영역 */
         .preview-text-area { flex: 1.5; }
 
         .ai-badge {
             display: inline-block;
-            background: linear-gradient(90deg, #8b5cf6, #6366f1); /* 보라색 그라데이션 */
+            background: linear-gradient(90deg, #8b5cf6, #6366f1);
             color: white;
             font-size: 12px;
             font-weight: 700;
@@ -53,11 +52,10 @@
             font-size: 15px;
             line-height: 1.6;
             color: #333;
-            white-space: pre-wrap; /* 줄바꿈 허용 */
+            white-space: pre-wrap;
         }
         .preview-desc strong { color: #1e3a8a; font-weight: 700; background: #eff6ff; padding: 2px 4px; border-radius: 4px; }
 
-        /* 오른쪽: 원형 그래프 영역 */
         .preview-visual-area {
             flex: 1;
             background: #f8fafc;
@@ -70,7 +68,6 @@
             border: 1px solid #f1f5f9;
         }
 
-        /* 원형 차트 (CSS conic-gradient) */
         .circle-chart {
             width: 100px;
             height: 100px;
@@ -80,16 +77,15 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 12px;
-            /* 기본 배경 (회색) */
             background: #e2e8f0;
         }
 
         .circle-chart::before {
             content: "";
             position: absolute;
-            width: 84px; /* 두께 조절: 100 - 84 = 16px */
+            width: 84px;
             height: 84px;
-            background: #f8fafc; /* 배경색과 동일하게 */
+            background: #f8fafc;
             border-radius: 50%;
         }
 
@@ -104,7 +100,6 @@
         .visual-label { font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 500;}
         .visual-icon { font-size: 24px; margin-top: 16px; }
 
-        /* 입력 필드 숨기기 (필요시 보이게 해도 됨) */
         .edit-controls {
             background: #f1f5f9;
             padding: 15px;
@@ -116,12 +111,221 @@
         .edit-controls input, .edit-controls textarea {
             width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; font-size: 13px; margin-bottom: 10px;
         }
+
+        /* ============================
+           🆕 워드 클라우드 모달 스타일
+        ============================= */
+
+        /* 버튼 스타일 */
+        .btn-sentiment {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-weight: 600;
+        }
+        .btn-sentiment:hover { opacity: 0.9; }
+
+        /* 모달 배경 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.active { display: flex; }
+
+        /* 모달 박스 */
+        .modal-content {
+            background: #fff;
+            width: 900px; /* 넓게 설정 */
+            max-width: 95%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+            font-family: 'Pretendard', sans-serif;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: #1e3a8a;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        .modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .btn-close-modal {
+            background: none; border: none; color: white; font-size: 24px; cursor: pointer; opacity: 0.8;
+        }
+        .btn-close-modal:hover { opacity: 1; }
+        .modal-body { padding: 24px; }
+
+        /* 클라우드 컨테이너 (좌우 배치) */
+        .sentiment-cloud-container {
+            display: flex;
+            gap: 20px;
+            height: 350px; /* 높이 고정 */
+        }
+
+        /* 긍정/부정 박스 공통 */
+        .cloud-box {
+            flex: 1;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        /* 헤더 (점 + 긍정 + %) */
+        .cloud-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            background: #f8fafc;
+        }
+
+        .dot-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .dot-pos { background-color: #3b82f6; } /* 파랑 */
+        .dot-neg { background-color: #ef4444; } /* 빨강 */
+
+        .cloud-title { color: #333; }
+        .cloud-percent { color: #64748b; font-weight: 400; font-size: 13px; margin-left: 2px; }
+
+        /* 워드 클라우드 영역 (단어들이 떠다닐 공간) */
+        .cloud-area {
+            flex: 1;
+            position: relative; /* 절대 위치 배치를 위해 */
+            padding: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #ffffff 0%, #fafafa 100%);
+        }
+
+        /* 개별 단어 스타일 */
+        .cloud-word {
+            position: absolute;
+            white-space: nowrap;
+            line-height: 1.2;
+            transition: all 0.3s ease;
+            cursor: default;
+            user-select: none;
+        }
+        .cloud-word:hover { transform: translate(-50%, -50%) scale(1.1) !important; z-index: 100 !important; }
+
+        /* 크기별 스타일 */
+        .size-l { font-size: 22px; font-weight: 800; z-index: 10; }
+        .size-m { font-size: 16px; font-weight: 600; z-index: 5; opacity: 0.85; }
+        .size-s { font-size: 13px; font-weight: 400; z-index: 1; opacity: 0.6; }
+
+        /* 색상 테마 - 긍정 (파랑) */
+        .pos-text.size-l { color: #2563eb; }
+        .pos-text.size-m { color: #3b82f6; }
+        .pos-text.size-s { color: #60a5fa; }
+
+        /* 색상 테마 - 부정 (빨강) */
+        .neg-text.size-l { color: #dc2626; }
+        .neg-text.size-m { color: #ef4444; }
+        .neg-text.size-s { color: #f87171; }
+
+        /* ============================
+           🆕 AI 3줄 요약 섹션 스타일
+        ============================= */
+        .ai-summary-section {
+            margin-top: 20px;
+            background-color: #f8fafc; /* 연한 회색 배경 */
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a8a; /* 헤더 색상 */
+            margin-bottom: 12px;
+        }
+
+        .summary-icon { font-size: 18px; }
+
+        .summary-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .summary-item:last-child { margin-bottom: 0; }
+
+        /* 체크 아이콘 스타일 */
+        .check-icon {
+            color: #3b82f6;
+            font-weight: bold;
+            margin-top: 2px; /* 텍스트 줄맞춤 */
+        }
+
+        /* ============================
+           🆕 다운로드 버튼 스타일
+        ============================= */
+        .download-group {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-down {
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+            font-family: 'Pretendard', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* PDF 버튼 (빨간색 계열) */
+        .btn-pdf {
+            background-color: #ef4444;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+        }
+        .btn-pdf:hover { background-color: #dc2626; transform: translateY(-1px); }
+
+        /* Excel 버튼 (초록색 계열) */
+        .btn-excel {
+            background-color: #10b981;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+        .btn-excel:hover { background-color: #059669; transform: translateY(-1px); }
     </style>
     <div class="product-container">
 
-        <!-- =======================
-             PDF 업로드 / AI 분석
-        ======================== -->
         <section class="product-card">
             <h2 class="product-title">외화예금 상품 등록</h2>
 
@@ -141,7 +345,6 @@
                         </div>
                     </div>
 
-                    <!-- 🔥 Progress Box 추가 -->
                     <div id="pdf-progress-box"
                          style="display:none; margin:10px 0; padding:10px; background:#f5f7fa; border-radius:6px;">
                         <div style="font-weight:bold; margin-bottom:5px;">
@@ -153,8 +356,6 @@
                                  style="width:0%; height:100%; background:#4A90E2; border-radius:6px; transition:width 0.3s;"></div>
                         </div>
                     </div>
-                    <!-- 🔥 Progress Box 끝 -->
-
                     <div class="pdf-list">
                         <div class="pdf-list-header" id="pdfListHeader">
                             <div class="pdf-list-title">
@@ -259,268 +460,336 @@
                     </div>
                 </div>
                 <div class="form-section">
-                <h3>기본정보</h3>
-                <div class="form-group">
-                    <label for="dpstName">상품명</label>
-                    <input type="text" id="dpstName" name="dpstName" placeholder="상품명을 입력하세요" required />
-                </div>
-                <div class="form-group">
-                    <label for="dpstInfo">상품 한 줄 설명</label>
-                    <input type="text" id="dpstInfo" name="dpstInfo" placeholder="간단한 설명을 입력하세요" />
-                </div>
-                <div class="form-group">
-                    <label>예금 유형</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="dpstType" value="1" checked /> 거치식 예금</label>
-                        <label><input type="radio" name="dpstType" value="2" /> 자유 적립식</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>통화 및 금액 설정</h3>
-                <div class="form-group">
-                    <label>가능한 통화</label>
-                    <div class="checkbox-group">
-                        <label><input type="checkbox" name="dpstCurrency" value="USD" /> USD(미국 달러)</label>
-                        <label><input type="checkbox" name="dpstCurrency" value="JPY" /> JPY(일본 엔화)</label>
-                        <label><input type="checkbox" name="dpstCurrency" value="EUR" /> EUR(유로화)</label>
-                        <label><input type="checkbox" name="dpstCurrency" value="GBP" /> GBP(영국 파운드)</label>
-                        <label><input type="checkbox" name="dpstCurrency" value="CNH" /> CNH(중국 위안)</label>
-                        <label><input type="checkbox" name="dpstCurrency" value="AUD" /> AUD(호주 달러)</label>
-                    </div>
-                </div>
-                <div class="conditional deposit-type" data-type="1">
-                    <div id="currencyAmountContainer"></div>
+                    <h3>기본정보</h3>
                     <div class="form-group">
-                        <label>추가납입 가능 여부</label>
+                        <label for="dpstName">상품명</label>
+                        <input type="text" id="dpstName" name="dpstName" placeholder="상품명을 입력하세요" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="dpstInfo">상품 한 줄 설명</label>
+                        <input type="text" id="dpstInfo" name="dpstInfo" placeholder="간단한 설명을 입력하세요" />
+                    </div>
+                    <div class="form-group">
+                        <label>예금 유형</label>
                         <div class="radio-group">
-                            <label><input type="radio" name="dpstAddPayYn" value="Y" /> 가능</label>
-                            <label><input type="radio" name="dpstAddPayYn" value="N" checked /> 불가능</label>
+                            <label><input type="radio" name="dpstType" value="1" checked /> 거치식 예금</label>
+                            <label><input type="radio" name="dpstType" value="2" /> 자유 적립식</label>
                         </div>
                     </div>
-                    <div class="conditional extra-deposit">
+                </div>
+
+                <div class="form-section">
+                    <h3>통화 및 금액 설정</h3>
+                    <div class="form-group">
+                        <label>가능한 통화</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="dpstCurrency" value="USD" /> USD(미국 달러)</label>
+                            <label><input type="checkbox" name="dpstCurrency" value="JPY" /> JPY(일본 엔화)</label>
+                            <label><input type="checkbox" name="dpstCurrency" value="EUR" /> EUR(유로화)</label>
+                            <label><input type="checkbox" name="dpstCurrency" value="GBP" /> GBP(영국 파운드)</label>
+                            <label><input type="checkbox" name="dpstCurrency" value="CNH" /> CNH(중국 위안)</label>
+                            <label><input type="checkbox" name="dpstCurrency" value="AUD" /> AUD(호주 달러)</label>
+                        </div>
+                    </div>
+                    <div class="conditional deposit-type" data-type="1">
+                        <div id="currencyAmountContainer"></div>
                         <div class="form-group">
-                            <label>신규 포함 최대 납입 횟수</label>
-                            <input type="number" name="dpstAddPayMax" placeholder="예: 3" />
+                            <label>추가납입 가능 여부</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="dpstAddPayYn" value="Y" /> 가능</label>
+                                <label><input type="radio" name="dpstAddPayYn" value="N" checked /> 불가능</label>
+                            </div>
+                        </div>
+                        <div class="conditional extra-deposit">
+                            <div class="form-group">
+                                <label>신규 포함 최대 납입 횟수</label>
+                                <input type="number" name="dpstAddPayMax" placeholder="예: 3" />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-section">
-                <h3>환율 적용 기준</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="dpstRateType" value="1" checked /> 가입 시점</label>
-                    <label><input type="radio" name="dpstRateType" value="2" /> 만기 시점</label>
-                    <label><input type="radio" name="dpstRateType" value="3" /> 납입 시 환율</label>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>상품 정보</h3>
-                <div class="form-group">
-                    <label for="dpstDescript">상품 개요</label>
-                    <textarea id="dpstDescript" name="dpstDescript" rows="3" placeholder="상품 특징 및 안내를 입력하세요"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>상품 가입기간 유형</label>
+                <div class="form-section">
+                    <h3>환율 적용 기준</h3>
                     <div class="radio-group">
-                        <label><input type="radio" name="dpstPeriodType" value="1" checked /> 자유형</label>
-                        <label><input type="radio" name="dpstPeriodType" value="2" /> 고정형</label>
+                        <label><input type="radio" name="dpstRateType" value="1" checked /> 가입 시점</label>
+                        <label><input type="radio" name="dpstRateType" value="2" /> 만기 시점</label>
+                        <label><input type="radio" name="dpstRateType" value="3" /> 납입 시 환율</label>
                     </div>
                 </div>
-                <div class="conditional join-type" data-type="1">
-                    <div class="form-inline">
-                        <label>최소 가입월수</label>
-                        <input type="number" name="minMonths" placeholder="예: 1" /> 개월
-                    </div>
-                    <div class="form-inline">
-                        <label>최대 가입월수</label>
-                        <input type="number" name="maxMonths" placeholder="예: 36" /> 개월
-                    </div>
-                </div>
-                <div class="conditional join-type" data-type="2">
-                    <div class="form-group">
-                        <label>가입 가능한 개월수</label>
-                        <input type="text" name="fixedMonths" placeholder="예: 3,6,12" />
-                    </div>
-                </div>
-            </div>
 
-            <div class="form-section">
-                <h3>가입 대상</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="ageLimit" value="none" checked /> 제한 없음</label>
-                    <label><input type="radio" name="ageLimit" value="yes" /> 제한 있음</label>
-                </div>
-                <div class="conditional age-limit">
-                    <div class="form-inline">
-                        <label>최소 나이</label>
-                        <input type="number" name="dpstMinAge" placeholder="예: 19" /> 세
-                    </div>
-                    <div class="form-inline">
-                        <label>최대 나이</label>
-                        <input type="number" name="dpstMaxAge" placeholder="예: 65" /> 세
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>분할 인출 설정</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="dpstPartWdrwYn" value="Y" /> 가능</label>
-                    <label><input type="radio" name="dpstPartWdrwYn" value="N" checked /> 불가능</label>
-                </div>
-                <div class="conditional partial-withdrawal">
+                <div class="form-section">
+                    <h3>상품 정보</h3>
                     <div class="form-group">
-                        <label>가능 시점 (가입 후)</label>
-                        <input type="number" name="withdrawAfterMonths" placeholder="예: 6" /> 개월 이후
+                        <label for="dpstDescript">상품 개요</label>
+                        <textarea id="dpstDescript" name="dpstDescript" rows="3" placeholder="상품 특징 및 안내를 입력하세요"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>최대 인출 가능 횟수</label>
-                        <input type="number" name="withdrawCount" placeholder="예: 3회" />
+                        <label>상품 가입기간 유형</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="dpstPeriodType" value="1" checked /> 자유형</label>
+                            <label><input type="radio" name="dpstPeriodType" value="2" /> 고정형</label>
+                        </div>
                     </div>
-                    <div id="withdrawCurrencyContainer"></div>
+                    <div class="conditional join-type" data-type="1">
+                        <div class="form-inline">
+                            <label>최소 가입월수</label>
+                            <input type="number" name="minMonths" placeholder="예: 1" /> 개월
+                        </div>
+                        <div class="form-inline">
+                            <label>최대 가입월수</label>
+                            <input type="number" name="maxMonths" placeholder="예: 36" /> 개월
+                        </div>
+                    </div>
+                    <div class="conditional join-type" data-type="2">
+                        <div class="form-group">
+                            <label>가입 가능한 개월수</label>
+                            <input type="text" name="fixedMonths" placeholder="예: 3,6,12" />
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-section">
-                <h3>자동연장 설정</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="dpstAutoRenewYn" value="Y" /> 가능</label>
-                    <label><input type="radio" name="dpstAutoRenewYn" value="N" checked /> 불가능</label>
+                <div class="form-section">
+                    <h3>가입 대상</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="ageLimit" value="none" checked /> 제한 없음</label>
+                        <label><input type="radio" name="ageLimit" value="yes" /> 제한 있음</label>
+                    </div>
+                    <div class="conditional age-limit">
+                        <div class="form-inline">
+                            <label>최소 나이</label>
+                            <input type="number" name="dpstMinAge" placeholder="예: 19" /> 세
+                        </div>
+                        <div class="form-inline">
+                            <label>최대 나이</label>
+                            <input type="number" name="dpstMaxAge" placeholder="예: 65" /> 세
+                        </div>
+                    </div>
                 </div>
-                <div class="conditional auto-renew">
+
+                <div class="form-section">
+                    <h3>분할 인출 설정</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="dpstPartWdrwYn" value="Y" /> 가능</label>
+                        <label><input type="radio" name="dpstPartWdrwYn" value="N" checked /> 불가능</label>
+                    </div>
+                    <div class="conditional partial-withdrawal">
+                        <div class="form-group">
+                            <label>가능 시점 (가입 후)</label>
+                            <input type="number" name="withdrawAfterMonths" placeholder="예: 6" /> 개월 이후
+                        </div>
+                        <div class="form-group">
+                            <label>최대 인출 가능 횟수</label>
+                            <input type="number" name="withdrawCount" placeholder="예: 3회" />
+                        </div>
+                        <div id="withdrawCurrencyContainer"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>자동연장 설정</h3>
+                    <div class="radio-group">
+                        <label><input type="radio" name="dpstAutoRenewYn" value="Y" /> 가능</label>
+                        <label><input type="radio" name="dpstAutoRenewYn" value="N" checked /> 불가능</label>
+                    </div>
+                    <div class="conditional auto-renew">
+                        <div class="form-group">
+                            <label>연장 기간 선택</label>
+                            <select name="renewPeriod">
+                                <option value="">선택하세요</option>
+                                <option value="1">1개월</option>
+                                <option value="3">3개월</option>
+                                <option value="6">6개월</option>
+                                <option value="12">12개월</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>상품설명서 첨부</h3>
                     <div class="form-group">
-                        <label>연장 기간 선택</label>
-                        <select name="renewPeriod">
-                            <option value="">선택하세요</option>
-                            <option value="1">1개월</option>
-                            <option value="3">3개월</option>
-                            <option value="6">6개월</option>
-                            <option value="12">12개월</option>
-                        </select>
+                        <input type="file" name="pdfFile" accept=".pdf,.doc,.docx" />
                     </div>
                 </div>
+
+                <div class="form-section">
+                    <h3>상품 개시일자</h3>
+                    <div class="form-group">
+                        <label for="dpstRegDt">개시일자 선택</label>
+                        <input type="date" id="dpstRegDt" name="dpstRegDt" required />
+                    </div>
+                </div>
+
+                <div class="form-submit">
+                    <button type="submit" class="btn-submit">등록하기</button>
+                </div>
+
+            </form> </section>
+
+
+
+        <section class="product-card">
+
+            <h2 class="product-title">외화예금 상품 관리</h2>
+
+            <div class="product-tabs">
+                <button class="tab-btn active" data-status="approve">승인 대기 중</button>
+                <button class="tab-btn" data-status="pending">상품 등록 대기 중</button>
             </div>
 
-            <div class="form-section">
-                <h3>상품설명서 첨부</h3>
-                <div class="form-group">
-                    <input type="file" name="pdfFile" accept=".pdf,.doc,.docx" />
+            <div class="product-table-wrap" data-status-group="approve">
+                <table class="product-table">
+                    <thead>
+                    <tr>
+                        <th>상품명</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${approveList}" data-status="approve" th:data-id="${p.dpstId}">
+                        <td th:text="${p.dpstName}"></td>
+                        <td><span class="status-badge status-approve">승인 대기 중</span></td>
+                        <td><button class="btn-approve">승인</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="product-table-wrap" data-status-group="pending" style="display:none;">
+                <table class="product-table">
+                    <thead>
+                    <tr>
+                        <th>상품명</th>
+                        <th>상태</th>
+                        <th>상품 개시일</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${pendingList}" th:data-id="${p.dpstId}">
+                        <td th:text="${p.dpstName}"></td>
+                        <td><span class="status-badge status-pending">상품 등록 대기 중</span></td>
+                        <td th:text="${p.dpstRegDt}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </section>
+
+
+        <section class="product-card">
+            <h2 class="product-title">외화예금 상품 현황</h2>
+
+            <div class="product-table-wrap">
+                <table class="product-table">
+                    <thead>
+                    <tr>
+                        <th>상품명</th>
+                        <th>상품판매개시일시</th>
+                        <th>상태</th>
+                        <th>AI 반응 분석</th>
+                        <th>상품 요약</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr th:each="p : ${saleList}">
+                        <td>
+                            <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
+                               class="product-link"
+                               th:text="${p.dpstName}"></a>
+                        </td>
+                        <td th:text="${p.dpstRegDt}"></td>
+                        <td><span class="status-badge status-sale">판매중</span></td>
+                        <td>
+                            <button type="button" class="btn-sentiment"
+                                    th:onclick="openSentimentModal([[${p.dpstId}]], [[${p.dpstName}]])">
+                                분석 보기
+                            </button>
+                        </td>
+                        <td>
+                            <div class="download-group">
+                                <button type="button" class="btn-down btn-pdf" title="PDF 다운로드"
+                                        th:onclick="downloadSummary('pdf', [[${p.dpstName}]])">PDF</button>
+                                <button type="button" class="btn-down btn-excel" title="Excel 다운로드"
+                                        th:onclick="downloadSummary('excel', [[${p.dpstName}]])">XLXS</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr th:each="p : ${stopList}">
+                        <td>
+                            <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
+                               class="product-link"
+                               th:text="${p.dpstName}"></a>
+                        </td>
+                        <td th:text="${p.dpstRegDt}"></td>
+                        <td><span class="status-badge status-stop">판매중단</span></td>
+                        <td>
+                            <button type="button" class="btn-sentiment"
+                                    th:onclick="openSentimentModal([[${p.dpstId}]], [[${p.dpstName}]])">
+                                분석 보기
+                            </button>
+                        </td>
+                        <td>
+                            <div class="download-group">
+                                <button type="button" class="btn-down btn-pdf" title="PDF 다운로드"
+                                        th:onclick="downloadSummary('pdf', [[${p.dpstName}]])">PDF</button>
+                                <button type="button" class="btn-down btn-excel" title="Excel 다운로드"
+                                        th:onclick="downloadSummary('excel', [[${p.dpstName}]])">XLS</button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="sentimentModal" class="modal-overlay">
+            <div class="modal-content" style="width: 800px; max-width: 95%;"> <div class="modal-header">
+                <h3 id="modalProductTitle">상품명 AI 분석 리포트</h3>
+                <button type="button" class="btn-close-modal" onclick="closeSentimentModal()">×</button>
+            </div>
+                <div class="modal-body">
+
+                    <h4 style="margin: 0 0 15px 0; font-size: 16px; color: #333; font-weight: 700;">긍·부정 키워드 분석</h4>
+
+                    <div class="sentiment-cloud-container">
+                        <div class="cloud-box positive-box">
+                            <div class="cloud-header">
+                                <span class="dot-indicator dot-pos"></span>
+                                <span class="cloud-title">긍정</span>
+                                <span class="cloud-percent" id="posPercentTitle">0%</span>
+                            </div>
+                            <div id="posWordCloud" class="cloud-area"></div>
+                        </div>
+
+                        <div class="cloud-box negative-box">
+                            <div class="cloud-header">
+                                <span class="dot-indicator dot-neg"></span>
+                                <span class="cloud-title">부정</span>
+                                <span class="cloud-percent" id="negPercentTitle">0%</span>
+                            </div>
+                            <div id="negWordCloud" class="cloud-area"></div>
+                        </div>
+                    </div>
+
+                    <div class="ai-summary-section">
+                        <div class="summary-header">
+                            <span>AI 분석 3줄 요약</span>
+                        </div>
+                        <div id="ai3LineSummary" class="summary-content">
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
-            <div class="form-section">
-                <h3>상품 개시일자</h3>
-                <div class="form-group">
-                    <label for="dpstRegDt">개시일자 선택</label>
-                    <input type="date" id="dpstRegDt" name="dpstRegDt" required />
-                </div>
-            </div>
-
-            <div class="form-submit">
-                <button type="submit" class="btn-submit">등록하기</button>
-            </div>
-
-        </form> </section>
-
-
-
-    <section class="product-card">
-
-        <h2 class="product-title">외화예금 상품 관리</h2>
-
-        <div class="product-tabs">
-            <button class="tab-btn active" data-status="approve">승인 대기 중</button>
-            <button class="tab-btn" data-status="pending">상품 등록 대기 중</button>
         </div>
 
-        <div class="product-table-wrap" data-status-group="approve">
-            <table class="product-table">
-                <thead>
-                <tr>
-                    <th>상품명</th>
-                    <th>상태</th>
-                    <th>관리</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="p : ${approveList}" data-status="approve" th:data-id="${p.dpstId}">
-                    <td th:text="${p.dpstName}"></td>
-                    <td><span class="status-badge status-approve">승인 대기 중</span></td>
-                    <td><button class="btn-approve">승인</button></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="product-table-wrap" data-status-group="pending" style="display:none;">
-            <table class="product-table">
-                <thead>
-                <tr>
-                    <th>상품명</th>
-                    <th>상태</th>
-                    <th>상품 개시일</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="p : ${pendingList}" th:data-id="${p.dpstId}">
-                    <td th:text="${p.dpstName}"></td>
-                    <td><span class="status-badge status-pending">상품 등록 대기 중</span></td>
-                    <td th:text="${p.dpstRegDt}"></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </section>
-
-
-    <section class="product-card">
-        <h2 class="product-title">외화예금 상품 현황</h2>
-
-        <div class="product-table-wrap">
-            <table class="product-table">
-                <thead>
-                <tr>
-                    <th>상품명</th>
-                    <th>상품판매개시일시</th>
-                    <th>가입자수</th>
-                    <th>상태</th>
-                </tr>
-                </thead>
-                <tbody>
-
-                <tr th:each="p : ${saleList}">
-                    <td>
-                        <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
-                           class="product-link"
-                           th:text="${p.dpstName}"></a>
-                    </td>
-                    <td th:text="${p.dpstRegDt}"></td>
-                    <td>0</td>
-                    <td><span class="status-badge status-sale">판매중</span></td>
-                </tr>
-
-                <tr th:each="p : ${stopList}">
-                    <td>
-                        <a th:href="@{/admin/products/view/{id}(id=${p.dpstId})}"
-                           class="product-link"
-                           th:text="${p.dpstName}"></a>
-                    </td>
-                    <td th:text="${p.dpstRegDt}"></td>
-                    <td>0</td>
-                    <td><span class="status-badge status-stop">판매중단</span></td>
-                </tr>
-
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-</div>
+    </div>
 </th:block>
 
 <th:block th:fragment="script">
@@ -1106,6 +1375,155 @@
             }
             if(typeof updateCardPreview === 'function') updateCardPreview();
         });
+
+        /* ============================
+       🆕 AI 긍/부정 모달 로직 (워드 클라우드 버전)
+    ============================= */
+
+        // 1. 모달 열기 함수
+        function openSentimentModal(productId, productName) {
+            const modal = document.getElementById('sentimentModal');
+            const title = document.getElementById('modalProductTitle');
+
+            if(title) title.textContent = `[${productName}] AI 리뷰 분석`;
+
+            // 🔥 가중치(weight)가 포함된 데이터 생성
+            const mockData = generateMockSentimentData(productId);
+
+            // 데이터 렌더링 호출
+            renderSentimentData(mockData);
+
+            if(modal) modal.classList.add('active');
+        }
+
+        // 2. 모달 닫기 함수
+        function closeSentimentModal() {
+            const modal = document.getElementById('sentimentModal');
+            if(modal) modal.classList.remove('active');
+        }
+
+        // (배경 클릭 시 닫기)
+        const sentimentModal = document.getElementById('sentimentModal');
+        if(sentimentModal) {
+            sentimentModal.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) closeSentimentModal();
+            });
+        }
+
+        // 3. 데이터 렌더링 함수 (수정됨: 3줄 요약 추가)
+        function renderSentimentData(data) {
+            // (1) 퍼센트 표시 업데이트
+            const posTitle = document.getElementById('posPercentTitle');
+            const negTitle = document.getElementById('negPercentTitle');
+
+            if(posTitle) posTitle.textContent = `${data.posRate}%`;
+            if(negTitle) negTitle.textContent = `${data.negRate}%`;
+
+            // (2) 워드 클라우드 그리기
+            renderWordCloud('posWordCloud', data.posKeywords, 'pos-text');
+            renderWordCloud('negWordCloud', data.negKeywords, 'neg-text');
+
+            // 🆕 (3) AI 3줄 요약 렌더링
+            const summaryBox = document.getElementById('ai3LineSummary');
+            if (summaryBox) {
+                summaryBox.innerHTML = ''; // 초기화
+                data.summary.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = 'summary-item';
+                    div.innerHTML = `<span class="check-icon">✔</span> <span>${line}</span>`;
+                    summaryBox.appendChild(div);
+                });
+            }
+        }
+
+        // 🆕 4. 워드 클라우드 배치 로직 (핵심)
+        function renderWordCloud(containerId, words, colorClass) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = ''; // 기존 내용 초기화
+
+            words.forEach((wordObj, index) => {
+                const span = document.createElement('span');
+                span.textContent = wordObj.text;
+                span.classList.add('cloud-word'); // 기본 스타일
+                span.classList.add(colorClass);   // 색상 테마 (pos-text 또는 neg-text)
+
+                // 순서(가중치)에 따라 크기 클래스 부여
+                // 첫 번째 단어는 가장 크게, 그 뒤로 갈수록 작게
+                if (index === 0) span.classList.add('size-l');       // 대형 (중심)
+                else if (index < 4) span.classList.add('size-m');    // 중형
+                else span.classList.add('size-s');                   // 소형
+
+                container.appendChild(span);
+
+                // 🎲 랜덤 위치 계산 logic
+                let top, left;
+
+                if (index === 0) {
+                    // 가장 큰 단어는 정중앙(50%) 근처에 배치
+                    top = 50 + (Math.random() * 10 - 5);  // 45% ~ 55%
+                    left = 50 + (Math.random() * 10 - 5); // 45% ~ 55%
+                } else {
+                    // 나머지 단어는 박스 내부에 랜덤하게 흩뿌림 (가장자리 여백 10% 제외)
+                    top = Math.random() * 80 + 10;  // 10% ~ 90%
+                    left = Math.random() * 80 + 10; // 10% ~ 90%
+                }
+
+                span.style.top = `${top}%`;
+                span.style.left = `${left}%`;
+
+                // 좌표를 중심점으로 설정하여 정확한 위치 배치
+                span.style.transform = `translate(-50%, -50%)`;
+            });
+        }
+
+        // 5. (데모용) 가짜 데이터 생성기 (수정됨: summary 배열 추가)
+        function generateMockSentimentData(id) {
+            const randomPos = Math.floor(Math.random() * 40) + 50; // 50~90%
+
+            return {
+                posRate: randomPos,
+                negRate: 100 - randomPos,
+                posKeywords: [
+                    { text: "사용하기 편하고 환전이 빨라요", weight: 10 },
+                    { text: "알림이 유용해요", weight: 8 },
+                    { text: "해외결제 연동이 편리합니다", weight: 7 },
+                    { text: "UI/UX가 깔끔합니다", weight: 6 },
+                    { text: "수수료가 저렴해서 좋아요", weight: 5 },
+                    { text: "고객센터가 친절했어요", weight: 4 },
+                    { text: "안정성이 좋아졌습니다", weight: 3 },
+                    { text: "전체적으로 만족합니다", weight: 2 },
+                    { text: "추천", weight: 1 }
+                ],
+                negKeywords: [
+                    { text: "별로예요", weight: 10 },
+                    { text: "불친절", weight: 8 },
+                    { text: "앱이 느리다", weight: 7 },
+                    { text: "오류", weight: 6 },
+                    { text: "짜증", weight: 5 },
+                    { text: "개선이 필요함", weight: 4 },
+                    { text: "대기 시간", weight: 3 },
+                    { text: "끊김 현상", weight: 2 },
+                    { text: "부정확", weight: 1 }
+                ],
+                // 🆕 추가된 3줄 요약 데이터
+                summary: [
+                    "사용자들은 주로 빠른 환전 속도와 저렴한 수수료에 대해 높은 만족도를 보이고 있습니다.",
+                    "반면, 일부 사용자들은 앱 구동 속도 저하 및 간헐적인 로그인 오류에 대해 불편을 호소했습니다.",
+                    "전반적으로 긍정적인 평가가 우세하나, 앱 안정성 개선이 이루어진다면 더 높은 만족도가 예상됩니다."
+                ]
+            };
+        }
+
+        /* ============================
+       🆕 파일 다운로드 함수
+        ============================= */
+        function downloadSummary(type, productName) {
+            // 실제 구현 시에는 location.href = `/download/${type}?id=...` 등의 방식을 사용
+            const msg = type === 'pdf' ? '📄 PDF' : '📊 Excel';
+            alert(`'${productName}' 상품의 ${msg} 요약본을 다운로드합니다.`);
+        }
     </script>
 
     <script th:src="@{/js/product1.js}"></script>
