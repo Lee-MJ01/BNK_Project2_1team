@@ -135,7 +135,7 @@ class SignUp6Page extends StatelessWidget {
 
 
 class _LimitAccountPopup extends StatelessWidget {
-  const _LimitAccountPopup({super.key});
+  const _LimitAccountPopup();
 
   @override
   Widget build(BuildContext context) {

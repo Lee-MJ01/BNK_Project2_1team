@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:test_main/screens/app_colors.dart';
 
 class RrnBackInputPage extends StatefulWidget {
   const RrnBackInputPage({super.key});

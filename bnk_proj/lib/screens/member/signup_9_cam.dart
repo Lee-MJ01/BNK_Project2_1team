@@ -106,19 +106,16 @@ class _IdCameraPageState extends State<IdCameraPage> {
   }
 
   Future<void> _takePicture() async {
-    final image = await _controller!.takePicture();
+    if (_controller == null || !_controller!.value.isInitialized) return;
 
-    // 카메라 리소스 즉시 해제
-    await _controller?.pausePreview();
-    await _controller?.dispose();
-    _controller = null;
+    final image = await _controller!.takePicture();
 
     final inputImage = InputImage.fromFilePath(image.path);
     final textRecognizer =
-    TextRecognizer(script: TextRecognitionScript.korean);
+        TextRecognizer(script: TextRecognitionScript.korean);
 
     final recognizedText =
-    await textRecognizer.processImage(inputImage);
+        await textRecognizer.processImage(inputImage);
 
     await textRecognizer.close();
 
@@ -127,12 +124,13 @@ class _IdCameraPageState extends State<IdCameraPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => IdOcrResultPage(
-          recognizedText: recognizedText.text,
+        builder: (_) => IdCardConfirmPage(
+          ocrText: recognizedText.text,
         ),
       ),
     );
   }
+
 
 }
 

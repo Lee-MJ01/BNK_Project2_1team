@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:async' show Future, Timer;
 
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
@@ -532,24 +532,6 @@ class _SignUp3PageState extends State<SignUp3Page> {
 
 }
 
-
-class _Dot extends StatelessWidget {
-  final bool active;
-  const _Dot({super.key, required this.active});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: active ? Colors.white : Colors.grey,
-        shape: BoxShape.circle,
-      ),
-    );
-  }
-}
 
 
 class LoadingDialog extends StatefulWidget {
