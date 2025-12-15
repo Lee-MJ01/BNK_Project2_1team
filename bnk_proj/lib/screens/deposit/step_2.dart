@@ -6,7 +6,13 @@ import 'step_3.dart';
 class DepositStep2Screen extends StatefulWidget {
   static const routeName = "/deposit-step2";
 
-  const DepositStep2Screen({super.key});
+  final String dpstId;
+
+  const DepositStep2Screen({
+    super.key,
+    required this.dpstId,
+  });
+
 
   @override
   State<DepositStep2Screen> createState() => _DepositStep2ScreenState();
@@ -660,8 +666,13 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
           ),
           onPressed: () {
-            Navigator.pushNamed(context, DepositStep1Screen.routeName);
+            Navigator.pushNamed(
+              context,
+              DepositStep1Screen.routeName,
+              arguments: widget.dpstId,
+            );
           },
+
           child: const Text(
             "이전",
             style: TextStyle(color: Colors.white),
@@ -678,7 +689,11 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           onPressed: canNext
               ? () {
             if (_validateInputs()) {
-              Navigator.pushNamed(context, DepositStep3Screen.routeName);
+              Navigator.pushNamed(
+                context,
+                DepositStep3Screen.routeName,
+                arguments: widget.dpstId,
+              );
             }
           }
               : null,

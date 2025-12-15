@@ -5,7 +5,13 @@ import 'package:test_main/screens/deposit/step_2.dart';
 class DepositStep1Screen extends StatefulWidget {
   static const routeName = "/deposit-step1";
 
-  const DepositStep1Screen({super.key});
+  final String dpstId;
+
+  const DepositStep1Screen({
+    super.key,
+    required this.dpstId,
+  });
+
 
   @override
   State<DepositStep1Screen> createState() => _DepositStep1ScreenState();

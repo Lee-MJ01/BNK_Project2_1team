@@ -6,7 +6,13 @@ import 'step_4.dart';
 class DepositStep3Screen extends StatelessWidget {
   static const routeName = "/deposit-step3";
 
-  const DepositStep3Screen({super.key});
+  final String dpstId;
+
+  const DepositStep3Screen({
+    super.key,
+    required this.dpstId,
+  });
+
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +209,11 @@ class DepositStep3Screen extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           onPressed: () {
-            Navigator.pushNamed(context, DepositStep2Screen.routeName);
+            Navigator.pushNamed(
+              context,
+              DepositStep2Screen.routeName,
+              arguments: dpstId,
+            );
           },
           child: const Text(
             "이전",
@@ -223,7 +233,11 @@ class DepositStep3Screen extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
           onPressed: () {
-            Navigator.pushNamed(context, "/deposit-signature");
+            Navigator.pushNamed(
+              context,
+              "/deposit-signature",
+              arguments: dpstId,
+            );
           },
           child: const Text(
             "가입하기",

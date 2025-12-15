@@ -30,19 +30,56 @@ class MyApp extends StatelessWidget {
 
       //예금 가입하기 관련 페이지 이동
       routes: {
+        // -------------------------
+        // 예금 상품 상세
+        // -------------------------
         DepositViewScreen.routeName: (context) {
-          final title = ModalRoute.of(context)!.settings.arguments as String;
-          return DepositViewScreen(title: title);
-        },
-        DepositStep1Screen.routeName: (context) => const DepositStep1Screen(),
-        DepositStep2Screen.routeName: (context) => const DepositStep2Screen(),
-        DepositStep3Screen.routeName: (context) => const DepositStep3Screen(),
-        DepositSignatureScreen.routeName: (context) => const DepositSignatureScreen(),
-        RecommendScreen.routeName: (context) => const RecommendScreen(),
-        DepositSurveyScreen.routeName: (_) => const DepositSurveyScreen(),
-        DepositReviewWriteScreen.routeName: (_) => const DepositReviewWriteScreen(),
+          final args =
+          ModalRoute.of(context)!.settings.arguments as DepositViewArgs;
 
+          return DepositViewScreen(
+            dpstId: args.dpstId,
+          );
+        },
+
+        // -------------------------
+        // 예금 가입 Step 1 (약관동의)
+        // -------------------------
+        DepositStep1Screen.routeName: (context) {
+          final dpstId =
+          ModalRoute.of(context)!.settings.arguments as String;
+
+          return DepositStep1Screen(dpstId: dpstId);
+        },
+
+        // -------------------------
+        // 예금 가입 Step 2 (정보입력)
+        // -------------------------
+        DepositStep2Screen.routeName: (context) {
+          final dpstId =
+          ModalRoute.of(context)!.settings.arguments as String;
+
+          return DepositStep2Screen(dpstId: dpstId);
+        },
+
+        // -------------------------
+        // 예금 가입 Step 3 (확인)
+        // -------------------------
+        DepositStep3Screen.routeName: (context) {
+          final dpstId =
+          ModalRoute.of(context)!.settings.arguments as String;
+
+          return DepositStep3Screen(dpstId: dpstId);
+        },
+
+        DepositSignatureScreen.routeName: (_) =>
+        const DepositSignatureScreen(),
+        RecommendScreen.routeName: (_) => const RecommendScreen(),
+        DepositSurveyScreen.routeName: (_) => const DepositSurveyScreen(),
+        DepositReviewWriteScreen.routeName: (_) =>
+        const DepositReviewWriteScreen(),
       },
+
 
 
 
