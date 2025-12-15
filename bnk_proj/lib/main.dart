@@ -11,7 +11,7 @@ import 'package:test_main/screens/deposit/step_3.dart';
 import 'package:test_main/screens/deposit/signature.dart';
 import 'package:test_main/screens/deposit/recommend.dart';
 import 'package:test_main/screens/deposit/survey.dart';
-import 'package:test_main/screens/mypage/review_write.dart';
+import 'package:test_main/screens/main/menu/review_write.dart';
 
 void main() {
   runApp(const MyApp());

@@ -9,7 +9,7 @@ import '../ai/voice_assistant_screen.dart';
 
 import '../remit/remit_step1.dart';
 
-import '../mypage/mypage.dart';
+import 'menu.dart';
 import '../exchange/forex_insight.dart';
 
 import 'alarm.dart';
