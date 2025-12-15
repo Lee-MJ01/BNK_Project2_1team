@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  #REST API 통신
   http: ^1.2.2
 
   #카메라 인식 어쩌구...
