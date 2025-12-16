@@ -47,6 +47,11 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
 
+  Future<void> _refreshProduct() async {
+    _reload();
+    await _futureProduct;
+  }
+
 
 
   @override
@@ -111,17 +116,21 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
           ),
 
           // 스크롤 영역
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(product),
-                const SizedBox(height: 20),
-                _buildTabs(),
-                const SizedBox(height: 16),
-                _buildTabContent(product),
-              ],
+          body: RefreshIndicator(
+            onRefresh: _refreshProduct,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(product),
+                  const SizedBox(height: 20),
+                  _buildTabs(),
+                  const SizedBox(height: 16),
+                  _buildTabContent(product),
+                ],
+              ),
             ),
           ),
 
@@ -140,8 +149,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
   // ------------------------------------------------------------
-// 상단 헤더 : 캐릭터 이미지 + 상품명 + 요약 + 요약 정보
-// ------------------------------------------------------------
+  // 상단 헤더 : 캐릭터 이미지 + 상품명 + 요약 + 요약 정보
+  // ------------------------------------------------------------
   Widget _buildHeader(model.DepositProduct product)
   {
 
@@ -489,23 +498,51 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
           const SizedBox(height: 24),
 
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.mainPaleBlue.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.mainPaleBlue.withOpacity(0.9),
-              ),
-            ),
-            child: const Text(
-              "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 "
-                  "1인당 1억원까지 보호됩니다.",
-              style: TextStyle(fontSize: 13.5, height: 1.6),
+
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.mainPaleBlue.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.mainPaleBlue.withOpacity(0.9),
             ),
           ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 아이콘 / 이미지
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Image.asset(
+                  "images/deposit.png",
+                  width: 90,
+                  height: 90,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.info_outline,
+                    size: 22,
+                    color: AppColors.pointDustyNavy,
+                  ),
+                ),
+              ),
 
-          const SizedBox(height: 24),
+              const SizedBox(width: 10),
+
+              //  텍스트
+              const Expanded(
+                child: Text(
+                  "이 예금은 예금자보호법에 따라 원금과 소정의 이자를 합하여 "
+                      "1인당 1억원까지 보호됩니다.",
+                  style: TextStyle(fontSize: 13.5, height: 1.6),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+
+        const SizedBox(height: 24),
 
           Container(
             width: double.infinity,

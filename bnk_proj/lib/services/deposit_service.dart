@@ -15,6 +15,11 @@ class DepositService {
     final response =
     await _client.get(Uri.parse('$baseUrl/deposit/products'));
 
+    ///예금 리스트 잘 나오는지 확인하는 로그
+    ///print('STATUS = ${response.statusCode}');
+    ///print('BODY = ${response.body}');
+
+
     if (response.statusCode != 200) {
       throw Exception('상품 목록 조회 실패');
     }

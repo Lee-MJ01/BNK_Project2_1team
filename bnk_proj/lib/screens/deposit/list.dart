@@ -4,12 +4,9 @@ import 'package:test_main/screens/deposit/step_1.dart';
 import 'package:test_main/screens/deposit/recommend.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/models/deposit/list.dart';
-import 'package:test_main/models/deposit/view.dart';
 import 'package:test_main/services/deposit_service.dart';
 
-
 class DepositListPage extends StatefulWidget {
-
   const DepositListPage({super.key});
 
   @override
@@ -32,6 +29,11 @@ class _DepositListPageState extends State<DepositListPage> {
     });
   }
 
+  Future<void> _refreshProducts() async {
+    _reload();
+    await _futureProducts;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,13 +50,11 @@ class _DepositListPageState extends State<DepositListPage> {
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.pointDustyNavy),
       ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // AI 추천 버튼
             SizedBox(
               width: double.infinity,
@@ -86,38 +86,29 @@ class _DepositListPageState extends State<DepositListPage> {
             FutureBuilder<List<DepositProductList>>(
               future: _futureProducts,
               builder: (context, snapshot) {
+                // 로딩
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Expanded(
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
+                // 에러
                 if (snapshot.hasError) {
                   return Expanded(
-
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 상품명
-                        Text(
+                        const Text(
                           '목록을 불러오는 중 오류가 발생했습니다.',
-                          style: const TextStyle(color: Colors.redAccent),
-
+                          style: TextStyle(color: Colors.redAccent),
                         ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
                           onPressed: _reload,
                           icon: const Icon(Icons.refresh),
                           label: const Text('다시 시도'),
-
                         ),
-
-
-
-
-
-
-
                       ],
                     ),
                   );
@@ -125,147 +116,188 @@ class _DepositListPageState extends State<DepositListPage> {
 
                 final products = snapshot.data ?? [];
 
+                // 빈 목록
+                if (products.isEmpty) {
+                  return Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.inbox_outlined,
+                            size: 48,
+                            color: AppColors.pointDustyNavy,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            '조회된 외화예금 상품이 없습니다.',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: AppColors.pointDustyNavy,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: _reload,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('다시 불러오기'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                // 정상 목록
                 return Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "조회결과 [총 ${products.length}건]",
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style:
+                        const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                       const SizedBox(height: 12),
                       Expanded(
-                        child: ListView.separated(
-                          itemCount: products.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
-                          itemBuilder: (context, index) {
-                            final item = products[index];
+                        child: RefreshIndicator(
+                          onRefresh: _refreshProducts,
+                          child: ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: products.length,
+                            separatorBuilder: (_, __) =>
+                            const SizedBox(height: 14),
+                            itemBuilder: (context, index) {
+                              final item = products[index];
 
-                            return Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: AppColors.mainPaleBlue),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.pointDustyNavy,
-                                    ),
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.mainPaleBlue,
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    item.info.isNotEmpty
-                                        ? item.info
-                                        : '상품 설명이 없습니다.',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                      height: 1.5,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.pointDustyNavy,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      item.info.isNotEmpty
+                                          ? item.info
+                                          : '상품 설명이 없습니다.',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 14),
 
-
-
-                                  const SizedBox(height: 14),
-
-                                  Row(
-                                    children: [
-                                      // 상세보기 버튼
-                                      OutlinedButton(
-                                        onPressed: () {
-                                          Navigator.pushNamed(
-                                            context,
-                                            DepositViewScreen.routeName,
-                                            arguments: DepositViewArgs(
-                                              dpstId: item.id,
+                                    Row(
+                                      children: [
+                                        // 상세보기 버튼
+                                        OutlinedButton(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              DepositViewScreen.routeName,
+                                              arguments: DepositViewArgs(
+                                                dpstId: item.id,
+                                              ),
+                                            );
+                                          },
+                                          style: OutlinedButton.styleFrom(
+                                            minimumSize: const Size(90, 40),
+                                            side: const BorderSide(
+                                              color: AppColors.pointDustyNavy,
                                             ),
-                                          );
-                                        },
-                                        style: OutlinedButton.styleFrom(
-                                          minimumSize: const Size(90, 40),
-                                          side: const BorderSide(color: AppColors.pointDustyNavy),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(6),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "상세보기",
+                                            style: TextStyle(
+                                              color: AppColors.pointDustyNavy,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
-                                        child: const Text(
-                                          "상세보기",
-                                          style: TextStyle(
-                                            color: AppColors.pointDustyNavy,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
+
+                                        const SizedBox(width: 10),
+
+                                        // 가입하기 버튼
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              DepositStep1Screen.routeName,
+                                              arguments: item.id,
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                            AppColors.pointDustyNavy,
+                                            foregroundColor: Colors.white,
+                                            minimumSize: const Size(90, 40),
+                                            elevation: 0,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "가입하기",
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
                                         ),
-                                      ),
 
-                                      const SizedBox(width: 10),
+                                        const Spacer(),
 
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pushNamed(context, DepositStep1Screen.routeName);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.pointDustyNavy,
-                                          foregroundColor: Colors.white,
-                                          minimumSize: const Size(90, 40),
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(6),
+                                        SizedBox(
+                                          width: 60,
+                                          height: 60,
+                                          child: Image.asset(
+                                            "images/deposit.png",
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                              Icons.savings,
+                                              size: 50,
+                                              color: AppColors.pointDustyNavy,
+                                            ),
                                           ),
                                         ),
-                                        child: const Text(
-                                          "가입하기",
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-
-                                      const Spacer(),
-
-                                      SizedBox(
-                                        width: 60,
-                                        height: 60,
-                                        child: Image.asset(
-                                          "images/deposit.png",
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (_, __, ___) => const Icon(
-                                            Icons.savings,
-                                            size: 50,
-                                            color: AppColors.pointDustyNavy,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-
-                                ],
-                              ),
-                            );
-                          },
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ],
                   ),
                 );
               },
-
-
-
-
-
-
-
             ),
-
           ],
         ),
       ),
