@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
-import 'step_1.dart';
 import 'step_3.dart';
+import 'package:test_main/models/deposit/application.dart';
+import 'package:intl/intl.dart';
+import 'package:test_main/models/deposit/view.dart';
+import 'package:test_main/services/deposit_service.dart';
+
 
 class DepositStep2Screen extends StatefulWidget {
   static const routeName = "/deposit-step2";
 
-  final String dpstId;
+  final DepositApplication application;
 
   const DepositStep2Screen({
     super.key,
-    required this.dpstId,
+    required this.application,
   });
 
 
@@ -19,6 +23,11 @@ class DepositStep2Screen extends StatefulWidget {
 }
 
 class _DepositStep2ScreenState extends State<DepositStep2Screen> {
+
+  final DepositService _service = DepositService();
+  late Future<DepositProduct> _productFuture;
+  final NumberFormat _amountFormat = NumberFormat.decimalPattern();
+
   String withdrawType = "krw";
   String autoRenew = "no";
   String receiveMethod = "email";
@@ -41,18 +50,75 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   String newAmount = "";
   String? newPeriod;
 
+  List<String> _currencyOptions = [];
+  List<int> _periodOptions = [];
+
+
   String depositPw = "";
   String depositPwCheck = "";
 
+  bool _periodExpanded = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _productFuture = _loadProductDetail();
+  }
 
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<DepositProduct>(
+      future: _productFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: AppColors.backgroundOffWhite,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return Scaffold(
+            backgroundColor: AppColors.backgroundOffWhite,
+            appBar: AppBar(
+              title: const Text("정보입력", style: TextStyle(color: Colors.white)),
+              backgroundColor: AppColors.pointDustyNavy,
+            ),
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('상품 정보를 불러오지 못했습니다.'),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('다시 시도'),
+                    onPressed: () {
+                      setState(() {
+                        _productFuture = _loadProductDetail();
+                      });
+                    },
+                  )
+                ],
+              ),
+            ),
+          );
+        }
+
+        return _buildScaffold(snapshot.data!);
+      },
+    );
+  }
+
+  Widget _buildScaffold(DepositProduct product) {
+
+
     return Scaffold(
       backgroundColor: AppColors.backgroundOffWhite,
       appBar: AppBar(
-        title: const Text("정보입력", style: TextStyle(color: Colors.white)),
-        backgroundColor: AppColors.pointDustyNavy,
+        title: Text(product.name, style: const TextStyle(color: Colors.white)),        backgroundColor: AppColors.pointDustyNavy,
       ),
 
       body: SingleChildScrollView(
@@ -63,12 +129,15 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             _buildSteps(),
             const SizedBox(height: 25),
 
+            _productSummary(product),
+            const SizedBox(height: 20),
+
             _blockTitle("출금계좌정보입력"),
-            _withdrawAccount(),
+            _withdrawAccount(product),
             const SizedBox(height: 25),
 
             _blockTitle("신규상품가입정보입력"),
-            _newDepositInfo(),
+            _newDepositInfo(product),
             const SizedBox(height: 25),
 
             _blockTitle("만기자동연장신청"),
@@ -161,9 +230,85 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   }
 
   // -------------------------------
+  // 상품 요약
+  // -------------------------------
+  Widget _productSummary(DepositProduct product) {
+    final limit = _findLimitFor(newCurrency.isNotEmpty ? newCurrency : null, product);
+    final periodLabel = _periodLabel(product, newPeriod);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.mainPaleBlue.withOpacity(0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            product.name,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.pointDustyNavy,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _summaryRow("가입 가능 통화", _currencyOptions.join(', ')),
+          _summaryRow(
+            "가입 금액",
+            limit != null
+                ? "${limit.currency} ${_amountFormat.format(limit.min)} 이상"
+                : "상품 한도 확인 필요",
+          ),
+          _summaryRow("가입 기간", periodLabel),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.pointDustyNavy.withOpacity(0.7),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                color: AppColors.pointDustyNavy,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // -------------------------------
   // ① 출금계좌 입력
   // -------------------------------
-  Widget _withdrawAccount() {
+  Widget _withdrawAccount(DepositProduct product) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -190,7 +335,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
         ),
 
         if (withdrawType == "krw") _krwAccountFields(),
-        if (withdrawType == "fx") _fxAccountFields(),
+        if (withdrawType == "fx") _fxAccountFields(product),
       ],
     );
   }
@@ -253,7 +398,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // -------------------------------
   // 외화 계좌 입력
   // -------------------------------
-  Widget _fxAccountFields() {
+  Widget _fxAccountFields(DepositProduct product) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -310,11 +455,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           dropdownColor: Colors.white,
           hint: const Text("통화 선택"),
           value: fxWithdrawCurrency,
-          items: const [
-            DropdownMenuItem(value: "USD", child: Text("USD")),
-            DropdownMenuItem(value: "JPY", child: Text("JPY")),
-            DropdownMenuItem(value: "EUR", child: Text("EUR")),
-          ],
+          items: _currencyOptions
+              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+              .toList(),
+
           onChanged: (v) => setState(() => fxWithdrawCurrency = v),
         ),
       ],
@@ -324,7 +468,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // -------------------------------
   // ② 신규 예금 정보 입력
   // -------------------------------
-  Widget _newDepositInfo() {
+  Widget _newDepositInfo(DepositProduct product) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -336,15 +480,22 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           dropdownColor: Colors.white,
           hint: const Text("통화 선택"),
           value: newCurrency.isEmpty ? null : newCurrency,
-          items: const [
-            DropdownMenuItem(value: "USD", child: Text("USD")),
-            DropdownMenuItem(value: "JPY", child: Text("JPY")),
-            DropdownMenuItem(value: "EUR", child: Text("EUR")),
-            DropdownMenuItem(value: "GBP", child: Text("GBP")),
-            DropdownMenuItem(value: "AUD", child: Text("AUD")),
-            DropdownMenuItem(value: "CNH", child: Text("CNH")),
-          ],
-          onChanged: (v) => setState(() => newCurrency = v!),
+          items: _currencyOptions
+              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+              .toList(),
+          onChanged: (v) {
+            setState(() {
+              newCurrency = v!;
+              final limit = _findLimitFor(newCurrency, product);
+              if (limit != null && (newAmount.isEmpty || int.tryParse(newAmount) == null)) {
+                newAmount = limit.min.toString();
+              }
+              if (withdrawType == 'krw' && newCurrency != 'KRW') {
+                withdrawType = 'fx';
+              }
+            });
+          },
+
         ),
         const SizedBox(height: 20),
 
@@ -363,28 +514,139 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             },
           ),
         ),
+        if (_findLimitFor(newCurrency, product) != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              _limitText(_findLimitFor(newCurrency, product)!),
+              style: TextStyle(
+                color: AppColors.pointDustyNavy.withOpacity(0.7),
+                fontSize: 12,
+              ),
+            ),
+          ),
+
         const SizedBox(height: 20),
 
-        const Text("가입 월수",
-            style: TextStyle(color: AppColors.pointDustyNavy)),
-        Row(
-          children: [
-            DropdownButton(
-              dropdownColor: Colors.white,
-              hint: const Text("선택"),
-              value: newPeriod,
-              items: const [
-                DropdownMenuItem(value: "1", child: Text("1")),
-                DropdownMenuItem(value: "3", child: Text("3")),
-                DropdownMenuItem(value: "6", child: Text("6")),
-                DropdownMenuItem(value: "12", child: Text("12")),
-              ],
-              onChanged: (v) => setState(() => newPeriod = v),
-            ),
-            const Text("개월",
-                style: TextStyle(color: AppColors.pointDustyNavy)),
-          ],
+        const Text(
+          "가입 월수",
+          style: TextStyle(
+            color: AppColors.pointDustyNavy,
+            fontWeight: FontWeight.w600,
+          ),
         ),
+
+        const SizedBox(height: 10),
+
+// =======================
+// 선택 박스 (항상 보임)
+// =======================
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            setState(() {
+              _periodExpanded = !_periodExpanded;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.mainPaleBlue),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  newPeriod != null ? "$newPeriod개월" : "가입 기간 선택",
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    color: newPeriod != null
+                        ? AppColors.pointDustyNavy
+                        : AppColors.pointDustyNavy.withOpacity(0.6),
+                  ),
+                ),
+                Icon(
+                  _periodExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: AppColors.pointDustyNavy,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+// =======================
+// 펼쳐지는 리스트
+// =======================
+        if (_periodExpanded)
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.mainPaleBlue),
+            ),
+            child: Column(
+              children: _periodOptions.map((m) {
+                final bool selected = newPeriod == m.toString();
+
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      newPeriod = m.toString();
+                      _periodExpanded = false; // 선택 후 닫힘
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.pointDustyNavy.withOpacity(0.05)
+                          : Colors.white,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: m == _periodOptions.last
+                              ? Colors.transparent
+                              : AppColors.mainPaleBlue,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "$m개월",
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                            color: selected
+                                ? AppColors.pointDustyNavy
+                                : Colors.black87,
+                          ),
+                        ),
+                        if (selected)
+                          const Icon(
+                            Icons.check,
+                            color: AppColors.pointDustyNavy,
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+
+
+
       ],
     );
   }
@@ -635,6 +897,25 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     if (newAmount.isEmpty) return _err("신규 금액을 입력해주세요.");
     if (newPeriod == null) return _err("가입 기간을 선택해주세요.");
 
+    final selectedProduct = widget.application.product;
+    final limit = selectedProduct != null
+        ? _findLimitFor(newCurrency, selectedProduct)
+        : null;
+
+    final parsedAmount = int.tryParse(newAmount) ?? 0;
+    if (limit != null) {
+      if (parsedAmount < limit.min) {
+        return _err('최소 가입 금액은 ${_amountFormat.format(limit.min)} 입니다.');
+      }
+      if (limit.max > 0 && parsedAmount > limit.max) {
+        return _err('최대 가입 금액은 ${_amountFormat.format(limit.max)} 입니다.');
+      }
+    }
+
+    if (parsedAmount <= 0) return _err('유효한 금액을 입력해주세요.');
+
+
+
     if (depositPw.length != 4) return _err("정기예금 비밀번호 4자리를 입력해주세요.");
     if (depositPw != depositPwCheck) return _err("비밀번호가 일치하지 않습니다.");
 
@@ -665,13 +946,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             backgroundColor: AppColors.mainPaleBlue,
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
           ),
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              DepositStep1Screen.routeName,
-              arguments: widget.dpstId,
-            );
-          },
+          onPressed: () => Navigator.pop(context),
 
           child: const Text(
             "이전",
@@ -689,11 +964,11 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           onPressed: canNext
               ? () {
             if (_validateInputs()) {
+              _saveToApplication();
               Navigator.pushNamed(
                 context,
                 DepositStep3Screen.routeName,
-                arguments: widget.dpstId,
-              );
+                arguments: widget.application,              );
             }
           }
               : null,
@@ -705,5 +980,141 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ],
     );
   }
+
+  Future<DepositProduct> _loadProductDetail() async {
+    final product = await _service.fetchProductDetail(widget.application.dpstId);
+    widget.application.product = product;
+
+    _currencyOptions = _parseCurrencies(product);
+    _periodOptions = _buildPeriodOptions(product);
+
+    _loadFromApplication(product);
+
+    if (newCurrency.isEmpty && _currencyOptions.isNotEmpty) {
+      newCurrency = _currencyOptions.first;
+    }
+
+    if (withdrawType == 'krw' && newCurrency != 'KRW') {
+      withdrawType = 'fx';
+    }
+
+    if (newPeriod == null && _periodOptions.isNotEmpty) {
+      newPeriod = _periodOptions.first.toString();
+    }
+
+    if (fxWithdrawCurrency == null && withdrawType == 'fx' && _currencyOptions.isNotEmpty) {
+      fxWithdrawCurrency = _currencyOptions.first;
+    }
+
+    if (newAmount.isEmpty) {
+      final limit = _findLimitFor(newCurrency, product);
+      if (limit != null) newAmount = limit.min.toString();
+    }
+
+    return product;
+  }
+
+  void _loadFromApplication(DepositProduct product) {
+    withdrawType = widget.application.withdrawType;
+    autoRenew = widget.application.autoRenew;
+    autoRenewCycle = widget.application.autoRenewCycle;
+    receiveMethod = widget.application.receiveMethod;
+
+    selectedKrwAccount = widget.application.selectedKrwAccount;
+    selectedFxAccount = widget.application.selectedFxAccount;
+    fxWithdrawCurrency = widget.application.fxWithdrawCurrency;
+
+    krwPassword = widget.application.withdrawType == 'krw'
+        ? (widget.application.withdrawPassword ?? '')
+        : '';
+    fxPassword = widget.application.withdrawType == 'fx'
+        ? (widget.application.withdrawPassword ?? '')
+        : '';
+
+    newCurrency = widget.application.newCurrency;
+    newAmount = widget.application.newAmount?.toString() ?? '';
+    newPeriod = widget.application.newPeriodMonths?.toString();
+    depositPw = widget.application.depositPassword;
+    depositPwCheck = widget.application.depositPassword;
+
+    if (newPeriod == null && product.fixedPeriodMonth != null) {
+      newPeriod = product.fixedPeriodMonth.toString();
+    }
+  }
+
+  List<String> _parseCurrencies(DepositProduct product) {
+    return product.dpstCurrency
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
+  List<int> _buildPeriodOptions(DepositProduct product) {
+    if (product.fixedPeriodMonth != null) {
+      return [product.fixedPeriodMonth!];
+    }
+
+    if (product.minPeriodMonth != null && product.maxPeriodMonth != null) {
+      final List<int> options = [];
+      for (int m = product.minPeriodMonth!; m <= product.maxPeriodMonth!; m++) {
+        options.add(m);
+      }
+      return options;
+    }
+
+    return [1, 3, 6, 12];
+  }
+
+  DepositLimit? _findLimitFor(String? currency, DepositProduct product) {
+    if (currency == null || currency.isEmpty) return null;
+    try {
+      return product.limits.firstWhere(
+            (l) => l.currency.toUpperCase() == currency.toUpperCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _limitText(DepositLimit limit) {
+    final buffer = StringBuffer('${limit.currency} ${_amountFormat.format(limit.min)} 이상');
+    if (limit.max > 0) {
+      buffer.write(' ~ ${_amountFormat.format(limit.max)} 이하');
+    }
+    return buffer.toString();
+  }
+
+  String _periodLabel(DepositProduct product, String? selected) {
+    if (selected != null) {
+      return '$selected개월';
+    }
+    if (product.fixedPeriodMonth != null) return '${product.fixedPeriodMonth}개월';
+    if (product.minPeriodMonth != null && product.maxPeriodMonth != null) {
+      return '${product.minPeriodMonth}-${product.maxPeriodMonth}개월';
+    }
+    return '기간 정보 없음';
+
+
+  }
+
+  void _saveToApplication() {
+    widget.application
+      ..product = widget.application.product
+      ..withdrawType = withdrawType
+      ..selectedKrwAccount = selectedKrwAccount
+      ..selectedFxAccount = selectedFxAccount
+      ..fxWithdrawCurrency = fxWithdrawCurrency
+      ..withdrawPassword =
+      withdrawType == 'krw' ? krwPassword : fxPassword
+      ..newCurrency = newCurrency
+      ..newAmount = int.tryParse(newAmount)
+      ..newPeriodMonths = int.tryParse(newPeriod ?? '')
+      ..autoRenew = autoRenew
+      ..autoRenewCycle = autoRenew == 'apply' ? autoRenewCycle : null
+      ..depositPassword = depositPw
+      ..receiveMethod = receiveMethod;
+  }
+
 }
 

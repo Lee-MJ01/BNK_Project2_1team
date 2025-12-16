@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:test_main/screens/member/signup_19.dart';
 import '../app_colors.dart';
 
 import 'signup_18_addr.dart';
@@ -25,14 +27,32 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
   bool noEmail = false;
 
   // 주소
-  String zipCode = "";
-  String address = "";
+  final TextEditingController addr2Ctrl = TextEditingController();
+  String zip = "";
+  String addr1 = "";
+  String addr2 = "";
+  String email = "";
+
+  String get fullEmail {
+    if (noEmail) return "";
+    if (emailIdCtrl.text.isEmpty || emailDomain.isEmpty) return "";
+    return "${emailIdCtrl.text}@${emailDomain}";
+  }
+
+
 
   // 고객관리 안내수단
   String mailAgree = "자택";
   String phoneAgree = "수신";
   String emailAgree = "수신";
   String smsAgree = "수신";
+
+  @override
+  void initState() {
+    super.initState();
+    phoneCtrl.text = widget.phone.substring(3);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,14 +105,19 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
                 ),
                 const SizedBox(height: 16),
 
-                _radioRow("우편물", ["자택", "직장", "거부"], mailAgree,
+                _selectRow("우편물", ["자택", "직장", "거부"], mailAgree,
                         (v) => setState(() => mailAgree = v)),
-                _radioRow("전화", ["수신", "거부"], phoneAgree,
+
+                _selectRow("전화", ["수신", "거부"], phoneAgree,
                         (v) => setState(() => phoneAgree = v)),
-                _radioRow("이메일", ["수신", "거부"], emailAgree,
+
+                _selectRow("이메일", ["수신", "거부"], emailAgree,
                         (v) => setState(() => emailAgree = v)),
-                _radioRow("SMS", ["수신", "거부"], smsAgree,
+
+                _selectRow("SMS", ["수신", "거부"], smsAgree,
                         (v) => setState(() => smsAgree = v)),
+
+
 
                 const SizedBox(height: 20),
               ],
@@ -104,7 +129,14 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => ExtraInfoPage(name: widget.name, rrn: widget.rrn, phone: widget.phone, zip: zip, addr1: addr1, addr2: addr2Ctrl.text, email: fullEmail, mailAgree: mailAgree, phoneAgree: phoneAgree, emailAgree: emailAgree, smsAgree: smsAgree)
+                    )
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.pointDustyNavy,
                 shape: const RoundedRectangleBorder(
@@ -134,24 +166,48 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
       children: [
         const Text("휴대폰", style: TextStyle(color: Colors.black54)),
         const SizedBox(height: 6),
+
         Row(
           children: [
-            DropdownButton<String>(
-              value: phonePrefix,
-              items: ["010", "011", "016"]
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => phonePrefix = v!),
+            // 010 영역
+            SizedBox(
+              width: 90,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  border: UnderlineInputBorder(),
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: phonePrefix,
+                    isDense: true,
+                    items: ["010", "011", "016"]
+                        .map((e) =>
+                        DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) => setState(() => phonePrefix = v!),
+                  ),
+                ),
+              ),
             ),
+
             const SizedBox(width: 12),
+
+            // 뒷번호
             Expanded(
               child: TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.number,
+                maxLength: 8, // ✅ 길이 제한
                 decoration: const InputDecoration(
                   hintText: "휴대폰 번호",
                   border: UnderlineInputBorder(),
+                  counterText: "", // 글자수 표시 제거
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly, // 숫자만
+                ],
               ),
             ),
           ],
@@ -159,6 +215,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
       ],
     );
   }
+
 
   // -------------------------
   // 이메일 입력 + 도메인 선택
@@ -211,6 +268,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
           child: Row(
             children: [
               Icon(
+                size: 18,
                 noEmail
                     ? Icons.check_circle
                     : Icons.radio_button_unchecked,
@@ -218,7 +276,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
                     ? AppColors.mainPaleBlue
                     : Colors.grey,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               const Text("이메일 없음"),
             ],
           ),
@@ -236,11 +294,12 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
         const Text("자택주소", style: TextStyle(color: Colors.black54)),
         const SizedBox(height: 6),
 
+        // ── 우편번호 + 주소검색
         Row(
           children: [
             Expanded(
               child: Text(
-                zipCode.isEmpty ? "우편번호" : zipCode,
+                zip.isEmpty ? "우편번호" : zip,
                 style: const TextStyle(fontSize: 16),
               ),
             ),
@@ -254,26 +313,40 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
                 if (result != null) {
                   final parts = result.split('|');
                   setState(() {
-                    zipCode = parts[0];
-                    address = parts[1];
+                    zip = parts[0];
+                    addr1 = parts[1];
                   });
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.pointDustyNavy,
               ),
-              child: const Text("주소검색",
-                style: TextStyle(color: Colors.white),),
+              child: const Text(
+                "주소검색",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
-
           ],
         ),
 
         const SizedBox(height: 8),
 
+        // ── 기본 주소
         Text(
-          address.isEmpty ? "주소" : address,
+          addr1.isEmpty ? "주소" : addr1,
           style: const TextStyle(fontSize: 16),
+        ),
+
+        const SizedBox(height: 8),
+
+        // ── 상세 주소 입력 (신규)
+        TextField(
+          controller: addr2Ctrl,
+          decoration: const InputDecoration(
+            hintText: "상세 주소",
+            border: UnderlineInputBorder(),
+          ),
+          onChanged: (v) => addr2 = v,
         ),
 
         const SizedBox(height: 6),
@@ -285,6 +358,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
       ],
     );
   }
+
 
   // -------------------------
   // 이메일 도메인 바텀시트
@@ -305,26 +379,36 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
         ];
 
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 16),
-              const Text(
-                "이메일도메인 선택",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ...domains.map((d) => ListTile(
-                title: Center(child: Text(d)),
-                onTap: () {
-                  setState(() {
-                    emailDomain = d == "직접입력" ? "" : d;
-                  });
-                  Navigator.pop(context);
-                },
-              )),
-              const SizedBox(height: 20),
-            ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6, // ✅ 핵심
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  "이메일도메인 선택",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+
+                Expanded(
+                  child: ListView(
+                    children: domains.map((d) => ListTile(
+                      title: Center(child: Text(d)),
+                      onTap: () {
+                        setState(() {
+                          emailDomain = d == "직접입력" ? "" : d;
+                        });
+                        Navigator.pop(context);
+                      },
+                    )).toList(),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         );
       },
@@ -333,7 +417,9 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
 
   // -------------------------
   // 라디오 행
-  Widget _radioRow(
+  // -------------------------
+  // 선택 버튼 행 (은행 스타일)
+  Widget _selectRow(
       String title,
       List<String> options,
       String value,
@@ -343,22 +429,47 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: const TextStyle(color: Colors.black54)),
+        const SizedBox(height: 8),
+
         Row(
           children: options.map((o) {
+            final selected = o == value;
             return Expanded(
-              child: RadioListTile(
-                value: o,
-                groupValue: value,
-                onChanged: (v) => onChanged(v!),
-                title: Text(o),
-                dense: true,
-                contentPadding: EdgeInsets.zero,
+              child: GestureDetector(
+                onTap: () => onChanged(o),
+                child: Container(
+                  height: 44,
+                  margin: const EdgeInsets.only(right: 8),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? AppColors.pointDustyNavy.withOpacity(0.08)
+                        : Colors.white,
+                    border: Border.all(
+                      color: selected
+                          ? AppColors.pointDustyNavy
+                          : Colors.grey.shade300,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    o,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: selected
+                          ? AppColors.pointDustyNavy
+                          : Colors.black,
+                    ),
+                  ),
+                ),
               ),
             );
           }).toList(),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
       ],
     );
   }
+
 }

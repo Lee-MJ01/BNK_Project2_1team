@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             try {
-                const res = await fetch(`/flobank/admin/terms/detail?cate=${cate}&order=${order}`);
+                const res = await fetch(`/backend/admin/terms/detail?cate=${cate}&order=${order}`);
 
                 if (!res.ok) {
                     throw new Error("약관 정보를 불러오지 못했습니다.");
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveBtn.textContent = "저장 중...";
 
         try {
-            const res = await fetch(`/flobank/admin/terms/update`, {
+            const res = await fetch(`/backend/admin/terms/update`, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formData,

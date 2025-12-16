@@ -19,6 +19,13 @@ class _FaceVerifyGuidePageState extends State<FaceVerifyGuidePage> {
     "개인(신용)정보 수집·이용 동의(얼굴확인)": false,
   };
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    debugPrint("name: ${widget.name}");
+  }
+
   bool get allChecked => agreements.values.every((v) => v);
 
   @override

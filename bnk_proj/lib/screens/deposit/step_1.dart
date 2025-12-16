@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/deposit/step_2.dart';
+import 'package:test_main/models/deposit/application.dart';
 
 class DepositStep1Screen extends StatefulWidget {
   static const routeName = "/deposit-step1";
@@ -445,7 +446,23 @@ class _DepositStep1ScreenState extends State<DepositStep1Screen> {
           ),
           onPressed: canNext
               ? () {
-            Navigator.pushNamed(context, DepositStep2Screen.routeName);
+            final application = DepositApplication(dpstId: widget.dpstId)
+              ..agree1 = agree1
+              ..agree2 = agree2
+              ..agree3 = agree3
+              ..info1 = info1
+              ..info2 = info2
+              ..info3 = info3
+              ..important1 = important1
+              ..important2 = important2
+              ..important3 = important3
+              ..finalAgree = finalAgree;
+
+            Navigator.pushNamed(
+              context,
+              DepositStep2Screen.routeName,
+              arguments: application,
+            );
           }
               : null,
           child: const Text(

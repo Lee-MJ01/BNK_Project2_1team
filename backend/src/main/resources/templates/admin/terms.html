@@ -264,8 +264,8 @@
 
 
 
-    <script th:if="${msg != null}">
-        alert([[${msg}]]);   <!-- 그대로 써도 OK -->
+    <script th:if="${msg != null}" th:inline="javascript">
+        alert([[${msg}]]);
     </script>
 
 

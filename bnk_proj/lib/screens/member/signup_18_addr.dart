@@ -76,7 +76,6 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
 
                 final zip = item['zipNo'];
                 final road = item['roadAddrPart1'];
-                final jibun = item['jibunAddr'];
 
                 return ListTile(
                   title: Text(road),

@@ -26,10 +26,19 @@ class _SignUp5PageState extends State<SignUp5Page> {
 
   late final String rrnFront6 = widget.rrn.substring(0, 6);
 
+  String? fullRrn;
+
   @override
   void dispose() {
     _rrnBackController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    debugPrint("name: ${widget.name}");
   }
 
   @override
@@ -138,7 +147,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
                               _rrnBackController.text = result;
 
                               // 전체 주민번호 13자리 조립
-                              final fullRrn = widget.rrn.substring(0, 6) + result;
+                              fullRrn = widget.rrn.substring(0, 6) + result;
 
                               print("전체 주민번호: $fullRrn");   // ← 여기서 13자리 완성됨
                               // TODO: fullRrn 을 서버 전송용 변수에 저장하거나 다음 페이지로 넘기면 됨
@@ -216,7 +225,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (_) =>AgreementSheet(name: widget.name, rrn: widget.rrn, phone: widget.phone,),
+      builder: (_) =>AgreementSheet(name: widget.name, rrn: fullRrn!, phone: widget.phone,),
     );
   }
 

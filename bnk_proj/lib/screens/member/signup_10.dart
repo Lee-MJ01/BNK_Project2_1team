@@ -14,11 +14,13 @@ class IdCardConfirmPage extends StatelessWidget {
     required this.ocrText, required this.name, required this.rrn, required this.phone,
   });
 
+
+
   @override
   Widget build(BuildContext context) {
 
 
-    final name = extractName(ocrText) ?? "인식 실패";
+    final sname = extractName(ocrText) ?? "인식 실패";
     final rrnRaw = extractRrn(ocrText);
     final issueDate = extractIssueDate(ocrText) ?? "-";
 
@@ -36,7 +38,7 @@ class IdCardConfirmPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _infoRow("이름", name),
+            _infoRow("이름", sname),
             _infoRow(
               "주민등록번호",
               rrnRaw != null ? maskRrn(rrnRaw) : "인식 실패",
