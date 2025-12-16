@@ -13,22 +13,22 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
   datasource:
-    jdbc-url: jdbc:oracle:thin:@34.64.225.88:1521/XEPDB1
-    username: flobank
-    password: 1234
+    jdbc-url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
   #  profiles:
   #    active: dev
   elasticsearch:
-    uris: http://34.64.225.88:9200
-    username: elastic
-    password: bnk1234!
+    uris: ${ELASTIC_URI}
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: alswnstl23@gmail.com
-    password: "nkel ifue pjnh hzyj"
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -49,7 +49,7 @@ flobank:
     host: 34.64.225.88
     port: 9090
   aes:
-    secret: "01234567890123456789012345678901"
+    secret: ${AES_SECRET}
 
 mybatis:
   mapper-locations: classpath:mappers/**/*.xml
@@ -57,7 +57,7 @@ mybatis:
     map-underscore-to-camel-case: true
 
 jwt:
-  secret: "v3rySecr3tKeyF0rFl0BankApiProjectMustBeLongerThan256Bits!!"
+  secret: ${JWT_SECRET}
 
 eximbank:
   api:
@@ -69,15 +69,15 @@ openai:
   base-url: "https://api.openai.com/v1"
 
 solapi:
-  apiKey: NCSGTLVVAFB7GAHV
-  apiSecret: N7V7FAHACZ8KWKNQPQFUCGSDSWWL4K5E
-  phoneNumber: 01021098237
+  apiKey: ${SOLAPI_API_KEY}
+  apiSecret: ${SOLAPI_API_SECRET}
+  phoneNumber: ${SOLAPI_PHONE}
 
 terms:
   base-dir: C:/Users/GGG/Desktop/workspace
 
 pinecone:
-  api-key: "pcsk_4WFJGX_DNAQ7nLt7pD7aLSzixdEp4yfHLDF4itTupWn5Rf7L2ehoDdv7eoXkuk5584Kzyx"
+  api-key: ${PINECONE_API_KEY}
   index-host: https://bank-db-46fp8tb.svc.aped-4627-b74a.pinecone.io
   index-name: bank-db
 
@@ -89,7 +89,7 @@ file:
 
 deepl:
   api:
-    key: 3df6a572-c72c-4544-8cd2-c5bfd6a27b53:fx
+    key: ${DEEPL_API_KEY}
 
 ai-server:
   url: http://34.64.84.82:8000
