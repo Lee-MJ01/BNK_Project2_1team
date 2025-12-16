@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../app_colors.dart';
+import 'exchange_risk.dart'; // ✅ 외부 리스크 화면
 
-enum ExchangePage { rates, alerts, risk }
+enum ExchangePage { rates, alerts }
 
 class CurrencyRate {
   final String code;
@@ -24,18 +25,6 @@ class CurrencyRate {
     required this.dailyHigh,
     required this.dailyLow,
     required this.history,
-  });
-}
-
-class RiskIndicator {
-  final String title;
-  final String value;
-  final String subtitle;
-
-  const RiskIndicator({
-    required this.title,
-    required this.value,
-    required this.subtitle,
   });
 }
 
@@ -240,28 +229,6 @@ const List<CurrencyRate> currencyRates = [
   ),
 ];
 
-const List<RiskIndicator> riskIndicators = [
-  RiskIndicator(
-    title: '환율 변동성 (R 기반)',
-    value: '0.83%',
-    subtitle: '최근 30일 표준편차 추정',
-  ),
-  RiskIndicator(
-    title: '시장 심리 지수',
-    value: '중립 ↔',
-    subtitle: 'R 샤프비율·모멘텀',
-  ),
-  RiskIndicator(
-    title: '환리스크 한도',
-    value: '70% 사용',
-    subtitle: '사전 설정 대비 노출도',
-  ),
-  RiskIndicator(
-    title: '헤지 적정도',
-    value: '65%',
-    subtitle: 'VaR·CVaR 조정 권고',
-  ),
-];
 
 class ForexInsightScreen extends StatelessWidget {
   const ForexInsightScreen({super.key});
@@ -280,20 +247,11 @@ class ExchangeRateScreen extends StatelessWidget {
     return ExchangeBaseScaffold(
       currentPage: ExchangePage.rates,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 하이라이트 카드 제거됨
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: DefaultTabController(
               length: 2,
@@ -301,8 +259,6 @@ class ExchangeRateScreen extends StatelessWidget {
                 children: [
                   const TabBar(
                     labelColor: AppColors.pointDustyNavy,
-                    unselectedLabelColor: Colors.black38,
-                    indicatorColor: AppColors.pointDustyNavy,
                     tabs: [
                       Tab(text: '실시간 환율'),
                       Tab(text: '환율 뉴스'),
@@ -314,7 +270,8 @@ class ExchangeRateScreen extends StatelessWidget {
                       children: [
                         _RealtimeRateList(),
                         _ExchangeNewsPlaceholder(
-                          onTap: () => _goTo(context, ExchangePage.alerts),
+                          onTap: () =>
+                              _goTo(context, ExchangePage.alerts),
                         ),
                       ],
                     ),
@@ -322,20 +279,6 @@ class ExchangeRateScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _SwitcherCard(
-            title: '리스크 지표 확인',
-            description: 'R 기반 변동성·심리 지표로 노출도를 점검하세요.',
-            icon: Icons.analytics_outlined,
-            onTap: () => _goTo(context, ExchangePage.risk),
-          ),
-          const SizedBox(height: 10),
-          _SwitcherCard(
-            title: '알림 설정 이동',
-            description: '지정가와 변동폭 알림을 바로 설정할 수 있습니다.',
-            icon: Icons.notifications_active_outlined,
-            onTap: () => _goTo(context, ExchangePage.alerts),
           ),
         ],
       ),
@@ -483,66 +426,22 @@ class _ExchangeAlertScreenState extends State<ExchangeAlertScreen> {
             title: '리스크 지표 보기',
             description: 'R 기반 변동성, 헤지 권고를 살펴보세요.',
             icon: Icons.auto_graph_outlined,
-            onTap: () => _goTo(context, ExchangePage.risk),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ExchangeRiskScreen extends StatelessWidget {
-  const ExchangeRiskScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ExchangeBaseScaffold(
-      currentPage: ExchangePage.risk,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _InfoCard(
-            title: '환율 리스크 지표',
-            body:
-            'R 기반 변동성 분석과 심리 지표를 간략히 보여드립니다. VaR·CVaR를 포함한 헤지 적정도도 확인하세요.',
-            icon: Icons.shield_outlined,
-          ),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.2,
-            ),
-            itemCount: riskIndicators.length,
-            itemBuilder: (context, index) {
-              final indicator = riskIndicators[index];
-              return _RiskCard(indicator: indicator);
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ExchangeRiskScreen(),
+                ),
+              );
             },
           ),
-          const SizedBox(height: 16),
-          _SwitcherCard(
-            title: '환율 조회',
-            description: '실시간 환율과 고·저가 흐름으로 이동합니다.',
-            icon: Icons.swap_horizontal_circle_outlined,
-            onTap: () => _goTo(context, ExchangePage.rates),
-          ),
-          const SizedBox(height: 10),
-          _SwitcherCard(
-            title: '알림 설정',
-            description: '지정가 알림과 변동폭 알림을 세부 조정합니다.',
-            icon: Icons.notifications_outlined,
-            onTap: () => _goTo(context, ExchangePage.alerts),
-          ),
         ],
       ),
     );
   }
 }
+
+
 
 class ExchangeBaseScaffold extends StatelessWidget {
   const ExchangeBaseScaffold({
@@ -614,15 +513,22 @@ class _ExchangeNavigation extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         _NavChip(
-          label: '리스크 지표',
-          selected: current == ExchangePage.risk,
-          onTap: () => onSelected(ExchangePage.risk),
-        ),
-        const SizedBox(width: 8),
-        _NavChip(
           label: '알림 설정',
           selected: current == ExchangePage.alerts,
           onTap: () => onSelected(ExchangePage.alerts),
+        ),
+        const SizedBox(width: 8),
+        _NavChip(
+          label: '리스크 지표',
+          selected: false,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ExchangeRiskScreen(),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -1238,58 +1144,6 @@ class _AlertCard extends StatelessWidget {
   }
 }
 
-class _RiskCard extends StatelessWidget {
-  const _RiskCard({required this.indicator});
-
-  final RiskIndicator indicator;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-        children: [
-          Text(
-            indicator.title,
-            style: const TextStyle(
-              color: AppColors.pointDustyNavy,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            indicator.value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppColors.pointDustyNavy,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            indicator.subtitle,
-            style: const TextStyle(
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _InfoCard extends StatelessWidget {
   const _InfoCard({
@@ -1434,6 +1288,7 @@ class _SwitcherCard extends StatelessWidget {
 
 void _goTo(BuildContext context, ExchangePage page) {
   Widget target;
+
   switch (page) {
     case ExchangePage.rates:
       target = const ExchangeRateScreen();
@@ -1441,23 +1296,10 @@ void _goTo(BuildContext context, ExchangePage page) {
     case ExchangePage.alerts:
       target = const ExchangeAlertScreen();
       break;
-    case ExchangePage.risk:
-      target = const ExchangeRiskScreen();
-      break;
-  }
-
-  if (ModalRoute.of(context)?.settings.name ==
-      target.runtimeType.toString()) {
-    return;
   }
 
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(
-      builder: (_) => target,
-      settings: RouteSettings(
-        name: target.runtimeType.toString(),
-      ),
-    ),
+    MaterialPageRoute(builder: (_) => target),
   );
 }

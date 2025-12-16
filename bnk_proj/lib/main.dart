@@ -3,6 +3,8 @@ import 'package:test_main/screens/member/signup_1.dart';
 
 import 'screens/app_colors.dart';
 import 'screens/main/bank_homepage.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
 
 import 'package:test_main/screens/deposit/view.dart';
 import 'package:test_main/screens/deposit/step_1.dart';
@@ -15,7 +17,11 @@ import 'package:test_main/screens/deposit/survey.dart';
 import 'package:test_main/screens/main/menu/review_write.dart';
 
 import 'package:test_main/models/deposit/application.dart';
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('ko_KR', null);
+
   runApp(const MyApp());
 }
 
