@@ -38,6 +38,8 @@ class DepositApplication {
 
   // Signature
   Uint8List? signatureImage;
+  String? signatureMethod;
+  DateTime? signedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -69,6 +71,9 @@ class DepositApplication {
       'signature': signatureImage != null
           ? base64Encode(signatureImage!)
           : null,
+      'signatureMethod': signatureMethod,
+      'signedAt': signedAt?.toIso8601String(),
+
     };
   }
 }

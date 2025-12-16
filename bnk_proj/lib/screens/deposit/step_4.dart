@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/models/deposit/application.dart';
 import 'package:test_main/screens/main/bank_homepage.dart';
+import 'package:intl/intl.dart';
 
 class DepositStep4Screen extends StatelessWidget {
   static const routeName = "/deposit-step4";
@@ -95,7 +96,7 @@ class DepositStep4Screen extends StatelessWidget {
 
 
       ["고객명", result.customerName],
-      ["예금명", result.productName],
+      ["예금명", application.dpstId],
       ["신규계좌번호", result.newAccountNo.isNotEmpty ? result.newAccountNo : "-"],
       ["신규통화", result.currency.isNotEmpty ? result.currency : application.newCurrency],
       ["신규금액", result.amount.isNotEmpty
@@ -119,7 +120,15 @@ class DepositStep4Screen extends StatelessWidget {
       ["출금금액", result.withdrawAmount ?? "-"],
       ["자동연장신청 여부",
         result.autoRenewLabel ?? (application.autoRenew == 'apply' ? '예' : '아니오')],
-      ["계약체결일시", result.contractDateTime ?? "-"],
+      [
+        "계약체결일시",
+        result.contractDateTime != null
+            ? result.contractDateTime!
+            .replaceAll('T', ' ')
+            .substring(0, 16)
+            .replaceAll('-', '.')
+            : "-"
+      ],
 
 
 

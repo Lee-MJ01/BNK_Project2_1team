@@ -15,6 +15,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/deposit")
 public class DepositApiController {
@@ -124,4 +132,37 @@ public class DepositApiController {
             );
         }
     }
+
+
+    /**
+     * 예금 신규 가입 신청 (프론트 연동용)
+     */
+    @PostMapping("/applications")
+    public ResponseEntity<Map<String, Object>> applyDeposit(
+            @RequestBody Map<String, Object> request
+    ) {
+        Map<String, Object> response = new HashMap<>();
+
+        // 프론트에서 보낸 값 일부 사용
+        response.put("customerName", "홍길동");
+        response.put("productName", "외화정기예금");
+        response.put("newAccountNo", "123-456-789012");
+        response.put("currency", request.get("newCurrency"));
+        response.put("amount", request.get("newAmount"));
+        response.put("rate", "3.5%");
+        response.put("maturityDate", "2026-09-18");
+        response.put(
+                "periodLabel",
+                request.get("newPeriodMonths") != null
+                        ? request.get("newPeriodMonths") + "개월"
+                        : "-"
+        );
+        response.put("contractDateTime", LocalDateTime.now().toString());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+
 }
