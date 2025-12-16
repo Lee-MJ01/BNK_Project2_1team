@@ -151,117 +151,114 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   // ------------------------------------------------------------
   // 상단 헤더 : 캐릭터 이미지 + 상품명 + 요약 + 요약 정보
   // ------------------------------------------------------------
-  Widget _buildHeader(model.DepositProduct product)
-  {
-
-
-      return Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.mainPaleBlue.withOpacity(0.7),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 4),
-            ),
-          ],
+  Widget _buildHeader(model.DepositProduct product) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.mainPaleBlue.withOpacity(0.7),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 이미지
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.mainPaleBlue.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  "images/character11.png",
-                  fit: BoxFit.contain,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column( // ✅ Row → Column
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          // =========================
+          // 1️⃣ 상단: 이미지 + 텍스트
+          // =========================
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 이미지
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.mainPaleBlue.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    "images/character11.png",
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(width: 16),
+              const SizedBox(width: 16),
 
-            // 텍스트 박스
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.pointDustyNavy,
+              // 텍스트 영역
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.pointDustyNavy,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    product.description.isNotEmpty
-                        ? product.description
-                        : (product.info.isNotEmpty
-                        ? product.info
-                        : "상품 설명이 등록되지 않았습니다."),
-                    style: const TextStyle(
-
-                      fontSize: 14,
-                      height: 1.6,
-                      color: Colors.black87,
+                    const SizedBox(height: 8),
+                    Text(
+                      product.description.isNotEmpty
+                          ? product.description
+                          : product.info,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.6,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // 요약 정보 3개 → 동일한 크기 유지
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _summaryInfoBox(
-                          "가입대상",
-                          "제한 없음",
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        child: _summaryInfoBox(
-                          "가입기간",
-                          product.fixedPeriodMonth != null
-                              ? "${product.fixedPeriodMonth}개월"
-                              : _buildPeriodLabel(product),
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        child: _summaryInfoBox(
-                          "가입금액",
-                          _buildLimitLabel(product),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    }
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // =========================
+          // 2️⃣ 하단: 요약 정보 3개
+          // =========================
+          Row(
+            children: [
+              Expanded(
+                child: _summaryInfoBox("가입대상", "제한 없음"),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _summaryInfoBox(
+                  "가입기간",
+                  product.fixedPeriodMonth != null
+                      ? "${product.fixedPeriodMonth}개월"
+                      : _buildPeriodLabel(product),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _summaryInfoBox(
+                  "가입금액",
+                  _buildLimitLabel(product),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
 
 // ------------------------------------------------------------
@@ -269,7 +266,9 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 // ------------------------------------------------------------
   Widget _summaryInfoBox(String label, String value) {
     return Container(
-      height: 75, // ← 2줄도 안정적으로 들어감
+      constraints: const BoxConstraints(
+        minHeight: 74, // ⭐ 핵심: 최소 높이 고정
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.subIvoryBeige,
@@ -279,29 +278,36 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
         ),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center, // ⭐ 세로 가운데
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.grey,
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           Text(
             value,
             maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppColors.pointDustyNavy,
               height: 1.2,
+              color: AppColors.pointDustyNavy,
             ),
           ),
         ],
       ),
     );
   }
+
+
+
+
+
 
   String _buildPeriodLabel(model.DepositProduct product) {
     if (product.fixedPeriodMonth != null) {
@@ -314,11 +320,15 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
   String _buildLimitLabel(model.DepositProduct product) {
-    if (product.limits.isEmpty) return "한도 정보 없음";
+    if (product.limits.isEmpty) {
+      return "한도\n정보 없음";
+    }
 
     final first = product.limits.first;
-    return "${first.currency} ${_fmt(first.min)} 이상";
+    return "${first.currency}\n${_fmt(first.min)} 이상";
   }
+
+
 
 
 
@@ -437,7 +447,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
         ? (product.addPayMaxCnt != null
         ? "가능 (최대 ${product.addPayMaxCnt}회)"
         : "가능")
-        : "불가";
+        : "불가능";
 
 
     // =========================

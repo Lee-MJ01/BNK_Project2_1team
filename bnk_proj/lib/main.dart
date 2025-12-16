@@ -8,11 +8,13 @@ import 'package:test_main/screens/deposit/view.dart';
 import 'package:test_main/screens/deposit/step_1.dart';
 import 'package:test_main/screens/deposit/step_2.dart';
 import 'package:test_main/screens/deposit/step_3.dart';
+import 'package:test_main/screens/deposit/step_4.dart';
 import 'package:test_main/screens/deposit/signature.dart';
 import 'package:test_main/screens/deposit/recommend.dart';
 import 'package:test_main/screens/deposit/survey.dart';
 import 'package:test_main/screens/main/menu/review_write.dart';
 
+import 'package:test_main/models/deposit/application.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -56,24 +58,34 @@ class MyApp extends StatelessWidget {
         // 예금 가입 Step 2 (정보입력)
         // -------------------------
         DepositStep2Screen.routeName: (context) {
-          final dpstId =
-          ModalRoute.of(context)!.settings.arguments as String;
+          final application =
+          ModalRoute.of(context)!.settings.arguments as DepositApplication;
 
-          return DepositStep2Screen(dpstId: dpstId);
-        },
+          return DepositStep2Screen(application: application);        },
 
         // -------------------------
         // 예금 가입 Step 3 (확인)
         // -------------------------
         DepositStep3Screen.routeName: (context) {
-          final dpstId =
-          ModalRoute.of(context)!.settings.arguments as String;
+          final application =
+          ModalRoute.of(context)!.settings.arguments as DepositApplication;
 
-          return DepositStep3Screen(dpstId: dpstId);
+          return DepositStep3Screen(application: application);
         },
 
-        DepositSignatureScreen.routeName: (_) =>
-        const DepositSignatureScreen(),
+        DepositSignatureScreen.routeName: (context) {
+          final application =
+          ModalRoute.of(context)!.settings.arguments as DepositApplication;
+
+          return DepositSignatureScreen(application: application);        },
+
+        DepositStep4Screen.routeName: (context) {
+          final args =
+          ModalRoute.of(context)!.settings.arguments as DepositCompletionArgs;
+
+          return DepositStep4Screen(args: args);
+        },
+
         RecommendScreen.routeName: (_) => const RecommendScreen(),
         DepositSurveyScreen.routeName: (_) => const DepositSurveyScreen(),
         DepositReviewWriteScreen.routeName: (_) =>

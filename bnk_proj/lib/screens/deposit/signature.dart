@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:signature/signature.dart';
 import 'package:test_main/screens/app_colors.dart';
 import '../deposit/step_4.dart';
+import 'package:test_main/models/deposit/application.dart';
+import 'package:test_main/services/deposit_service.dart';
 
 class DepositSignatureScreen extends StatefulWidget {
   static const routeName = "/deposit-signature";
 
-  const DepositSignatureScreen({super.key});
+  final DepositApplication application;
+
+  const DepositSignatureScreen({super.key, required this.application});
 
   @override
   State<DepositSignatureScreen> createState() => _DepositSignatureScreenState();
@@ -14,6 +18,7 @@ class DepositSignatureScreen extends StatefulWidget {
 
 class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
   bool agreeAll = false;
+  bool _submitting = false;
 
   // Signature Controller
   final SignatureController _controller = SignatureController(
@@ -140,17 +145,8 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: (agreeAll && !_controller.isEmpty)
-                    ? () async {
-                  final signatureImage = await _controller.toPngBytes();
-
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const DepositStep4Screen(),
-                    ),
-                  );
-                }
+                onPressed: (agreeAll && !_controller.isEmpty && !_submitting)
+                    ? () => _submitSignature(context)
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.pointDustyNavy,
@@ -174,5 +170,48 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _submitSignature(BuildContext context) async {
+    setState(() {
+      _submitting = true;
+    });
+
+    try {
+      final signatureImage = await _controller.toPngBytes();
+      if (signatureImage == null) {
+        throw Exception('서명을 불러오지 못했습니다. 다시 시도해주세요.');
+      }
+
+      widget.application.signatureImage = signatureImage;
+
+      final result =
+      await DepositService().submitApplication(widget.application);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacementNamed(
+        context,
+        DepositStep4Screen.routeName,
+        arguments: DepositCompletionArgs(
+          application: widget.application,
+          result: result,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('가입 처리 중 오류가 발생했습니다: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
+    }
   }
 }

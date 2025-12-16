@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
-import 'step_1.dart';
 import 'step_3.dart';
+import 'package:test_main/models/deposit/application.dart';
 
 class DepositStep2Screen extends StatefulWidget {
   static const routeName = "/deposit-step2";
 
-  final String dpstId;
+  final DepositApplication application;
 
   const DepositStep2Screen({
     super.key,
-    required this.dpstId,
+    required this.application,
   });
 
 
@@ -44,6 +44,12 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   String depositPw = "";
   String depositPwCheck = "";
 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFromApplication();
+  }
 
 
   @override
@@ -665,13 +671,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             backgroundColor: AppColors.mainPaleBlue,
             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
           ),
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              DepositStep1Screen.routeName,
-              arguments: widget.dpstId,
-            );
-          },
+          onPressed: () => Navigator.pop(context),
 
           child: const Text(
             "이전",
@@ -689,11 +689,11 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           onPressed: canNext
               ? () {
             if (_validateInputs()) {
+              _saveToApplication();
               Navigator.pushNamed(
                 context,
                 DepositStep3Screen.routeName,
-                arguments: widget.dpstId,
-              );
+                arguments: widget.application,              );
             }
           }
               : null,
@@ -705,5 +705,47 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ],
     );
   }
+
+  void _loadFromApplication() {
+    withdrawType = widget.application.withdrawType;
+    autoRenew = widget.application.autoRenew;
+    autoRenewCycle = widget.application.autoRenewCycle;
+    receiveMethod = widget.application.receiveMethod;
+
+    selectedKrwAccount = widget.application.selectedKrwAccount;
+    selectedFxAccount = widget.application.selectedFxAccount;
+    fxWithdrawCurrency = widget.application.fxWithdrawCurrency;
+
+    krwPassword = widget.application.withdrawType == 'krw'
+        ? (widget.application.withdrawPassword ?? '')
+        : '';
+    fxPassword = widget.application.withdrawType == 'fx'
+        ? (widget.application.withdrawPassword ?? '')
+        : '';
+
+    newCurrency = widget.application.newCurrency;
+    newAmount = widget.application.newAmount?.toString() ?? '';
+    newPeriod = widget.application.newPeriodMonths?.toString();
+    depositPw = widget.application.depositPassword;
+    depositPwCheck = widget.application.depositPassword;
+  }
+
+  void _saveToApplication() {
+    widget.application
+      ..withdrawType = withdrawType
+      ..selectedKrwAccount = selectedKrwAccount
+      ..selectedFxAccount = selectedFxAccount
+      ..fxWithdrawCurrency = fxWithdrawCurrency
+      ..withdrawPassword =
+      withdrawType == 'krw' ? krwPassword : fxPassword
+      ..newCurrency = newCurrency
+      ..newAmount = int.tryParse(newAmount)
+      ..newPeriodMonths = int.tryParse(newPeriod ?? '')
+      ..autoRenew = autoRenew
+      ..autoRenewCycle = autoRenew == 'apply' ? autoRenewCycle : null
+      ..depositPassword = depositPw
+      ..receiveMethod = receiveMethod;
+  }
+
 }
 
