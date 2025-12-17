@@ -297,19 +297,19 @@ class _LoginFormState extends State<_LoginForm> {
             onPressed: () async {
 
               // 1. 입력값 확인
-              // String id = _idController.text.trim();
-              // String pw = _pwController.text.trim();
+              String id = _idController.text.trim();
+              String pw = _pwController.text.trim();
 
 
-              // if (id.isEmpty || pw.isEmpty) {
-              //   ScaffoldMessenger.of(context).showSnackBar(
-              //     const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')),
-              //   );
-              //   return;
-              // }
+              if (id.isEmpty || pw.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')),
+                );
+                return;
+              }
 
               // 2. 기기 ID 가져오기 (main에서 이미 만들어졌으므로 즉시 리턴됨)
-              // String deviceId = await DeviceManager.getDeviceId();
+              String deviceId = await DeviceManager.getDeviceId();
 
               // 3. 로그인 요청 및 결과 처리 (Map으로 받음)
               Map<String, dynamic> result = await ApiService.login(id, pw, deviceId);
