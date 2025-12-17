@@ -23,7 +23,11 @@ class TermsDocument {
 
   factory TermsDocument.fromJson(Map<String, dynamic> json, String baseUrl) {
     final rawFile = json['file']?.toString() ?? '';
-    final fullUrl = _resolveFileUrl(rawFile, baseUrl);
+    final backendUrl = json['downloadUrl']?.toString();
+    final fullUrl =
+        (backendUrl != null && backendUrl.isNotEmpty)
+            ? backendUrl
+            : _resolveFileUrl(rawFile, baseUrl);
 
     return TermsDocument(
       id: int.tryParse(json['histId']?.toString() ?? ''),
