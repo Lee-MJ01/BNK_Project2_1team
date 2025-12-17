@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 
 @Mapper
@@ -21,5 +22,12 @@ public interface RateMapper {
     int insertRate(RateDTO rateDTO);
 
 
+    // 통화별 최신 환율 1건 조회
+    List<RateDTO> selectLatestRates();
+
+    // 특정 통화 환율 히스토리 조회
+    List<RateDTO> selectRateHistory(
+            @Param("currency") String currency
+    );
 
 }

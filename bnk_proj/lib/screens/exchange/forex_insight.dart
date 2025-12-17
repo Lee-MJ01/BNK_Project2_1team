@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../services/exchange_api.dart';
 import '../app_colors.dart';
 import 'exchange_buy.dart';
 import 'exchange_risk.dart';
-import 'exchange_sell.dart'; // ✅ 외부 리스크 화면
+import 'exchange_sell.dart';
 
 enum ExchangePage { rates, alerts }
 
@@ -17,7 +18,7 @@ class CurrencyRate {
   final double dailyLow;
   final List<double> history;
 
-  const CurrencyRate({
+  CurrencyRate({
     required this.code,
     required this.name,
     required this.flagEmoji,
@@ -28,208 +29,60 @@ class CurrencyRate {
     required this.dailyLow,
     required this.history,
   });
+
+  factory CurrencyRate.fromJson(Map<String, dynamic> json) {
+    return CurrencyRate(
+      code: json['rhistCurrency'],
+      name: json['rhistCurName'],
+      flagEmoji: _flagFromCode(json['rhistCurrency']),
+      rate: (json['rhistBaseRate'] as num).toDouble(),
+      change: 0,
+      changePercent: 0,
+      dailyHigh: (json['rhistBaseRate'] as num).toDouble(),
+      dailyLow: (json['rhistBaseRate'] as num).toDouble(),
+      history: const [],
+    );
+  }
+  CurrencyRate copyWith({
+    String? code,
+    String? name,
+    String? flagEmoji,
+    double? rate,
+    double? change,
+    double? changePercent,
+    double? dailyHigh,
+    double? dailyLow,
+    List<double>? history,
+  }) {
+    return CurrencyRate(
+      code: code ?? this.code,
+      name: name ?? this.name,
+      flagEmoji: flagEmoji ?? this.flagEmoji,
+      rate: rate ?? this.rate,
+      change: change ?? this.change,
+      changePercent: changePercent ?? this.changePercent,
+      dailyHigh: dailyHigh ?? this.dailyHigh,
+      dailyLow: dailyLow ?? this.dailyLow,
+      history: history ?? this.history,
+    );
+  }
 }
 
-const List<CurrencyRate> currencyRates = [
-  CurrencyRate(
-    code: 'USD',
-    name: '미국 달러',
-    flagEmoji: '🇺🇸',
-    rate: 1469.06,
-    change: -1.14,
-    changePercent: 0.08,
-    dailyHigh: 1472.09,
-    dailyLow: 1464.80,
-    history: [
-      1468.2,
-      1471.9,
-      1472.1,
-      1469.5,
-      1468.9,
-      1470.2,
-      1467.3,
-      1466.8,
-      1464.8,
-      1467.1,
-    ],
-  ),
-  CurrencyRate(
-    code: 'JPY',
-    name: '일본 엔',
-    flagEmoji: '🇯🇵',
-    rate: 943.54,
-    change: 4.63,
-    changePercent: 0.49,
-    dailyHigh: 945.10,
-    dailyLow: 939.20,
-    history: [
-      941.2,
-      942.0,
-      942.4,
-      943.8,
-      943.0,
-      944.3,
-      945.1,
-      944.0,
-      943.4,
-      943.5,
-    ],
-  ),
-  CurrencyRate(
-    code: 'EUR',
-    name: '유럽 유로',
-    flagEmoji: '🇪🇺',
-    rate: 1718.77,
-    change: 8.84,
-    changePercent: 0.52,
-    dailyHigh: 1725.10,
-    dailyLow: 1714.10,
-    history: [
-      1710.2,
-      1712.8,
-      1715.1,
-      1719.5,
-      1718.0,
-      1716.4,
-      1717.9,
-      1719.9,
-      1720.2,
-      1718.8,
-    ],
-  ),
-  CurrencyRate(
-    code: 'CNY',
-    name: '중국 위안',
-    flagEmoji: '🇨🇳',
-    rate: 208.16,
-    change: 0.38,
-    changePercent: 0.19,
-    dailyHigh: 208.80,
-    dailyLow: 207.10,
-    history: [
-      207.3,
-      207.6,
-      207.9,
-      208.2,
-      208.6,
-      208.5,
-      208.1,
-      208.0,
-      208.3,
-      208.1,
-    ],
-  ),
-  CurrencyRate(
-    code: 'HKD',
-    name: '홍콩 달러',
-    flagEmoji: '🇭🇰',
-    rate: 188.91,
-    change: 0.0,
-    changePercent: 0.0,
-    dailyHigh: 189.30,
-    dailyLow: 188.30,
-    history: [
-      188.2,
-      188.4,
-      188.6,
-      188.9,
-      189.1,
-      189.0,
-      188.7,
-      188.6,
-      188.8,
-      188.9,
-    ],
-  ),
-  CurrencyRate(
-    code: 'TWD',
-    name: '대만 달러',
-    flagEmoji: '🇹🇼',
-    rate: 47.1518,
-    change: 0.0057,
-    changePercent: 0.01,
-    dailyHigh: 47.30,
-    dailyLow: 47.10,
-    history: [
-      47.08,
-      47.10,
-      47.14,
-      47.12,
-      47.18,
-      47.20,
-      47.16,
-      47.15,
-      47.13,
-      47.15,
-    ],
-  ),
-  CurrencyRate(
-    code: 'THB',
-    name: '태국 바트',
-    flagEmoji: '🇹🇭',
-    rate: 46.3432,
-    change: 0.1730,
-    changePercent: 0.37,
-    dailyHigh: 46.60,
-    dailyLow: 46.10,
-    history: [
-      46.0,
-      46.2,
-      46.5,
-      46.4,
-      46.6,
-      46.5,
-      46.3,
-      46.2,
-      46.3,
-      46.34,
-    ],
-  ),
-  CurrencyRate(
-    code: 'SGD',
-    name: '싱가포르 달러',
-    flagEmoji: '🇸🇬',
-    rate: 1136.62,
-    change: 2.41,
-    changePercent: 0.21,
-    dailyHigh: 1139.5,
-    dailyLow: 1132.0,
-    history: [
-      1131.2,
-      1132.8,
-      1133.6,
-      1135.2,
-      1136.9,
-      1137.1,
-      1135.8,
-      1136.2,
-      1136.8,
-      1136.6,
-    ],
-  ),
-  CurrencyRate(
-    code: 'PHP',
-    name: '필리핀 페소',
-    flagEmoji: '🇵🇭',
-    rate: 24.8255,
-    change: 0.0064,
-    changePercent: 0.03,
-    dailyHigh: 24.90,
-    dailyLow: 24.70,
-    history: [
-      24.72,
-      24.75,
-      24.79,
-      24.82,
-      24.84,
-      24.83,
-      24.81,
-      24.82,
-      24.83,
-      24.82,
-    ],
-  ),
-];
+String _flagFromCode(String code) {
+  switch (code) {
+    case 'USD': return '🇺🇸';
+    case 'JPY': return '🇯🇵';
+    case 'EUR': return '🇪🇺';
+    case 'CNY': return '🇨🇳';
+    case 'HKD': return '🇭🇰';
+    case 'THB': return '🇹🇭';
+    case 'SGD': return '🇸🇬';
+    case 'PHP': return '🇵🇭';
+    default: return '🏳️';
+  }
+}
+
+
 
 
 class ForexInsightScreen extends StatelessWidget {
@@ -291,24 +144,48 @@ class ExchangeRateScreen extends StatelessWidget {
 class _RealtimeRateList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: currencyRates.length,
-      itemBuilder: (context, index) {
-        final rate = currencyRates[index];
-        return _RateCard(
-          rate: rate,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ExchangeDetailScreen(rate: rate),
-            ),
-          ),
+    return FutureBuilder<List<CurrencyRate>>(
+      future: ExchangeApi.fetchRates(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text('환율 정보를 불러오지 못했습니다.'));
+        }
+
+        final rates = snapshot.data!;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: rates.length,
+          itemBuilder: (context, index) {
+            final rate = rates[index];
+            return _RateCard(
+              rate: rate,
+              onTap: () async {
+                final history =
+                await ExchangeApi.fetchHistory(rate.code);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ExchangeDetailScreen(
+                      rate: rate.copyWith(history: history),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );
   }
 }
+
+
 
 class _ExchangeNewsPlaceholder extends StatelessWidget {
   const _ExchangeNewsPlaceholder({required this.onTap});
@@ -370,75 +247,93 @@ class ExchangeAlertScreen extends StatefulWidget {
 }
 
 class _ExchangeAlertScreenState extends State<ExchangeAlertScreen> {
-  late Map<String, bool> _alertEnabled;
-  late Map<String, double> _alertTargets;
-
-  @override
-  void initState() {
-    super.initState();
-    _alertEnabled = {
-      for (final rate in currencyRates) rate.code: rate.code != 'JPY'
-    };
-    _alertTargets = {
-      for (final rate in currencyRates) rate.code: rate.rate,
-    };
-  }
+  final Map<String, bool> _alertEnabled = {};
+  final Map<String, double> _alertTargets = {};
 
   @override
   Widget build(BuildContext context) {
-    return ExchangeBaseScaffold(
-      currentPage: ExchangePage.alerts,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _InfoCard(
-            title: '환율 알림 설정',
-            body:
-            '변동폭과 지정가를 설정해 주요 통화의 움직임을 놓치지 마세요. 슬라이더로 알림 기준을 조정할 수 있습니다.',
-            icon: Icons.notifications_active_outlined,
-          ),
-          const SizedBox(height: 16),
-          ...currencyRates.map(
-                (rate) => _AlertCard(
-              rate: rate,
-              enabled: _alertEnabled[rate.code] ?? false,
-              target: _alertTargets[rate.code] ?? rate.rate,
-              onToggle: (value) {
-                setState(() {
-                  _alertEnabled[rate.code] = value;
-                });
-              },
-              onChange: (value) {
-                setState(() {
-                  _alertTargets[rate.code] =
-                      double.parse(value.toStringAsFixed(2));
-                });
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SwitcherCard(
-            title: '환율 조회로 이동',
-            description: '현재가와 고·저가 흐름을 다시 확인합니다.',
-            icon: Icons.table_chart_outlined,
-            onTap: () => _goTo(context, ExchangePage.rates),
-          ),
-          const SizedBox(height: 10),
-          _SwitcherCard(
-            title: '리스크 지표 보기',
-            description: 'R 기반 변동성, 헤지 권고를 살펴보세요.',
-            icon: Icons.auto_graph_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ExchangeRiskScreen(),
+    return FutureBuilder<List<CurrencyRate>>(
+      future: ExchangeApi.fetchRates(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: Text('알림 정보를 불러올 수 없습니다')),
+          );
+        }
+
+        final rates = snapshot.data!;
+
+        // 🔹 최초 1회만 초기화
+        for (final rate in rates) {
+          _alertEnabled.putIfAbsent(rate.code, () => rate.code != 'JPY');
+          _alertTargets.putIfAbsent(rate.code, () => rate.rate);
+        }
+
+        return ExchangeBaseScaffold(
+          currentPage: ExchangePage.alerts,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _InfoCard(
+                title: '환율 알림 설정',
+                body:
+                '변동폭과 지정가를 설정해 주요 통화의 움직임을 놓치지 마세요. 슬라이더로 알림 기준을 조정할 수 있습니다.',
+                icon: Icons.notifications_active_outlined,
+              ),
+              const SizedBox(height: 16),
+
+              ...rates.map(
+                    (rate) => _AlertCard(
+                  rate: rate,
+                  enabled: _alertEnabled[rate.code] ?? false,
+                  target: _alertTargets[rate.code] ?? rate.rate,
+                  onToggle: (value) {
+                    setState(() {
+                      _alertEnabled[rate.code] = value;
+                    });
+                  },
+                  onChange: (value) {
+                    setState(() {
+                      _alertTargets[rate.code] =
+                          double.parse(value.toStringAsFixed(2));
+                    });
+                  },
                 ),
-              );
-            },
+              ),
+
+              const SizedBox(height: 16),
+
+              // ✅ 이 부분은 그대로 유지 (리스크 지표 이동)
+              _SwitcherCard(
+                title: '환율 조회로 이동',
+                description: '현재가와 고·저가 흐름을 다시 확인합니다.',
+                icon: Icons.table_chart_outlined,
+                onTap: () => _goTo(context, ExchangePage.rates),
+              ),
+              const SizedBox(height: 10),
+              _SwitcherCard(
+                title: '리스크 지표 보기',
+                description: 'R 기반 변동성, 헤지 권고를 살펴보세요.',
+                icon: Icons.auto_graph_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ExchangeRiskScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

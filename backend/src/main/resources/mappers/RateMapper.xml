@@ -46,4 +46,34 @@
                )
     </insert>
 
+
+    <!-- =========================
+     통화별 최신 환율 조회
+     ========================= -->
+    <select id="selectLatestRates"
+            resultType="kr.co.api.backend.dto.RateDTO">
+        SELECT *
+        FROM (
+                 SELECT
+                     t.*,
+                     ROW_NUMBER() OVER (
+                PARTITION BY rhist_currency
+                ORDER BY rhist_reg_dt DESC
+            ) rn
+                 FROM TB_EXCH_RATE_HIST t
+             )
+        WHERE rn = 1
+        ORDER BY rhist_currency
+    </select>
+
+    <!-- =========================
+     특정 통화 환율 히스토리 조회
+     ========================= -->
+    <select id="selectRateHistory"
+            resultType="kr.co.api.backend.dto.RateDTO">
+        SELECT *
+        FROM TB_EXCH_RATE_HIST
+        WHERE rhist_currency = #{currency}
+        ORDER BY rhist_reg_dt DESC
+    </select>
 </mapper>
