@@ -2,37 +2,6 @@ import 'package:flutter/material.dart';
 import '../../app_colors.dart';
 
 
-// ✅ 외화자산(통화코드) -> 국기 이모지 매핑
-// 환율 인사이트 화면에서 쓰던 flagEmoji와 동일한 이모지들을 그대로 사용합니다.
-String _flagEmojiFor(String code) {
-  final normalized = (code == 'CHN') ? 'CNY' : code;
-  switch (normalized) {
-    case 'KRW':
-      return '🇰🇷';
-    case 'USD':
-      return '🇺🇸';
-    case 'JPY':
-      return '🇯🇵';
-    case 'EUR':
-      return '🇪🇺';
-    case 'CNY':
-      return '🇨🇳';
-    case 'HKD':
-      return '🇭🇰';
-    case 'TWD':
-      return '🇹🇼';
-    case 'THB':
-      return '🇹🇭';
-    case 'SGD':
-      return '🇸🇬';
-    case 'PHP':
-      return '🇵🇭';
-    case 'GBP':
-      return '🇬🇧';
-    default:
-      return '🏳️';
-  }
-}
 
 class _FlagEmoji extends StatelessWidget {
   final String emoji;
@@ -83,12 +52,12 @@ class MyFxAssetScreen extends StatelessWidget {
 
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 20),
         children: [
           const Text(
             '외화자산을 한눈에 확인\n수수료 없는 환전',
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               height: 1.2,
               fontWeight: FontWeight.w700,
               color: Colors.black,

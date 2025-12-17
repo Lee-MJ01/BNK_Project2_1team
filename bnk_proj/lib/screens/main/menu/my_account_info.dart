@@ -8,25 +8,24 @@ class MyAccountInfoScreen extends StatefulWidget {
 }
 
 class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
-  bool _hideBalance = true;
 
   @override
   Widget build(BuildContext context) {
     final accounts = const <_AccountItem>[
       _AccountItem(
-        name: '전용준의 통장',
+        name: '쌰@갈 통장',
         type: '입출금',
-        number: '3333-20-6606173',
-        balanceText: '1,234,567원',
+        number: '4444-44-44444',
+        balanceText: '999,999원',
       ),
       _AccountItem(
-        name: '급여통장',
+        name: '아자스 통장',
         type: '입출금',
         number: '123-456-789012',
-        balanceText: '1,235원',
+        balanceText: '111,235원',
       ),
       _AccountItem(
-        name: '생활비통장',
+        name: '연봉 통장',
         type: '입출금',
         number: '123-456-789013',
         balanceText: '520원',
@@ -34,10 +33,10 @@ class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F7F7),
-        surfaceTintColor: const Color(0xFFF7F7F7),
+        backgroundColor: const Color(0xFFFFFFFF),
+        surfaceTintColor: const Color(0xFFFFFFFF),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.black87),
@@ -45,7 +44,7 @@ class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        padding: const EdgeInsets.fromLTRB(25, 15, 25, 25),
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -54,23 +53,23 @@ class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
                 child: Text(
                   '내 계좌',
                   style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: _hideBalance ? '잔액 표시' : '잔액 가리기',
-                onPressed: () => setState(() => _hideBalance = !_hideBalance),
-                icon: Icon(
-                  _hideBalance ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.black54,
-                ),
-              ),
+              // IconButton(
+              //   tooltip: _hideBalance ? '잔액 표시' : '잔액 가리기',
+              //   onPressed: () => setState(() => _hideBalance = !_hideBalance),
+              //   icon: Icon(
+              //     _hideBalance ? Icons.visibility_off : Icons.visibility,
+              //     color: Colors.black54,
+              //   ),
+              // ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 30),
 
           // 요약 바 (총 n개)
           Container(
@@ -97,21 +96,13 @@ class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
                     ],
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  _hideBalance ? '합계 ******' : '합계 (더미)',
-                  style: const TextStyle(
-                    color: Colors.black45,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
             ),
           ),
 
           const SizedBox(height: 14),
 
-          ...accounts.map((a) => _AccountCard(item: a, hideBalance: _hideBalance)),
+          ...accounts.map((a) => _AccountCard(key: ValueKey(a.number),item: a,)),
 
           const SizedBox(height: 24),
 
@@ -132,22 +123,27 @@ class _MyAccountInfoScreenState extends State<MyAccountInfoScreen> {
   }
 }
 
-class _AccountCard extends StatelessWidget {
+class _AccountCard extends StatefulWidget {
   const _AccountCard({
+    super.key,
     required this.item,
-    required this.hideBalance,
   });
 
   final _AccountItem item;
-  final bool hideBalance;
 
-  String _mask(String s) => '••••••';
+  @override
+  State<_AccountCard> createState() => _AccountCardState();
+}
+
+class _AccountCardState extends State<_AccountCard> {
 
   @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(18, 32, 18, 32), // ✅ 위/아래 크게(2배 느낌)
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -159,46 +155,57 @@ class _AccountCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 왼쪽 정보
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '${item.type} · ${item.number}',
+                    style: const TextStyle(
+                      color: Colors.black45,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  item.name,
+                  item.balanceText,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  '${item.type} · ${item.number}',
-                  style: const TextStyle(
-                    color: Colors.black45,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
             ),
-          ),
-          Text(
-            hideBalance ? _mask(item.balanceText) : item.balanceText,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Icon(Icons.chevron_right, color: Colors.black38),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+
 
 class _AccountItem {
   final String name;

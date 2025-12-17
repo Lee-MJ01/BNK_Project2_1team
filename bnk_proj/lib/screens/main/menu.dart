@@ -86,6 +86,40 @@ class MyPageDrawer extends StatelessWidget {
               ),
 
               const _AllMenuSectionList(),
+
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+
+              Padding(
+                padding: const EdgeInsets.only(right: 16, top: 10, bottom: 16),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/login',
+                            (route) => false,
+                      );
+                      // LoginPage로 가는 방식이면 여기만 너 코드로 교체
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 28), // ✅ 작게
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      shape: const StadiumBorder(),   // ✅ 알약 모양
+                      side: const BorderSide(color: Color(0xFFDDDDDD)), // 테두리 연하게
+                      foregroundColor: Colors.black87,
+                      textStyle: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('로그아웃'),
+                  ),
+                ),
+              ),
+
+
               const SizedBox(height: 24),
             ],
           ),
@@ -184,7 +218,7 @@ class _MyPageShortcutGrid extends StatelessWidget {
     final shortcuts = <_ShortcutItem>[
       _ShortcutItem(
         icon: Icons.account_balance_wallet_outlined,
-        label: '내 계좌',
+        label: '내 원화계좌',
         hasBadge: true,
         onTap: () {
           Navigator.of(context).push(
