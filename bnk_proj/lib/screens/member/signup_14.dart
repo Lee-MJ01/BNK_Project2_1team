@@ -1,24 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/member/signup_15.dart';
 
 import '../app_colors.dart';
 
 class FaceCaptureCompletePage extends StatelessWidget {
   const FaceCaptureCompletePage({
-    super.key,
-    required this.name,
-    required this.rrn,
-    required this.phone, 
-    required this.id, 
-    required this.pw,
-
+    super.key, required this.custInfo,
   });
 
-  final String name;
-  final String rrn;
-  final String phone;
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +71,7 @@ class FaceCaptureCompletePage extends StatelessWidget {
       bottomNavigationBar: GestureDetector(
         onTap: () {
           // 다음 단계 (얼굴 비교 안내 / 로딩 / 서버 요청 등)
-          Navigator.push(context, MaterialPageRoute(builder: (_) => AccountVerifyPage(name: name, rrn: rrn, phone: phone, id: id, pw: pw,)));
+          Navigator.push(context, MaterialPageRoute(builder: (_) => AccountVerifyPage(custInfo: custInfo,)));
         },
         child: Container(
           height: 64,

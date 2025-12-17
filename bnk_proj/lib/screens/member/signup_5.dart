@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_5_id_pw.dart';
 import 'package:test_main/screens/member/signup_5_jumin.dart';
 
 
 class SignUp5Page extends StatefulWidget {
-  final String name;
-  final String rrn; // 앞 6자리
-  final String phone; // 앞 6자리
+  final CustInfo custInfo;
 
   const SignUp5Page({
-    super.key,
-    required this.name,
-    required this.rrn,
-    required this.phone,
+    super.key, required this.custInfo,
+
   });
 
   @override
@@ -25,7 +22,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
 
   bool get isFilled => _rrnBackController.text.length == 7;
 
-  late final String rrnFront6 = widget.rrn.substring(0, 6);
+  late final String rrnFront6 = widget.custInfo.rrn!.substring(0, 6);
 
   String? fullRrn;
 
@@ -39,7 +36,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    debugPrint("name: ${widget.name}");
+    debugPrint("name: ${widget.custInfo.name}");
   }
 
   @override
@@ -93,7 +90,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
                     border: Border.all(color: Colors.grey.shade300),
                   ),
                   child: Text(
-                    widget.name,
+                    widget.custInfo.name,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -119,7 +116,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
                         ),
                       ),
                       child: Text(
-                        widget.rrn.substring(0, 6),   // ← 앞 6자리만 표시
+                        widget.custInfo.rrn!.substring(0, 6),   // ← 앞 6자리만 표시
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -148,7 +145,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
                               _rrnBackController.text = result;
 
                               // 전체 주민번호 13자리 조립
-                              fullRrn = widget.rrn.substring(0, 6) + result;
+                              fullRrn = widget.custInfo.rrn!.substring(0, 6) + result;
 
                               print("전체 주민번호: $fullRrn");   // ← 여기서 13자리 완성됨
                               // TODO: fullRrn 을 서버 전송용 변수에 저장하거나 다음 페이지로 넘기면 됨
@@ -219,6 +216,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
     );
   }
   void _showAgreementSheet() {
+    widget.custInfo.rrn = fullRrn;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -226,7 +224,7 @@ class _SignUp5PageState extends State<SignUp5Page> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
-      builder: (_) =>AgreementSheet(name: widget.name, rrn: fullRrn!, phone: widget.phone,),
+      builder: (_) =>AgreementSheet(custInfo: widget.custInfo,),
     );
   }
 
@@ -234,10 +232,8 @@ class _SignUp5PageState extends State<SignUp5Page> {
 
 
 class AgreementSheet extends StatefulWidget {
-  final String name;
-  final String rrn;
-  final String phone;
-  const AgreementSheet({super.key, required this.name, required this.rrn, required this.phone});
+  final CustInfo custInfo;
+  const AgreementSheet({super.key, required this.custInfo,});
 
   @override
   State<AgreementSheet> createState() => _AgreementSheetState();
@@ -351,7 +347,7 @@ class _AgreementSheetState extends State<AgreementSheet> {
                   onPressed: reqAgree ? () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => LoginCredentialSetupPage(name: widget.name, rrn: widget.rrn, phone: widget.phone,))
+                      MaterialPageRoute(builder: (_) => LoginCredentialSetupPage(custInfo : widget.custInfo))
                     );
                   } : null,
                   style: ElevatedButton.styleFrom(

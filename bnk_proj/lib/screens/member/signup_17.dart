@@ -1,17 +1,14 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/member/signup_18.dart';
 import '../app_colors.dart';
 
 
 class AcctAgreementPage extends StatefulWidget {
-  const AcctAgreementPage({super.key, required this.name, required this.rrn, required this.phone, required this.id, required this.pw});
-  final String name;
-  final String rrn;
-  final String phone;
-  final String id;
-  final String pw;
+  const AcctAgreementPage({super.key, required this.custInfo});
+  final CustInfo custInfo;
 
   @override
   State<AcctAgreementPage> createState() => _AcctAgreementPageState();
@@ -150,7 +147,7 @@ class _AcctAgreementPageState extends State<AcctAgreementPage> {
             height: 55,
             child: ElevatedButton(
               onPressed: isRequiredAllChecked ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerInfoPage(name: widget.name, phone: widget.phone, rrn: widget.rrn, id: widget.id, pw: widget.pw,)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerInfoPage(custInfo: widget.custInfo,)));
               } : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: isRequiredAllChecked

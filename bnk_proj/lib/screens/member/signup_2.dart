@@ -3,14 +3,18 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:test_main/screens/member/signup_3.dart';
 
+import '../../models/cust_info.dart';
 import '../app_colors.dart';
 
 class SignUp2Page extends StatefulWidget {
-  final String name;
-  const SignUp2Page({super.key, required this.name});
+  final CustInfo custInfo;
+
+  const SignUp2Page({
+    super.key,
+    required this.custInfo,
+  });
 
   @override
   State<SignUp2Page> createState() => _SignUp2PageState();
@@ -27,7 +31,7 @@ class _SignUp2PageState extends State<SignUp2Page> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.name);
+    _nameController = TextEditingController(text: widget.custInfo.name);
     _rrnBackFirst.addListener(_checkInput);
     Future.delayed(Duration(milliseconds: 300), () {
       _frontFocus.requestFocus();
@@ -294,13 +298,14 @@ class _SignUp2PageState extends State<SignUp2Page> {
                 // 🔹 이름 가져오기
                 final name = _nameController!.text;
 
+                widget.custInfo.rrn = rrn;
+
                 // 🔹 SignUp3Page 로 이동
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => SignUp3Page(
-                      name: name,
-                      rrn: rrn,
+                      custInfo: widget.custInfo,
                     ),
                   ),
                 );

@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 
+import '../../models/cust_acct.dart';
+import '../../models/cust_info.dart';
+
 class AccountCreateCompletePage extends StatelessWidget {
-  const AccountCreateCompletePage({super.key});
+
+  final CustInfo custInfo;
+  final CustAcct custAcct;
+
+  final String contractMethod;
+
+  const AccountCreateCompletePage({super.key, required this.custInfo, required this.custAcct, required this.contractMethod});
 
   @override
   Widget build(BuildContext context) {

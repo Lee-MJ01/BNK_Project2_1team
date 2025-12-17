@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_11.dart';
 
 class IdCardConfirmPage extends StatelessWidget {
   final String ocrText;
 
-  final String name;
-  final String rrn;
-  final String phone;
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
 
   const IdCardConfirmPage({
     super.key,
-    required this.ocrText, required this.name, required this.rrn, required this.phone, required this.id, required this.pw,
+    required this.ocrText, required this.custInfo,
   });
 
 
@@ -74,7 +71,7 @@ class IdCardConfirmPage extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => IdVerifyCompletePage(name: name, rrn: rrn, phone: phone, id: id, pw: pw,)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => IdVerifyCompletePage(custInfo: custInfo,)));
               },
               child: Container(
                 height: 60,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_2.dart';
 
+import '../../models/cust_info.dart';
+
 class SignUp1Page extends StatefulWidget {
   const SignUp1Page({super.key});
 
@@ -102,10 +104,15 @@ class _SignUp1PageState extends State<SignUp1Page> {
                   onTap: isButtonEnabled
                       ? () {
                     final name = value.text.trim();
+
+                    final custInfo = CustInfo(
+                      name: name
+                    );
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => SignUp2Page(name: name),
+                        builder: (_) => SignUp2Page(custInfo: custInfo),
                       ),
                     );
                   }

@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_6.dart';
 
 class LoginCredentialSetupPage extends StatefulWidget {
-  final String name;
-  final String rrn;
-  final String phone;
+  final CustInfo custInfo;
 
   const LoginCredentialSetupPage({
-    super.key,
-    required this.name,
-    required this.rrn,
-    required this.phone,
+    super.key, required this.custInfo,
   });
 
   @override
@@ -169,9 +165,12 @@ class _LoginCredentialSetupPageState
                         // 1. loginId + loginPw 서버 전송
                         // 2. 회원 생성 완료
 
+
+                        widget.custInfo.id = _idController.text;
+                        widget.custInfo.pw = _pwController.text;
                         Navigator.push(
                           context, 
-                          MaterialPageRoute(builder: (_) => SignUp6Page(name: widget.name, phone: widget.phone, rrn: widget.rrn, id: _idController.text, pw: _pwController.text,))  
+                          MaterialPageRoute(builder: (_) => SignUp6Page(custInfo: widget.custInfo,))
                         );
                       }
                     : null,

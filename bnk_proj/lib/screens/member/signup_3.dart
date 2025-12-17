@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_4.dart';
 
+import '../../models/cust_info.dart';
+
 class SignUp3Page extends StatefulWidget {
-  final String name;
-  final String rrn;   // 주민번호 앞 7자리
+  final CustInfo custInfo;
 
   const SignUp3Page({
-    super.key,
-    required this.name,
-    required this.rrn,
+    super.key, required this.custInfo,
   });
 
   @override
@@ -41,7 +40,7 @@ class _SignUp3PageState extends State<SignUp3Page> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.name);
+    _nameController = TextEditingController(text: widget.custInfo.name);
   }
 
   void _selectCarrier() {
@@ -197,7 +196,7 @@ class _SignUp3PageState extends State<SignUp3Page> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: List.generate(6, (i) {
                           return Text(
-                            widget.rrn[i],
+                            widget.custInfo.rrn![i],
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -221,7 +220,7 @@ class _SignUp3PageState extends State<SignUp3Page> {
 
                           /// 뒤 첫 1자리
                           Text(
-                            widget.rrn[6],
+                            widget.custInfo.rrn![6],
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -517,13 +516,14 @@ class _SignUp3PageState extends State<SignUp3Page> {
     if (context.mounted) {
       Navigator.pop(context); // 로딩 닫기
 
+      widget.custInfo.phone = _phoneController.text;
+
+
       // SignUp4Page로 이동
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => SignUp4Page(
-          name: widget.name,
-          rrn: widget.rrn,
-          phone: _phoneController.text,
+          custInfo : widget.custInfo
         ),),
       );
     }

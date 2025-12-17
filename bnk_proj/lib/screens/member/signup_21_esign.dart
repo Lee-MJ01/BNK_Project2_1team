@@ -3,61 +3,23 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_acct.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_22.dart';
+
+import '../../utils/device_manager.dart';
 
 class ElectronicSignaturePage extends StatefulWidget {
   const ElectronicSignaturePage({
     super.key,
-    required this.name,
-    required this.rrn,
-    required this.purpose,
-    required this.source,
-    required this.isOwner,
-    required this.isForeignTax,
-    required this.jobType,
-    required this.phone,
-    required this.zip,
-    required this.addr1,
-    required this.addr2,
-    required this.email,
-    required this.mailAgree,
-    required this.phoneAgree,
-    required this.emailAgree,
-    required this.smsAgree,
-    required this.showForeignInfo,
-    required this.showNotice,
-    required this.salaryExist,
-    required this.manageBranch,
-    required this.contractMethod, required this.id, required this.pw,
+    required this.contractMethod, required this.custInfo, required this.custAcct,
   });
 
-  final String name;        // 화면 표시용
-  final String rrn;    // rrn 해시
-  final String jobType;
-  final String purpose;
-  final String source;
-  final bool isOwner;
-  final bool isForeignTax;
-
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
+  final CustAcct custAcct;
 
 
-
-  final String phone;
-  final String zip;
-  final String addr1;
-  final String addr2;
-  final String email;
-  final String mailAgree;
-  final String phoneAgree;
-  final String emailAgree;
-  final String smsAgree;
-  final bool showForeignInfo;
-  final bool showNotice;
-  final bool salaryExist; // 급여일 여부
-  final bool manageBranch; // 관리희망점
   final String contractMethod;
 
   @override
@@ -75,11 +37,11 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
   Map<String, dynamic> _buildContractSnapshot(String personId) {
     return {
       "personId": personId,
-      "jobType": widget.jobType,
-      "purpose": widget.purpose,
-      "source": widget.source,
-      "isOwner": widget.isOwner,
-      "isForeignTax": widget.isForeignTax,
+      "jobType": widget.custInfo.jobType,
+      "purpose": widget.custAcct.purpose,
+      "source": widget.custAcct.source,
+      "isOwner": widget.custAcct.isOwner,
+      "isForeignTax": widget.custInfo.isForeignTax,
       "productCode": "CHECKING_ACCOUNT",
       "termsVersion": "v1.0",
       "contractAt": DateTime.now().toIso8601String(),
@@ -103,12 +65,12 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
   @override
   void initState() {
     super.initState();
-    personId = sha256Hex(widget.rrn);   // rrn → personId
+    personId = sha256Hex(widget.custInfo.rrn!);   // rrn → personId
     _initDeviceId();
   }
 
   Future<void> _initDeviceId() async {
-    _deviceId = "";
+    _deviceId = await DeviceManager.getDeviceId();
   }
 
   @override
@@ -142,12 +104,12 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
                 const SizedBox(height: 20),
 
                 _contractRow("상품명", "FLO 입출금통장"),
-                _contractRow("계약자", _maskName(widget.name)),
-                _contractRow("개설 목적", widget.purpose),
-                _contractRow("자금 출처", widget.source),
-                _contractRow("본인 소유 여부", widget.isOwner ? "예" : "아니오"),
+                _contractRow("계약자", _maskName(widget.custInfo.name)),
+                _contractRow("개설 목적", widget.custAcct.purpose!),
+                _contractRow("자금 출처", widget.custAcct.source!),
+                _contractRow("본인 소유 여부", widget.custAcct.isOwner ? "예" : "아니오"),
                 _contractRow(
-                    "해외 납세 의무자", widget.isForeignTax ? "예" : "아니오"),
+                    "해외 납세 의무자", widget.custInfo.isForeignTax ? "예" : "아니오"),
 
                 const SizedBox(height: 16),
 
@@ -278,10 +240,10 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
     // rrn 메모리 폐기 (의미적)
     // widget.rrn = null; // ← final이라 실제 제거는 scope 종료로 처리
 
-    // TODO : 다음 화면 이동
+    widget.custInfo.deviceId = _deviceId;
     Navigator.push(
       context, 
-      MaterialPageRoute(builder: (_) => AccountCreateCompletePage())
+      MaterialPageRoute(builder: (_) => AccountCreateCompletePage(custAcct: widget.custAcct, custInfo: widget.custInfo, contractMethod: widget.contractMethod, ))
     );
   }
 

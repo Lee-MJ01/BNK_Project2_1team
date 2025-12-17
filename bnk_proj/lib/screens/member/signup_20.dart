@@ -1,35 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_acct.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_21_esign.dart';
+
+enum ReferralType { employee, none }
 
 class DemandAccountOpenPage extends StatefulWidget {
   const DemandAccountOpenPage({
     super.key,
-    required this.email, required this.name, required this.rrn, required this.phone, required this.zip, required this.addr1, required this.addr2, required this.mailAgree, required this.phoneAgree, required this.emailAgree, required this.smsAgree, required this.jobType, required this.purpose, required this.source, required this.isOwner, required this.isForeignTax, required this.showForeignInfo, required this.showNotice, required this.id, required this.pw,
+     required this.custInfo, required this.custAcct,
   });
 
-  final String name;
-  final String rrn;
-  final String phone;
-  final String zip;
-  final String addr1;
-  final String addr2;
-  final String email;
-  final String mailAgree;
-  final String phoneAgree;
-  final String emailAgree;
-  final String smsAgree;
 
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
+  final CustAcct custAcct;
 
-  final String jobType;
-  final String purpose;
-  final String source;
-  final bool isOwner;          // 거래자금 본인 소유
-  final bool isForeignTax;   // 해외 납세 의무자
-  final bool showForeignInfo;
-  final bool showNotice;
+
 
   @override
   State<DemandAccountOpenPage> createState() => _DemandAccountOpenPageState();
@@ -43,10 +30,19 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
   late final String emailId;
   late final String emailDomain;
 
+
+
+  ReferralType _type = ReferralType.none;
+  final TextEditingController _searchController = TextEditingController();
+
+  bool get isEmployee => _type == ReferralType.employee;
+
+  List<int> numbers = [];
+
   @override
   void initState() {
     super.initState();
-    final parts = widget.email.split('@');
+    final parts = widget.custInfo.email!.split('@');
     emailId = parts.isNotEmpty ? parts.first : "";
     emailDomain = parts.length > 1 ? parts.last : "";
   }
@@ -196,6 +192,44 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
                     ],
                   ),
 
+
+                if (contractMethod == "LMS")
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("LMS",
+                          style: TextStyle(color: Colors.black54)),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Colors.grey.shade400, width: 2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                widget.custInfo.phone!,
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      _infoText(
+                          "금융소비자보호법에 따라 FB뱅킹 알림, 이메일 및 LMS 수신 거절 여부과 관계없이 발송됩니다."),
+                    ],
+                  ),
+
                 const SizedBox(height: 32),
 
                 _toggleRow(
@@ -209,6 +243,89 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
                 const SizedBox(height: 16),
 
                 _infoText("관리점은 자동으로 지정됩니다."),
+
+
+
+                const SizedBox(height: 28),
+                const Text(
+                  "권유직원 선택",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    _selectButton(
+                      label: "직원이름",
+                      selected: isEmployee,
+                      onTap: () {
+                        setState(() {
+                          _type = ReferralType.employee;
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _selectButton(
+                      label: "없음",
+                      selected: _type == ReferralType.none,
+                      onTap: () {
+                        setState(() {
+                          _type = ReferralType.none;
+                          _searchController.clear();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                /// 직원 검색바 (직원이름 선택 시만)
+                if (isEmployee) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              hintText: "직원 이름을 입력하세요",
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        if (_searchController.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _searchController.clear();
+                              });
+                            },
+                            child: const Icon(Icons.close, size: 20),
+                          ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade600,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            "검색",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
 
                 const SizedBox(height: 24),
 
@@ -227,38 +344,98 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                // 1. 비밀번호 설정
+                final pw1 = await showPasswordBottomSheet(context, title: "계좌 비밀번호 설정");
+                if (pw1 == null) return;
+
+                // 2. 비밀번호 확인
+                final pw2 = await showPasswordBottomSheet(context, title: "비밀번호 확인");
+                if (pw2 == null) return;
+
+                // 3. 검증
+                if (pw1 != pw2) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false, // 바깥 눌러서 닫히지 않게
+                    builder: (_) {
+                      return Dialog(
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0), // 살짝만 각진 사각형
+                        ),
+                        child: SizedBox(
+                          width: 300,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 28),
+
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                child: Text(
+                                  "비밀번호가 일치하지 않습니다",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 28),
+                              const Divider(height: 1),
+
+                              SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: AppColors.pointDustyNavy,
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.zero, // 버튼 직각
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    "확인",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+
+                  return;
+                }
+
+                widget.custAcct.salaryExist = salaryExist;
+                widget.custAcct.manageBranch = manageBranch;
+                // 4. 다음 화면 이동
                 Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ElectronicSignaturePage(
-                        name: widget.name,
-                        rrn: widget.rrn,
-                        purpose: widget.purpose,
-                        source: widget.source,
-                        isOwner: widget.isOwner,
-                        isForeignTax: widget.isForeignTax,
-                        jobType: widget.jobType,
-                        phone: widget.phone,
-                        zip: widget.zip,
-                        addr1: widget.addr1,
-                        addr2: widget.addr2,
-                        email: widget.email,
-                        mailAgree: widget.mailAgree,
-                        phoneAgree: widget.phoneAgree,
-                        emailAgree: widget.emailAgree,
-                        smsAgree: widget.smsAgree,
-                        showForeignInfo: widget.showForeignInfo,
-                        showNotice: widget.showNotice,
-                        salaryExist: salaryExist,
-                        manageBranch: manageBranch,
-                        contractMethod: contractMethod,
-                        id: widget.id,
-                        pw: widget.pw,
-                      ),
-                    )
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ElectronicSignaturePage(
+                      custInfo: widget.custInfo,
+                      custAcct: widget.custAcct,
+
+                      contractMethod: contractMethod,
+
+                    ),
+                  ),
                 );
               },
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.pointDustyNavy,
                 shape: const RoundedRectangleBorder(
@@ -277,7 +454,21 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
         ],
       ),
     );
+
+
   }
+  Future<String?> showPasswordBottomSheet(
+      BuildContext context, {
+        required String title,
+      }) {
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (_) => _PasswordBottomSheet(title: title),
+    );
+  }
+
 
   // -----------------------------
   Widget _toggleRow({
@@ -347,6 +538,35 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
     );
   }
 
+  Widget _selectButton({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: selected ? Colors.black : Colors.black26,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
 
   Widget _infoText(String text) {
@@ -364,4 +584,166 @@ class _DemandAccountOpenPageState extends State<DemandAccountOpenPage> {
       ],
     );
   }
+}
+
+class _PasswordBottomSheet extends StatefulWidget {
+  final String title;
+  const _PasswordBottomSheet({required this.title});
+
+  @override
+  State<_PasswordBottomSheet> createState() => _PasswordBottomSheetState();
+}
+
+class _PasswordBottomSheetState extends State<_PasswordBottomSheet> {
+  String input = "";
+  List<int> numbers = List.generate(9, (i) => i + 1);
+
+  @override
+  void initState() {
+    super.initState();
+    shuffleNumbers();
+  }
+
+  void addNumber(int n) {
+    if (input.length >= 4) return;
+
+    setState(() => input += n.toString());
+
+    if (input.length == 4) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        Navigator.pop(context, input);
+      });
+    }
+  }
+
+  void deleteNumber() {
+    if (input.isEmpty) return;
+    setState(() => input = input.substring(0, input.length - 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: MediaQuery.of(context).viewInsets +
+          const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 30),
+          Text(widget.title, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 30),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(4, (i) {
+              final filled = i < input.length;
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: filled ? Colors.black : Colors.grey.shade300,
+                ),
+              );
+            }),
+          ),
+
+          const SizedBox(height: 30),
+
+          // 숫자 키패드
+          Column(
+            children: [
+              // 1~9
+              for (int row = 0; row < 3; row++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      for (int col = 0; col < 3; col++) ...[
+                        Expanded(
+                          child: _buildKey(numbers[row * 3 + col]),
+                        ),
+                        if (col != 2) const SizedBox(width: 8),
+                      ],
+                    ],
+                  ),
+                ),
+
+              // 마지막 줄
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildIconKey(
+                      icon: Icons.refresh,
+                      onTap: shuffleNumbers,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildKey(0)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildIconKey(
+                      icon: Icons.backspace_outlined,
+                      onTap: deleteNumber,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildKey(int number) {
+    return GestureDetector(
+      onTap: () => addNumber(number),
+      child: Container(
+        height: 90, // 세로만 고정
+        alignment: Alignment.center,
+        margin: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEBF0F6),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          "$number",
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconKey({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 120,
+        height: 90,
+        margin: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color:Color(0xFFEBF0F6),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 30),
+      ),
+    );
+  }
+
+
+
+  void shuffleNumbers() {
+    numbers = List.generate(9, (i) => i + 1); // 1~9
+    numbers.shuffle();
+    setState(() {});
+  }
+
 }

@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:test_main/screens/member/signup_19.dart';
+import '../../models/cust_info.dart';
 import '../app_colors.dart';
 
 import 'signup_18_addr.dart';
 
 
 class CustomerInfoPage extends StatefulWidget {
-  const CustomerInfoPage({super.key, required this.name, required this.rrn, required this.phone, required this.id, required this.pw});
-  final String name;
-  final String rrn;
-  final String phone;
-  final String id;
-  final String pw;
+  const CustomerInfoPage({super.key, required this.custInfo, });
+  final CustInfo custInfo;
 
   @override
   State<CustomerInfoPage> createState() => _CustomerInfoPageState();
@@ -52,7 +49,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
   @override
   void initState() {
     super.initState();
-    phoneCtrl.text = widget.phone.substring(3);
+    phoneCtrl.text = widget.custInfo.phone!.substring(3);
   }
 
 
@@ -119,8 +116,6 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
                 _selectRow("SMS", ["수신", "거부"], smsAgree,
                         (v) => setState(() => smsAgree = v)),
 
-
-
                 const SizedBox(height: 20),
               ],
             ),
@@ -132,10 +127,19 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
             height: 56,
             child: ElevatedButton(
               onPressed: () {
+                widget.custInfo.zip = zip;
+                widget.custInfo.addr1 = addr1;
+                widget.custInfo.addr2 = addr2Ctrl.text;
+                widget.custInfo.email = fullEmail;
+                widget.custInfo.smsAgree = smsAgree;
+                widget.custInfo.emailAgree = emailAgree;
+                widget.custInfo.phoneAgree = phoneAgree;
+                widget.custInfo.mailAgree = mailAgree;
+
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => ExtraInfoPage(name: widget.name, rrn: widget.rrn, phone: widget.phone, zip: zip, addr1: addr1, addr2: addr2Ctrl.text, email: fullEmail, mailAgree: mailAgree, phoneAgree: phoneAgree, emailAgree: emailAgree, smsAgree: smsAgree, id: widget.id, pw: widget.pw,)
+                        builder: (_) => ExtraInfoPage(custInfo: widget.custInfo, )
                     )
                 );
               },

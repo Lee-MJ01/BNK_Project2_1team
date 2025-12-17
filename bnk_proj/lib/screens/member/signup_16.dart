@@ -1,20 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_17.dart';
 
 
 class AccountVerifyConfirmPage extends StatefulWidget {
-  const AccountVerifyConfirmPage({super.key, required this.name, required this.rrn, required this.phone, required this.bank, required this.accountNumber, required this.id, required this.pw});
+  const AccountVerifyConfirmPage({super.key,required this.bank, required this.accountNumber, required this.custInfo, });
 
-  final String name;
-  final String rrn;
-  final String phone;
+
   final String bank;
   final String accountNumber;
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
+
 
 
 
@@ -68,7 +67,7 @@ class _AccountVerifyConfirmPageState extends State<AccountVerifyConfirmPage> {
         top: 0,
         left: 0,
         right: 0,
-        child: FakePushNotification(bank: widget.bank, accountNumber: widget.accountNumber, name: widget.name, rrn: widget.rrn, phone: widget.phone),
+        child: FakePushNotification(bank: widget.bank, accountNumber: widget.accountNumber, custInfo: widget.custInfo,),
       ),
     );
 
@@ -208,7 +207,7 @@ class _AccountVerifyConfirmPageState extends State<AccountVerifyConfirmPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AcctAgreementPage(name: widget.name, rrn: widget.rrn, phone: widget.phone, id: widget.id, pw: widget.pw,),
+              builder: (_) => AcctAgreementPage(custInfo: widget.custInfo,),
             ),
           );
         }
@@ -318,14 +317,12 @@ class _AccountVerifyConfirmPageState extends State<AccountVerifyConfirmPage> {
 class FakePushNotification extends StatelessWidget {
   final String bank;
   final String accountNumber;
-  final String name;
-  final String rrn;
-  final String phone;
+  final CustInfo custInfo;
 
   const FakePushNotification({
     super.key,
     required this.bank,
-    required this.accountNumber, required this.name, required this.rrn, required this.phone,
+    required this.accountNumber, required this.custInfo,
   });
 
   @override

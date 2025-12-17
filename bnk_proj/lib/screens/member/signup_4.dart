@@ -1,17 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_5.dart';
 
 class SignUp4Page extends StatefulWidget {
   const SignUp4Page({super.key,
-    required this.name,
-    required this.rrn,
-    required this.phone});
-  final String name;
-  final String rrn;
-  final String phone;
+    required this.custInfo});
+  final CustInfo custInfo;
 
   @override
   State<SignUp4Page> createState() => _SignUp4PageState();
@@ -314,9 +311,7 @@ class _SignUp4PageState extends State<SignUp4Page> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => SignUp5Page(
-                          name: widget.name,
-                          rrn: widget.rrn,
-                          phone: widget.phone,
+                          custInfo : widget.custInfo
                         ),
                       ),
                     );

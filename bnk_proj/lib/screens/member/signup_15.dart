@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/member/signup_16.dart';
 import '../app_colors.dart';
 
 class AccountVerifyPage extends StatefulWidget {
-  const AccountVerifyPage({super.key, required this.name, required this.rrn, required this.phone, required this.id, required this.pw});
+  const AccountVerifyPage({super.key, required this.custInfo, });
 
-  final String name;
-  final String rrn;
-  final String phone;
-  final String id;
-  final String pw;
+  final CustInfo custInfo;
 
 
   @override
@@ -94,13 +91,9 @@ class _AccountVerifyPageState extends State<AccountVerifyPage> {
             context,
             MaterialPageRoute(
               builder: (_) => AccountVerifyConfirmPage(
-                name: widget.name,
-                rrn: widget.rrn,
-                phone: widget.phone,
+                custInfo: widget.custInfo,
                 bank: bank,
                 accountNumber: accountNumber,
-                id: widget.id,
-                pw: widget.pw,
               ),
             ),
           );

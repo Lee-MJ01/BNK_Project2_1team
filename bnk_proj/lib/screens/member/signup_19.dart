@@ -1,24 +1,17 @@
 
 import 'package:flutter/material.dart';
+import 'package:test_main/models/cust_acct.dart';
+import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_20.dart';
 
 class ExtraInfoPage extends StatefulWidget {
-  final String name;
-  final String rrn;
-  final String phone;
-  final String zip;
-  final String addr1;
-  final String addr2;
-  final String email;
-  final String mailAgree;
-  final String phoneAgree;
-  final String emailAgree;
-  final String smsAgree;
-  final String id;
-  final String pw;
+  
 
-  const ExtraInfoPage({super.key, required this.name, required this.rrn, required this.phone, required this.zip, required this.addr1, required this.addr2, required this.email, required this.mailAgree, required this.phoneAgree, required this.emailAgree, required this.smsAgree, required this.id, required this.pw});
+  final CustInfo custInfo;
+
+
+  const ExtraInfoPage({super.key,required this.custInfo});
 
   @override
   State<ExtraInfoPage> createState() => _ExtraInfoPageState();
@@ -239,10 +232,12 @@ class _ExtraInfoPageState extends State<ExtraInfoPage> {
                   purpose.isNotEmpty &&
                   source.isNotEmpty
                   ? () {
+                CustAcct custAcct = CustAcct(purpose: purpose, source: source, isOwner: isOwner, salaryExist: false, manageBranch: false,);
+                widget.custInfo.jobType = jobType;
                 Navigator.push(
                     context,
                   MaterialPageRoute(
-                      builder: (_) => DemandAccountOpenPage(name: widget.name, email: widget.email, rrn: widget.rrn, phone: widget.phone, zip: widget.zip, addr1: widget.addr1, addr2: widget.addr2, mailAgree: widget.mailAgree, smsAgree: widget.smsAgree, emailAgree: widget.emailAgree, phoneAgree: widget.phoneAgree, purpose: purpose, jobType: jobType, source: source, isOwner: isOwner, isForeignTax: isForeignTax, showForeignInfo: showForeignInfo, showNotice: showNotice, id: widget.id, pw: widget.pw,)
+                      builder: (_) => DemandAccountOpenPage(custAcct: custAcct, custInfo: widget.custInfo)
                   )
                 );
               }
