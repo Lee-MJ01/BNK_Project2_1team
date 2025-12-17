@@ -1,0 +1,11 @@
+package kr.co.api.backend.mapper;
+
+
+import kr.co.api.backend.dto.ExchangeRiskDTO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+@Mapper
+public interface ExchangeRiskMapper {
+    ExchangeRiskDTO selectVolatility(@Param("currency") String currency, @Param("searchDate") String searchDate);
+}

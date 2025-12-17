@@ -31,6 +31,7 @@ void main() async{
   String deviceId = await DeviceManager.getDeviceId();
   debugPrint("[App Start] 기기 고유 ID 확보 완료: $deviceId");
 
+  await initializeDateFormatting();
   runApp(const MyApp());
 }
 
@@ -295,51 +296,58 @@ class _LoginFormState extends State<_LoginForm> {
             ),
             onPressed: () async {
               // 1. 입력값 확인
-              String id = _idController.text.trim();
-              String pw = _pwController.text.trim();
+              // String id = _idController.text.trim();
+              // String pw = _pwController.text.trim();
 
-              if (id.isEmpty || pw.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')),
-                );
-                return;
-              }
+
+              // if (id.isEmpty || pw.isEmpty) {
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')),
+              //   );
+              //   return;
+              // }
 
               // 2. 기기 ID 가져오기 (main에서 이미 만들어졌으므로 즉시 리턴됨)
-              String deviceId = await DeviceManager.getDeviceId();
+              // String deviceId = await DeviceManager.getDeviceId();
 
               // 3. 로그인 요청 및 결과 처리 (Map으로 받음)
-              Map<String, dynamic> result = await ApiService.login(id, pw, deviceId);
-              String status = result['status']; // 서버에서 보낸 status 값 확인
-
-              if (!mounted) return;
-
-              if (status == 'SUCCESS') {
-                // [Case A] 정상 로그인 (기기 일치)
-                print("✅ 로그인 성공 & 기기 인증 완료");
-                Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const BankHomePage())
-                );
-              } else if (status == 'NEW_DEVICE') {
-                // [Case B] 새로운 기기 감지 -> 추가 인증 필요
-                print("새로운 기기 감지됨. 본인 인증 필요.");
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('새로운 기기가 감지되었습니다. 본인 인증을 진행해주세요.'),
-                    duration: Duration(seconds: 3),
-                  ),
-                );
-
-                // TODO: 여기서 본인인증 화면(SMS 등)으로 이동시키는 로직 추가
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => AuthCheckPage()));
-
-              } else {
-                // [Case C] 로그인 실패 (아이디/비번 틀림 등)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result['message'] ?? '로그인에 실패했습니다.')),
-                );
-              }
+              // Map<String, dynamic> result = await ApiService.login(id, pw, deviceId);
+              // String status = result['status']; // 서버에서 보낸 status 값 확인
+              //
+              // if (!mounted) return;
+              //
+              // if (status == 'SUCCESS') {
+              //   // [Case A] 정상 로그인 (기기 일치)
+              //   print("✅ 로그인 성공 & 기기 인증 완료");
+              //   Navigator.pushReplacement(
+              //       context,
+              //       MaterialPageRoute(builder: (context) => const BankHomePage())
+              //   );
+              // } else if (status == 'NEW_DEVICE') {
+              //   // [Case B] 새로운 기기 감지 -> 추가 인증 필요
+              //   print("새로운 기기 감지됨. 본인 인증 필요.");
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     const SnackBar(
+              //       content: Text('새로운 기기가 감지되었습니다. 본인 인증을 진행해주세요.'),
+              //       duration: Duration(seconds: 3),
+              //     ),
+              //   );
+              //
+              //   // TODO: 여기서 본인인증 화면(SMS 등)으로 이동시키는 로직 추가
+              //   // Navigator.push(context, MaterialPageRoute(builder: (context) => AuthCheckPage()));
+              //
+              // } else {
+              //   // [Case C] 로그인 실패 (아이디/비번 틀림 등)
+              //   ScaffoldMessenger.of(context).showSnackBar(
+              //     SnackBar(content: Text(result['message'] ?? '로그인에 실패했습니다.')),
+              //   );
+              // }
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BankHomePage(),
+                ),
+              );
             },
             child: const Text('로그인하기'),
           ),

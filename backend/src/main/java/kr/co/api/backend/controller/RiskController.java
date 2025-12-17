@@ -4,12 +4,10 @@ package kr.co.api.backend.controller;
 import kr.co.api.backend.dto.ExchangeRiskDTO;
 import kr.co.api.backend.service.RiskService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/risk") // 앱이 여기로 접속합니다
@@ -18,15 +16,11 @@ public class RiskController {
 
     private final RiskService riskService;
 
-    @GetMapping
-    public List<ExchangeRiskDTO> getRisk(@RequestParam("date") String date) {
-        System.out.println("앱에서 요청한 날짜: " + date); // 로그로 확인 가능
-        return riskService.getRiskDataByDate(date);
+    @GetMapping("/{currency}")
+    public Map<String, Object> getRisk(
+            @PathVariable String currency,
+            @RequestParam(value = "date", required = false) String date
+    ) {
+        return riskService.getRiskInfo(currency, date);
     }
-
-
-
-
-
-
 }

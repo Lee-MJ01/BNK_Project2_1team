@@ -1,46 +1,55 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 // ---------------------------------------------------------------------------
-// 1. 데이터 모델 (Spring Boot의 DTO와 1:1 매칭)
+// 1. 데이터 모델
 // ---------------------------------------------------------------------------
 class ExchangeRiskModel {
-  final String volStdDy;        // 기준일자
-  final String volCurrency;     // 통화
-  final double volCurrentVal;   // 현재 위험도
-  final double volForecastVal;  // 예측 위험도
-  final String weatherIcon;     // ☀️, ☁️, ⛈️ (백엔드에서 줌)
-  final String riskStatus;      // 안전, 주의, 위험 (백엔드에서 줌)
-  final String predictionComment; // "내일은..." (백엔드에서 줌)
+  final String currency;     // 통화 코드
+  final String targetDate;   // 조회 날짜
+  final String rateDate;     // 실제 환율 기준일
+  final double currentRate;  // 현재 환율
+  final double riskPercent;  // 변동성 (%)
+  final String expectedGap;  // 예상 변동폭 (원)
+  final String weatherIcon;  // SUNNY, CLOUDY, STORM
+  final String weatherText;  // 맑음, 구름조금, 폭풍우
+  final String message;      // 사용자 안내 메시지
+  final String status;       // success / error
 
   ExchangeRiskModel({
-    required this.volStdDy,
-    required this.volCurrency,
-    required this.volCurrentVal,
-    required this.volForecastVal,
+    required this.currency,
+    required this.targetDate,
+    required this.rateDate,
+    required this.currentRate,
+    required this.riskPercent,
+    required this.expectedGap,
     required this.weatherIcon,
-    required this.riskStatus,
-    required this.predictionComment,
+    required this.weatherText,
+    required this.message,
+    required this.status,
   });
 
-  // JSON -> Dart 객체 변환
   factory ExchangeRiskModel.fromJson(Map<String, dynamic> json) {
     return ExchangeRiskModel(
-      volStdDy: json['volStdDy'] ?? '',
-      volCurrency: json['volCurrency'] ?? '',
-      volCurrentVal: (json['volCurrentVal'] ?? 0.0).toDouble(),
-      volForecastVal: (json['volForecastVal'] ?? 0.0).toDouble(),
-      weatherIcon: json['weatherIcon'] ?? '❓',
-      riskStatus: json['riskStatus'] ?? '-',
-      predictionComment: json['predictionComment'] ?? '',
+      currency: json['currency'] ?? '',
+      targetDate: json['target_date'] ?? '',
+      rateDate: json['rate_date'] ?? '',
+      currentRate: (json['current_rate'] ?? 0.0).toDouble(),
+      riskPercent: (json['risk_percent'] ?? 0.0).toDouble(),
+      expectedGap: json['expected_gap'].toString(),
+      weatherIcon: json['weather_icon'] ?? 'SUNNY',
+      weatherText: json['weather_text'] ?? '-',
+      message: json['message'] ?? '',
+      status: json['status'] ?? 'error',
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// 2. 메인 화면 위젯
+// 2. 메인 화면
 // ---------------------------------------------------------------------------
 class ExchangeRiskScreen extends StatefulWidget {
   const ExchangeRiskScreen({Key? key}) : super(key: key);
@@ -50,71 +59,110 @@ class ExchangeRiskScreen extends StatefulWidget {
 }
 
 class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
-  DateTime _selectedDate = DateTime.now(); // 기본값: 오늘
+  DateTime _selectedDate = DateTime.now();
   List<ExchangeRiskModel> _riskList = [];
   bool _isLoading = false;
+
+  // ✅ [수정됨] 조회할 통화 목록 (7개)
+  final List<String> _targetCurrencies = [
+    'USD', // 미국
+    'JPY', // 일본
+    'EUR', // 유럽
+    'CNY', // 중국
+    'GBP', // 영국
+    'CHF', // 스위스
+    'AUD', // 호주
+  ];
 
   @override
   void initState() {
     super.initState();
-    // 화면 시작 시 데이터 로드
     _fetchRiskData(_selectedDate);
   }
 
-  // -------------------------------------------------------------------------
-  // [통신] 백엔드(Spring Boot) API 호출
-  // -------------------------------------------------------------------------
-  Future<void> _fetchRiskData(DateTime date) async {
-    setState(() => _isLoading = true);
-
-    String dateStr = DateFormat('yyyyMMdd').format(date);
-
-    // ⚠️ 주의: 에뮬레이터는 10.0.2.2, 실제 기기는 PC IP주소 사용
-
-    final String baseUrl = "http://34.64.124.33:8080/backend/api/risk";
-    // final String baseUrl = "http://34.64.124.33:8080/api/risk";
-
-    try {
-      final response = await http.get(Uri.parse('$baseUrl?date=$dateStr'));
-
-      if (response.statusCode == 200) {
-        // 한글 깨짐 방지: utf8.decode 사용
-        List<dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
-
-        setState(() {
-          _riskList = body.map((item) => ExchangeRiskModel.fromJson(item)).toList();
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Server Error: ${response.statusCode}');
-      }
-    } catch (e) {
-      print("Error: $e");
-      setState(() {
-        _riskList = [];
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("데이터를 불러오지 못했습니다. (서버 연결 확인)")),
-      );
+  // ✅ [수정됨] 통화별 한글 이름 매핑
+  String _getCurrencyDisplayName(String code) {
+    switch (code) {
+      case 'USD': return '미국 달러 (USD)';
+      case 'JPY': return '일본 엔 (JPY 100)';
+      case 'EUR': return '유럽 유로 (EUR)';
+      case 'CNY': return '중국 위안 (CNY)';
+      case 'GBP': return '영국 파운드 (GBP)';
+      case 'CHF': return '스위스 프랑 (CHF)';
+      case 'AUD': return '호주 달러 (AUD)';
+      default: return code;
     }
   }
 
   // -------------------------------------------------------------------------
-  // [UI 헬퍼] 백엔드 데이터(텍스트)를 Flutter 색상/아이콘으로 매핑
+  // [통신] 백엔드 API 호출 (여러 통화 반복 조회)
   // -------------------------------------------------------------------------
-  Color _getCardColor(String status) {
-    if (status == "안전") return Colors.green.shade50;
-    if (status == "주의") return Colors.orange.shade50;
-    if (status == "위험") return Colors.red.shade50;
-    return Colors.grey.shade50;
+  Future<void> _fetchRiskData(DateTime date) async {
+    setState(() {
+      _isLoading = true;
+      _riskList.clear();
+    });
+
+    String dateStr = DateFormat('yyyyMMdd').format(date);
+
+    // ⚠️ 실제 백엔드 서버 주소 확인 (localhost vs IP)
+    final String baseUrl = "http://34.64.124.33:8080/backend/api/risk";
+
+    List<ExchangeRiskModel> tempResult = [];
+
+    // 리스트에 있는 모든 통화를 하나씩 요청
+    for (String currency in _targetCurrencies) {
+      try {
+        final url = Uri.parse('$baseUrl/$currency?date=$dateStr');
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+
+          if (body['status'] == 'success') {
+            tempResult.add(ExchangeRiskModel.fromJson(body));
+          }
+        }
+      } catch (e) {
+        print("Error fetching $currency: $e");
+        // 에러 발생 시 해당 통화는 건너뛰고 계속 진행
+      }
+    }
+
+    setState(() {
+      _riskList = tempResult;
+      _isLoading = false;
+    });
   }
 
-  Color _getTextColor(String status) {
-    if (status == "안전") return Colors.green.shade800;
-    if (status == "주의") return Colors.orange.shade800;
-    if (status == "위험") return Colors.red.shade800;
-    return Colors.black;
+  // -------------------------------------------------------------------------
+  // [UI 헬퍼] 디자인 요소
+  // -------------------------------------------------------------------------
+  Color _getCardColor(String weatherIcon) {
+    switch (weatherIcon) {
+      case 'SUNNY': return Colors.green.shade50;
+      case 'CLOUDY': return Colors.orange.shade50;
+      case 'STORM': return Colors.red.shade50;
+      default: return Colors.grey.shade50;
+    }
+  }
+
+  Color _getTextColor(String weatherIcon) {
+    switch (weatherIcon) {
+      case 'SUNNY': return Colors.green.shade800;
+      case 'CLOUDY': return Colors.deepOrange.shade800;
+      case 'STORM': return Colors.red.shade900;
+      default: return Colors.black87;
+    }
+  }
+
+  String _getWeatherEmoji(String weatherIcon) {
+    switch (weatherIcon) {
+      case 'SUNNY': return "☀️";
+      case 'CLOUDY': return "☁️";
+      case 'STORM': return "⛈️";
+      default: return "❓";
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -129,13 +177,14 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: Colors.blueAccent),
+            colorScheme: const ColorScheme.light(primary: Colors.blueAccent),
           ),
           child: child!,
         );
       },
     );
     if (picked != null && picked != _selectedDate) {
+      setState(() => _selectedDate = picked);
       _fetchRiskData(picked);
     }
   }
@@ -148,14 +197,15 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("☁️ 환율 기상청", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text("☁️ 환율 기상청",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.blueAccent,
         elevation: 0,
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // 1. 상단 날짜 선택 영역
+          // 1. 날짜 선택 영역
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
             decoration: const BoxDecoration(
@@ -189,7 +239,7 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
             ),
           ),
 
-          // 2. 리스트 영역
+          // 2. 결과 리스트
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -200,7 +250,11 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
                 children: [
                   Icon(Icons.cloud_off, size: 60, color: Colors.grey[300]),
                   const SizedBox(height: 10),
-                  const Text("데이터가 없습니다.", style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    "데이터가 없습니다.\n(주말이나 공휴일은 환율 정보가 없을 수 있어요)",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             )
@@ -220,8 +274,8 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
 
   // 카드 디자인
   Widget _buildWeatherCard(ExchangeRiskModel item) {
-    Color cardColor = _getCardColor(item.riskStatus);
-    Color textColor = _getTextColor(item.riskStatus);
+    Color cardColor = _getCardColor(item.weatherIcon);
+    Color themeColor = _getTextColor(item.weatherIcon);
 
     return Container(
       decoration: BoxDecoration(
@@ -239,75 +293,111 @@ class _ExchangeRiskScreenState extends State<ExchangeRiskScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            // [상단] 아이콘 + 나라 이름
             Row(
               children: [
-                // 1. 날씨 아이콘 (텍스트로 옴: ☀️, ☁️ 등)
                 Text(
-                  item.weatherIcon,
-                  style: const TextStyle(fontSize: 40),
+                  _getWeatherEmoji(item.weatherIcon),
+                  style: const TextStyle(fontSize: 36),
                 ),
                 const SizedBox(width: 15),
-
-                // 2. 통화 정보
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.volCurrency,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: textColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          item.riskStatus,
-                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // 3. 수치 정보
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${item.volCurrentVal}",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: textColor),
+                      _getCurrencyDisplayName(item.currency),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
                     Text(
-                      "예측: ${item.volForecastVal}",
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      item.weatherText,
+                      style: TextStyle(fontSize: 14, color: themeColor, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text("Data Std.", style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    Text(
+                      _formatDate(item.rateDate),
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ],
+                )
               ],
             ),
-            const Divider(height: 30),
 
-            // 4. 하단 코멘트 (백엔드에서 받은 문장)
+            const Divider(height: 30, thickness: 1),
+
+            // [중간] 환율 & 변동폭
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    item.predictionComment,
-                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("현재 기준 환율", style: TextStyle(fontSize: 12, color: Colors.black54)),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${NumberFormat('#,###.0').format(item.currentRate)}원",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: themeColor),
+                    ),
+                  ],
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: themeColor.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text("예상 변동", style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      const SizedBox(height: 2),
+                      Text(
+                        "±${item.expectedGap}원",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: themeColor),
+                      ),
+                    ],
+                  ),
+                )
               ],
-            )
+            ),
+
+            const SizedBox(height: 20),
+
+            // [하단] 메시지 박스
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: themeColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item.message,
+                      style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.3),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  // 날짜 포맷 (20240827 -> 24.08.27)
+  String _formatDate(String yyyymmdd) {
+    if (yyyymmdd.length != 8) return yyyymmdd;
+    return "${yyyymmdd.substring(2, 4)}.${yyyymmdd.substring(4, 6)}.${yyyymmdd.substring(6, 8)}";
   }
 }

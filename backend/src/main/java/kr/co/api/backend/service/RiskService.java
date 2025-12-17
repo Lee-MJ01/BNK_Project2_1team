@@ -1,57 +1,93 @@
 package kr.co.api.backend.service;
 
 
+import kr.co.api.backend.dto.ExchangeRateDTO;
 import kr.co.api.backend.dto.ExchangeRiskDTO;
-import kr.co.api.backend.mapper.RiskMapper;
+import kr.co.api.backend.mapper.ExchangeRateMapper;
+import kr.co.api.backend.mapper.ExchangeRiskMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class RiskService {
 
-    private final RiskMapper riskMapper;
+    private final ExchangeRiskMapper riskMapper; // 1. 변동성 매퍼
+    private final ExchangeRateMapper rateMapper; // 2. 환율 매퍼
 
-    public List<ExchangeRiskDTO> getRiskDataByDate(String date) {
+    public Map<String, Object> getRiskInfo(String currency, String date) {
 
-        // 1. DB에서 DTO로 바로 조회 (이 시점에는 숫자 데이터만 있고, 날씨/멘트는 null임)
-        List<ExchangeRiskDTO> dtoList = riskMapper.selectByDate(date);
+        // 날짜가 없으면 오늘 날짜로 설정
+        if (date == null || date.isEmpty()) {
+            date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        }
+        String searchDate = date.replace("-", "");
 
-        // 2. 리스트를 돌면서 비어있는 날씨와 멘트를 채워줌 (Business Logic)
-        for (ExchangeRiskDTO dto : dtoList) {
-            fillRiskInfo(dto);
+        Map<String, Object> result = new HashMap<>();
+
+        // 1. 변동성(%) 가져오기
+        ExchangeRiskDTO riskData = riskMapper.selectVolatility(currency, searchDate);
+
+        // 데이터가 없으면 바로 리턴
+        if (riskData == null) {
+            result.put("status", "error");
+            result.put("message", "해당 날짜의 예측 데이터가 없습니다.");
+            return result;
         }
 
-        return dtoList;
+        // 2. 환율(₩) 가져오기
+        ExchangeRateDTO rateData = rateMapper.selectExchangeRate(currency, searchDate);
+
+        double currentRate = 1300.0; // 기본값 (DB에 없을 경우 대비)
+        String rateDate = "";        // 실제 환율 기준일
+
+        if (rateData != null && rateData.getExchRate() != null) {
+            currentRate = rateData.getExchRate();
+            rateDate = rateData.getStdDt();
+        }
+
+        // 3. 계산 (환율 * 변동성 / 100)
+        double riskPercent = riskData.getVolForecastVal();
+        double expectedGap = currentRate * (riskPercent / 100.0);
+
+        // 4. 날씨 판단 (기상청 컨셉)
+        String weatherIcon = "SUNNY";
+        String weatherText = "맑음";
+
+        if (riskPercent >= 1.0) {
+            weatherIcon = "STORM";
+            weatherText = "폭풍우";
+        } else if (riskPercent >= 0.5) {
+            weatherIcon = "CLOUDY";
+            weatherText = "구름조금";
+        }
+
+        // 5. 결과 만들기
+        result.put("status", "success");
+        result.put("currency", currency);
+        result.put("target_date", searchDate);      // 사용자가 조회한 날짜
+        result.put("rate_date", rateDate);          // 실제 환율 데이터 날짜
+
+        result.put("current_rate", currentRate);    // 기준 환율
+        result.put("risk_percent", riskPercent);    // 변동성 (%)
+        result.put("expected_gap", String.format("%.1f", expectedGap)); // 예상 변동폭 (원)
+
+        result.put("weather_icon", weatherIcon);
+        result.put("weather_text", weatherText);
+
+        // 사용자용 메시지
+        String message = String.format("오늘 환율(%,.0f원) 대비 ±%s원 변동이 예상돼요.",
+                currentRate, String.format("%.1f", expectedGap));
+        result.put("message", message);
+
+        return result;
     }
 
-    // DTO의 숫자를 보고 -> 날씨/멘트를 계산해서 -> DTO에 set 해주는 메서드
-    private void fillRiskInfo(ExchangeRiskDTO dto) {
-        double current = dto.getVolCurrentVal();
-        double next = dto.getVolForecastVal();
 
-        // (1) 날씨 판별
-        if (current < 10.0) {
-            dto.setWeatherIcon("☀️");
-            dto.setRiskStatus("안전");
-        } else if (current < 20.0) {
-            dto.setWeatherIcon("☁️");
-            dto.setRiskStatus("주의");
-        } else {
-            dto.setWeatherIcon("⛈️");
-            dto.setRiskStatus("위험");
-        }
-
-        // (2) 예측 멘트 판별
-        double diff = next - current;
-        if (diff < -0.05) {
-            dto.setPredictionComment("내일은 변동성이 줄어들 예정이에요!");
-        } else if (diff > 0.05) {
-            dto.setPredictionComment("내일은 변동성이 커질 수 있어요!");
-        } else {
-            dto.setPredictionComment("오늘과 비슷한 흐름이 이어질 거예요!");
-        }
-    }
 }
