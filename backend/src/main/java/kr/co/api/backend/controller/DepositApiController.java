@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Collections;
 import java.util.List;
@@ -103,6 +104,7 @@ public class DepositApiController {
             String dpstAddPayYn,
             Integer dpstAddPayMaxCnt,
             String dpstInfoPdf,
+            String dpstInfoPdfUrl,
             List<ProductLimitDTO> limits,
             Integer periodMinMonth,
             Integer periodMaxMonth,
@@ -152,6 +154,7 @@ public class DepositApiController {
                     product.getDpstAddPayYn(),
                     product.getDpstAddPayMax(),
                     product.getDpstInfoPdf(),
+                    resolveFileUrl(product.getDpstInfoPdf(), "/uploads/products/"),
                     limits,
                     minMonth,
                     maxMonth,
@@ -175,7 +178,8 @@ public class DepositApiController {
             Integer version,
             String regDate,
             String file,
-            String content
+            String content,
+            String downloadUrl
     ) {
         public static TermsResponse from(TermsHistDTO dto) {
             return new TermsResponse(
@@ -186,9 +190,29 @@ public class DepositApiController {
                     dto.getThistVersion(),
                     dto.getThistRegDy(),
                     dto.getThistFile(),
-                    dto.getThistContent()
+                    dto.getThistContent(),
+                    resolveFileUrl(dto.getThistFile(), "/uploads/terms/")
             );
         }
+    }
+
+    private static String resolveFileUrl(String storedPath, String defaultPrefix) {
+        if (storedPath == null || storedPath.isBlank()) {
+            return "";
+        }
+
+        if (storedPath.startsWith("http")) {
+            return storedPath;
+        }
+
+        String normalized = storedPath.startsWith("/")
+                ? storedPath
+                : defaultPrefix + storedPath;
+
+        return ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path(normalized)
+                .toUriString();
     }
 
 

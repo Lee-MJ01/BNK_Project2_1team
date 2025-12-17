@@ -1688,7 +1688,12 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     final List<TermsDocument> result = [];
 
-    if (product.infoPdf.isNotEmpty) {
+    final String productPdfUrl =
+        product.infoPdfUrl.isNotEmpty
+            ? product.infoPdfUrl
+            : _resolveTermsUrl(product.infoPdf);
+
+    if (productPdfUrl.isNotEmpty) {
       result.add(
         TermsDocument(
           id: null,
@@ -1699,7 +1704,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
           regDate: null,
           filePath: product.infoPdf,
           content: '',
-          downloadUrl: _resolveTermsUrl(product.infoPdf),
+          downloadUrl: productPdfUrl,
         ),
       );
     }
