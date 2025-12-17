@@ -22,6 +22,13 @@ configurations {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1'
+        force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -71,7 +78,10 @@ dependencies {
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
     // 솔라피 라이브러리
-    implementation 'com.solapi:sdk:1.0.3'
+    implementation('com.solapi:sdk:1.0.3') {
+        exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-core'
+        exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-json'
+    }
 
     // 메일 인증 관련
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.3.3'
@@ -87,12 +97,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 }
 
-configurations.all {
-    resolutionStrategy {
-        force 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1'
-        force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
-    }
-}
 
 tasks.named('test') {
     useJUnitPlatform()

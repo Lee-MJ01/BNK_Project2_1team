@@ -13,7 +13,7 @@ class ApiService {
 
   /// 로그인 요청
   static Future<Map<String, dynamic>> login(String userid, String password, String deviceId) async {
-    final url = Uri.parse('$_prodUrl/member/login');
+    final url = Uri.parse('$baseUrl/member/login');
 
     try {
       final response = await http.post(
@@ -67,7 +67,7 @@ class ApiService {
 
   /// SMS 인증번호 발송 요청
   static Future<Map<String, dynamic>> sendAuthCodeToMember(String userid) async {
-    final url = Uri.parse('$_prodUrl/member/auth/send-code');
+    final url = Uri.parse('$baseUrl/member/auth/send-code');
 
     try {
       final response = await http.post(
@@ -103,7 +103,7 @@ class ApiService {
 
   /// [추가] 인증번호 검증 요청
   static Future<bool> verifyAuthCode(String userid, String code) async {
-    final url = Uri.parse('$_prodUrl/member/auth/verify-code');
+    final url = Uri.parse('$baseUrl/member/auth/verify-code');
 
     try {
       final response = await http.post(
@@ -127,7 +127,7 @@ class ApiService {
 
   /// 기기 등록 요청 (최종 인증 후 호출)
   static Future<bool> registerDevice(String userid, String password, String deviceId) async {
-    final url = Uri.parse('$_prodUrl/member/register-device');
+    final url = Uri.parse('$baseUrl/member/register-device');
 
     try {
       final response = await http.post(
