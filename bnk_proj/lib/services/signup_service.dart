@@ -113,7 +113,7 @@ class SignupService {
 
   /// [추가] 인증번호 검증 요청
   static Future<bool> verifyAuthCodeHp(String userid, String code) async {
-    final url = Uri.parse('$authUrl/member/auth/verify-code');
+    final url = Uri.parse('$authUrl/member/auth/verify-code-hp');
 
     try {
       final response = await http.post(
