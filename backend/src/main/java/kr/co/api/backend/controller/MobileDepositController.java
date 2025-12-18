@@ -173,6 +173,8 @@ public class MobileDepositController {
         detail.setDpstDtlEsignDt(hasSignature ? LocalDateTime.now() : null);
         depositMapper.insertDpstAcctDtl(detail);
 
+
+
         CustTranHistDTO history = new CustTranHistDTO();
         history.setTranAcctNo(withdrawAccount);
         history.setTranCustName(user.getCustName());
@@ -188,6 +190,9 @@ public class MobileDepositController {
         history.setTranCurrency(effectiveWithdrawCurrency);
         depositMapper.insertCustTranHist(history);
 
+
+
+
         Map<String, Object> response = new HashMap<>();
         response.put("dpstId", dpstId);
         response.put("customerName", user.getCustName());
@@ -202,6 +207,8 @@ public class MobileDepositController {
         response.put("maturityDate", inserted.getDpstHdrFinDy());
         response.put("periodLabel", periodMonths != null ? periodMonths + "개월" : "-");
         response.put("contractDateTime", LocalDateTime.now().toString());
+
+
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

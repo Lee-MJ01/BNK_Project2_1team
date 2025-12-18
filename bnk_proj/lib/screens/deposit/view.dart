@@ -1468,8 +1468,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   // ============================================================
   Widget _buildTermsTab(model.DepositProduct product) {
 
-    //약관 탭 자체는 정상 렌더링 - pdf 로그찍는거
-    debugPrint("[TermsTab] buildTermsTab 진입");
+
 
     final String delibNo =
     product.deliberationNumber.isNotEmpty
@@ -1499,10 +1498,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
         future: _futureTerms,
         builder: (context, snapshot) {
 
-          //pdf 로그 찍기
-          debugPrint(" [TermsTab] snapshot.state=${snapshot.connectionState}");
-          debugPrint(" [TermsTab] snapshot.hasError=${snapshot.hasError}");
-          debugPrint(" [TermsTab] snapshot.data=${snapshot.data}");
+
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -1682,9 +1678,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   List<TermsDocument> _buildTermsForProduct(
       model.DepositProduct product, List<TermsDocument> terms) {
 
-    //pdf 로그 찍기
-    debugPrint(" [TermsFilter] 서버 약관 개수 = ${terms.length}");
-    debugPrint(" [TermsFilter] product.infoPdf = ${product.infoPdf}");
+
 
     final List<TermsDocument> result = [];
 
@@ -1707,14 +1701,6 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     }
     const specialTitle = 'flobank 외화예금 통합 특약';
 
-    ////////////pdf 관련 로그////////////////
-    final filtered = terms.where(
-          (t) => t.title.trim().toLowerCase() == specialTitle.toLowerCase(),
-    ).toList();
-
-    debugPrint("[TermsFilter] 특약 매칭 개수 = ${filtered.length}");
-
-    ///////////////////////////////////////
 
 
     result.addAll(
@@ -1807,10 +1793,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
   Future<void> _openTerms(TermsDocument terms) async {
-    //pdf 로그 찍기
-    debugPrint("[TermsOpen] 보기 클릭");
-    debugPrint("title=${terms.title}");
-    debugPrint("url=${terms.downloadUrl}");
+
 
     await _launchTerms(terms, LaunchMode.externalApplication);
   }
@@ -1835,9 +1818,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   Future<void> _launchTerms(TermsDocument terms, LaunchMode mode) async {
     final uri = _buildTermsUri(terms);
 
-    debugPrint("🔴 [LaunchTerms] mode=$mode");
-    debugPrint("🔴 [LaunchTerms] rawUrl=${terms.downloadUrl}");
-    debugPrint("🔴 [LaunchTerms] resolvedUri=$uri");
+
 
     if (uri == null) {
       if (mounted) {
@@ -1852,7 +1833,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     }
 
     final ok = await launchUrl(uri, mode: mode);
-    debugPrint("🔴 [LaunchTerms] launch result = $ok");
+
 
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
