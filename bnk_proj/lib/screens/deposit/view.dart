@@ -1688,10 +1688,10 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     final List<TermsDocument> result = [];
 
-    final String productPdfUrl =
-        product.infoPdfUrl.isNotEmpty
+    final String productPdfUrl = (product.infoPdfUrl.isNotEmpty
             ? product.infoPdfUrl
-            : _resolveTermsUrl(product.infoPdf);
+            : product.infoPdf)
+        .trim();
 
     if (productPdfUrl.isNotEmpty) {
       result.add(
@@ -1732,35 +1732,6 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
 
-
-
-  String _resolveTermsUrl(String filePath) {
-    final trimmed = filePath.trim();
-    if (trimmed.isEmpty) return '';
-
-    final absolute = Uri.tryParse(trimmed);
-    if (absolute != null && absolute.hasScheme) {
-      return absolute.toString();
-    }
-
-    final normalizedSegments = trimmed
-        .split('/')
-        .where((segment) => segment.isNotEmpty)
-        .map(Uri.encodeComponent)
-        .toList();
-
-    if (!trimmed.startsWith('/')) {
-      normalizedSegments.insertAll(0, ['uploads', 'terms']);
-    }
-
-    final base = Uri.parse(TermsService.baseUrl);
-    final mergedSegments = <String>[
-      ...base.pathSegments.where((s) => s.isNotEmpty),
-      ...normalizedSegments,
-    ];
-
-    return base.replace(pathSegments: mergedSegments).toString();
-  }
 
 
   Widget _termsRow(TermsDocument terms) {
@@ -1836,18 +1807,10 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
   Uri? _buildTermsUri(TermsDocument terms) {
-    // 백엔드에서 제공하는 다운로드 엔드포인트를 우선 사용
-    if (terms.id != null) {
-      return Uri.parse('${TermsService.baseUrl}/terms_download/${terms.id}/file');
-    }
-
     final raw = terms.downloadUrl.trim();
     if (raw.isEmpty) return null;
 
-    // 공백/한글이 포함된 경우를 대비해 안전하게 인코딩
-    final encoded = Uri.encodeFull(raw);
-    final parsed = Uri.tryParse(encoded);
-    return parsed;
+    return Uri.tryParse(raw);
   }
 
   Future<void> _launchTerms(TermsDocument terms, LaunchMode mode) async {
