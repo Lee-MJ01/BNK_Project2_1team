@@ -1,15 +1,7 @@
 package kr.co.api.backend.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kr.co.api.backend.dto.CustAcctDTO;
-import kr.co.api.backend.dto.CustFrgnAcctDTO;
-import kr.co.api.backend.dto.CustInfoDTO;
-import kr.co.api.backend.dto.CustTranHistDTO;
-import kr.co.api.backend.dto.DpstAcctDtlDTO;
-import kr.co.api.backend.dto.DpstAcctHdrDTO;
-import kr.co.api.backend.dto.FrgnAcctBalanceDTO;
-import kr.co.api.backend.dto.InterestRateDTO;
-import kr.co.api.backend.dto.ProductDTO;
+import kr.co.api.backend.dto.*;
 import kr.co.api.backend.mapper.DepositMapper;
 import kr.co.api.backend.mapper.MemberMapper;
 import kr.co.api.backend.jwt.JwtTokenProvider;
@@ -21,11 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -50,11 +38,13 @@ public class MobileDepositController {
     public ResponseEntity<Map<String, Object>> getDepositContext(HttpServletRequest request) {
         CustInfoDTO user = resolveUser(request);
 
-        List<CustAcctDTO> krwAccounts = Optional.ofNullable(depositMapper.getKRWAccts(user.getCustCode()))
-                .orElse(Collections.emptyList());
+        List<CustAcctDTO> krwAccounts = Optional.ofNullable(
+                depositMapper.getKRWAccts(user.getCustCode())
+        ).orElse(Collections.emptyList());
 
         CustFrgnAcctDTO fxAccount = depositMapper.getFrgnAcct(user.getCustCode());
         List<Map<String, Object>> fxAccounts = new ArrayList<>();
+
         if (fxAccount != null) {
             List<FrgnAcctBalanceDTO> balances = Optional.ofNullable(
                     depositMapper.getFrgnAcctBalList(fxAccount.getFrgnAcctNo())
@@ -72,17 +62,6 @@ public class MobileDepositController {
             ));
         }
 
-        List<Map<String, Object>> currencies = Optional.ofNullable(depositMapper.getAllCurrencies())
-                .orElse(Collections.emptyList())
-                .stream()
-                .map(c -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("code", c.getCurCode());
-                    map.put("name", c.getCurName());
-                    return map;
-                })
-                .toList();
-
         Map<String, Object> payload = new HashMap<>();
         payload.put("customerName", user.getCustName());
         payload.put("custCode", user.getCustCode());
@@ -93,7 +72,6 @@ public class MobileDepositController {
                 ))
                 .toList());
         payload.put("fxAccounts", fxAccounts);
-        payload.put("currencies", currencies);
 
         return ResponseEntity.ok(payload);
     }
@@ -127,6 +105,12 @@ public class MobileDepositController {
         Integer periodMonths = parseInt(request.get("newPeriodMonths"));
         BigDecimal amount = parseBigDecimal(request.get("newAmount"));
 
+        if (withdrawAccount.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금 계좌를 선택해주세요.");
+        }
+        if (withdrawPassword.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금계좌 비밀번호가 필요합니다.");
+        }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "가입 금액을 다시 확인해주세요.");
         }
@@ -135,21 +119,16 @@ public class MobileDepositController {
                 ? (!fxWithdrawCurrency.isBlank() ? fxWithdrawCurrency : newCurrency)
                 : "KRW";
 
-        if (withdrawAccount.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금 계좌를 선택해주세요.");
-        }
-
-        if (withdrawPassword.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금계좌 비밀번호가 필요합니다.");
-        }
-
         if ("krw".equalsIgnoreCase(withdrawType)) {
             validateAndWithdrawKrw(user.getCustCode(), withdrawAccount, withdrawPassword, amount);
         } else {
             validateAndWithdrawFx(user.getCustCode(), withdrawAccount, withdrawPassword, effectiveWithdrawCurrency, amount);
         }
 
-        BigDecimal appliedRate = resolveRate(depositMapper.getRecentInterest(newCurrency), periodMonths);
+        BigDecimal appliedRate = resolveRate(
+                depositMapper.getRecentInterest(newCurrency),
+                periodMonths
+        );
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = (periodMonths != null)
@@ -184,6 +163,7 @@ public class MobileDepositController {
         DpstAcctHdrDTO inserted = depositMapper.selectInsertedAcct(user.getCustCode(), dpstId);
 
         boolean hasSignature = request.get("signature") != null;
+
         DpstAcctDtlDTO detail = new DpstAcctDtlDTO();
         detail.setDpstDtlType(1);
         detail.setDpstDtlAppliedRate(appliedRate);
@@ -221,45 +201,24 @@ public class MobileDepositController {
         response.put("rate", appliedRate != null ? appliedRate + "%" : null);
         response.put("maturityDate", inserted.getDpstHdrFinDy());
         response.put("periodLabel", periodMonths != null ? periodMonths + "개월" : "-");
-        response.put("autoRenewLabel", buildAutoRenewLabel(asString(request.get("autoRenew")), request.get("autoRenewCycle")));
         response.put("contractDateTime", LocalDateTime.now().toString());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    private CustInfoDTO resolveUser(HttpServletRequest request) {
-        String token = resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증 정보가 올바르지 않습니다.");
-        }
-
-        Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        String custCode = authentication.getName();
-        CustInfoDTO user = memberMapper.findByCodeCustInfo(custCode);
-        if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "사용자 정보를 찾을 수 없습니다.");
-        }
-        return user;
-    }
-
-    private String resolveToken(HttpServletRequest request) {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return jwtTokenProvider.resolveToken(request);
-    }
-
     private void validateAndWithdrawKrw(String custCode, String acctNo, String password, BigDecimal amount) {
-        List<CustAcctDTO> accounts = Optional.ofNullable(depositMapper.getKRWAccts(custCode))
-                .orElse(Collections.emptyList());
+        List<CustAcctDTO> accounts = Optional.ofNullable(
+                depositMapper.getKRWAccts(custCode)
+        ).orElse(Collections.emptyList());
 
         CustAcctDTO account = accounts.stream()
                 .filter(a -> acctNo.equals(a.getAcctNo()))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금 계좌를 확인해주세요."));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금 계좌를 확인해주세요.")
+                );
 
-        if (!passwordEncoder.matches(password, account.getAcctPw())) {
+        if (!matchesAccountPassword(password, account.getAcctPw())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "출금계좌 비밀번호가 일치하지 않습니다.");
         }
 
@@ -278,7 +237,7 @@ public class MobileDepositController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "외화 출금계좌를 확인해주세요.");
         }
 
-        if (!passwordEncoder.matches(password, account.getFrgnAcctPw())) {
+        if (!matchesAccountPassword(password, account.getFrgnAcctPw())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "외화계좌 비밀번호가 일치하지 않습니다.");
         }
 
@@ -289,7 +248,9 @@ public class MobileDepositController {
         FrgnAcctBalanceDTO balance = balances.stream()
                 .filter(b -> currency.equalsIgnoreCase(b.getBalCurrency()))
                 .findFirst()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 통화의 잔액이 없습니다."));
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.BAD_REQUEST, "해당 통화의 잔액이 없습니다.")
+                );
 
         BigDecimal current = BigDecimal.valueOf(balance.getBalBalance());
         if (current.compareTo(amount) < 0) {
@@ -300,11 +261,44 @@ public class MobileDepositController {
         depositMapper.updateBalBalance(balance);
     }
 
+    private boolean matchesAccountPassword(String inputPw, String storedPw) {
+        if (inputPw == null || storedPw == null) {
+            return false;
+        }
+        if (storedPw.startsWith("$2a$") || storedPw.startsWith("$2b$")) {
+            return passwordEncoder.matches(inputPw, storedPw);
+        }
+        return inputPw.equals(storedPw);
+    }
+
+    private CustInfoDTO resolveUser(HttpServletRequest request) {
+        String token = resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증 정보가 올바르지 않습니다.");
+        }
+
+        Authentication authentication = jwtTokenProvider.getAuthentication(token);
+        String custCode = authentication.getName();
+        CustInfoDTO user = memberMapper.findByCodeCustInfo(custCode);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "사용자 정보를 찾을 수 없습니다.");
+        }
+        return user;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
+        }
+        return jwtTokenProvider.resolveToken(request);
+    }
+
     private BigDecimal resolveRate(InterestRateDTO rateInfo, Integer months) {
         if (rateInfo == null || months == null) {
             return null;
         }
-
         return switch (months) {
             case 1 -> rateInfo.getRate1M();
             case 2 -> rateInfo.getRate2M();
@@ -330,19 +324,6 @@ public class MobileDepositController {
         return currency.isBlank()
                 ? formatter.format(amount)
                 : currency + " " + formatter.format(amount);
-    }
-
-    private String buildAutoRenewLabel(String autoRenew, Object cycleObj) {
-        if (!"apply".equalsIgnoreCase(autoRenew)) {
-            return "미신청";
-        }
-        if (cycleObj == null) {
-            return "신청 (주기 미입력)";
-        }
-        String cycle = cycleObj.toString();
-        return cycle.isBlank()
-                ? "신청 (주기 미입력)"
-                : "신청 - " + cycle + "개월 주기";
     }
 
     private String asString(Object value) {
