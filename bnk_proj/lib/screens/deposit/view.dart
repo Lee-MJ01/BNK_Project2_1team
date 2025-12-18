@@ -1688,10 +1688,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     final List<TermsDocument> result = [];
 
-    final String productPdfUrl = (product.infoPdfUrl.isNotEmpty
-            ? product.infoPdfUrl
-            : product.infoPdf)
-        .trim();
+    final String productPdfUrl = _resolveProductPdfUrl(product).trim();
 
     if (productPdfUrl.isNotEmpty) {
       result.add(
@@ -1727,6 +1724,22 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     );
 
     return result;
+  }
+
+  String _resolveProductPdfUrl(model.DepositProduct product) {
+    if (product.infoPdfUrl.trim().isNotEmpty) {
+      return product.infoPdfUrl.trim();
+    }
+
+    final String fallback = product.infoPdf.trim();
+    if (fallback.isEmpty) return '';
+
+    final bool hasUploadsPrefix = fallback.contains('/uploads/');
+    final String normalizedPath = hasUploadsPrefix
+        ? (fallback.startsWith('/') ? fallback : '/$fallback')
+        : '/uploads/products/$fallback';
+
+    return '${TermsService.baseUrl}$normalizedPath';
   }
 
 
@@ -1810,7 +1823,13 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     final raw = terms.downloadUrl.trim();
     if (raw.isEmpty) return null;
 
-    return Uri.tryParse(raw);
+    final Uri? parsed = Uri.tryParse(raw);
+    if (parsed == null) return null;
+    if (parsed.hasScheme) return parsed;
+
+    final Uri base = Uri.parse(TermsService.baseUrl);
+    final String relativePath = raw.startsWith('/') ? raw.substring(1) : raw;
+    return base.resolve(relativePath);
   }
 
   Future<void> _launchTerms(TermsDocument terms, LaunchMode mode) async {
