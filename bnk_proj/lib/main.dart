@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:test_main/screens/auth/pin_login_screen.dart';
 import 'package:test_main/screens/member/signup_1.dart';
 import 'package:test_main/services/api_service.dart';
 
@@ -295,64 +297,45 @@ class _LoginFormState extends State<_LoginForm> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: () async {
-
-              // 1. 입력값 확인
               String id = _idController.text.trim();
               String pw = _pwController.text.trim();
 
-
               if (id.isEmpty || pw.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('아이디와 비밀번호를 입력해주세요.')));
                 return;
               }
 
-              // 2. 기기 ID 가져오기 (main에서 이미 만들어졌으므로 즉시 리턴됨)
               String deviceId = await DeviceManager.getDeviceId();
 
-              // 3. 로그인 요청 및 결과 처리 (Map으로 받음)
+              // 로그인 요청
               Map<String, dynamic> result = await ApiService.login(id, pw, deviceId);
-              String status = result['status'] ?? 'ERROR'; // 서버에서 보낸 status 값 확인
 
               if (!mounted) return;
 
-              if (status == 'SUCCESS') {
-                // [성공] -> 메인 페이지 이동
+              if (result['status'] == 'SUCCESS') {
                 print("✅ 로그인 성공");
+
+                // ★ 추가: 간편인증을 위해 현재 로그인한 ID를 로컬에 저장해둡니다.
+                await const FlutterSecureStorage().write(key: 'saved_userid', value: id);
+
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => const BankHomePage())
                 );
-              } else if (status == 'NEW_DEVICE') {
-                print("⚠️ 새로운 기기 감지됨. 본인 인증 화면으로 이동.");
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('새로운 기기입니다. 본인 인증을 진행해주세요.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                // 스낵바가 보일 시간을 잠깐 줌
+              }
+              else if (result['status'] == 'NEW_DEVICE') {
+                // ★ 새로운 기기 감지 -> 인증 화면 이동
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('새로운 기기입니다. 인증을 진행해주세요.')));
                 await Future.delayed(const Duration(milliseconds: 500));
-                if (!mounted) return;
 
-                // 인증 화면으로 이동 (ID, PW 전달)
+                if (!mounted) return;
                 Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => AuthVerificationScreen(
-                            userId: id,
-                            userPassword: pw
-                        )
-                    )
+                    MaterialPageRoute(builder: (context) => AuthVerificationScreen(userId: id, userPassword: pw))
                 );
-              } else {
-                // [실패] -> 에러 메시지
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result['message'] ?? '로그인에 실패했습니다.')),
-                );
+              }
+              else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'] ?? '로그인 실패')));
               }
             },
             child: const Text('로그인하기'),
@@ -372,17 +355,40 @@ class _LoginShortcuts extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Divider(height: 32),
+        const Divider(height: 32),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // 1. 지문 로그인 버튼
             _ShortcutButton(
               icon: Icons.fingerprint,
               label: '지문 로그인',
+              onTap: () async {
+                // TODO: 지문 인식 로직 호출 (아래 3단계에서 설명)
+                print("지문 인증 시작");
+              },
             ),
+            // 2. 간편 비밀번호 로그인 버튼
             _ShortcutButton(
               icon: Icons.smartphone,
               label: '간편 비밀번호',
+              onTap: () async {
+                // 로컬에 저장된 ID가 있는지 확인
+                String? savedId = await const FlutterSecureStorage().read(key: 'saved_userid');
+
+                if (savedId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('등록된 정보가 없습니다. 일반 로그인을 먼저 진행해주세요.'))
+                  );
+                  return;
+                }
+
+                // PIN 입력 화면으로 이동 (로그인 용도)
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PinLoginScreen(userId: savedId))
+                );
+              },
             ),
             _ShortcutButton(
               icon: Icons.person_add_alt_1,
@@ -443,4 +449,3 @@ class _ShortcutButton extends StatelessWidget {
     );
   }
 }
-
