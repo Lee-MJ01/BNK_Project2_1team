@@ -26,4 +26,8 @@ public class RateQueryService {
     public List<RateDTO> getRateHistory(String currency) {
         return rateMapper.selectRateHistory(currency);
     }
+
+    public List<RateDTO> getLatestRatesWithChange() {
+        return rateMapper.selectLatestRatesWithChange();
+    }
 }

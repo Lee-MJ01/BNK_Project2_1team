@@ -76,4 +76,43 @@
         WHERE rhist_currency = #{currency}
         ORDER BY rhist_reg_dt DESC
     </select>
+
+
+    <select id="selectLatestRatesWithChange"
+            resultType="kr.co.api.backend.dto.RateDTO">
+
+        SELECT
+            curr.rhist_currency   AS rhistCurrency,
+            curr.rhist_cur_name   AS rhistCurName,
+            curr.rhist_base_rate  AS rhistBaseRate,
+
+            NVL(curr.rhist_base_rate - prev.rhist_base_rate, 0) AS change,
+
+            CASE
+                WHEN prev.rhist_base_rate IS NULL THEN 0
+                ELSE ROUND(
+                        (curr.rhist_base_rate - prev.rhist_base_rate)
+                            / prev.rhist_base_rate * 100, 2
+                     )
+                END AS changePercent
+
+        FROM TB_EXCH_RATE_HIST curr
+                 LEFT JOIN TB_EXCH_RATE_HIST prev
+                           ON curr.rhist_currency = prev.rhist_currency
+                               AND prev.rhist_reg_dt = (
+                                   SELECT MAX(rhist_reg_dt)
+                                   FROM TB_EXCH_RATE_HIST
+                                   WHERE rhist_currency = curr.rhist_currency
+                                     AND rhist_reg_dt <![CDATA[ < ]]> curr.rhist_reg_dt
+                               )
+
+        WHERE curr.rhist_reg_dt = (
+            SELECT MAX(rhist_reg_dt)
+            FROM TB_EXCH_RATE_HIST
+            WHERE rhist_currency = curr.rhist_currency
+        )
+
+        ORDER BY curr.rhist_currency
+    </select>
+
 </mapper>

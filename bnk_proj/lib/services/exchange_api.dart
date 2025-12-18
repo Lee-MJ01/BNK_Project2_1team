@@ -19,16 +19,18 @@ class ExchangeApi {
     }
   }
 
-  static Future<List<double>> fetchHistory(String currency) async {
-    final response =
-    await http.get(Uri.parse('$baseUrl/rates/$currency'));
+  static Future<List<ExchangeHistory>> fetchHistory(String currency) async {
+    final response = await http.get(Uri.parse('$baseUrl/rates/$currency'));
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
-      return data
-          .map<double>((e) =>
-          (e['rhistBaseRate'] as num).toDouble())
-          .toList();
+
+      return data.map<ExchangeHistory>((e) {
+        return ExchangeHistory(
+          date: DateTime.parse(e['rhistRegDt']), // 백엔드 키 이름 맞춰서
+          rate: (e['rhistBaseRate'] as num).toDouble(),
+        );
+      }).toList();
     } else {
       throw Exception('히스토리 조회 실패');
     }

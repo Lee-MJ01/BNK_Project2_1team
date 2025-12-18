@@ -4,8 +4,22 @@ import '../app_colors.dart';
 import 'exchange_buy.dart';
 import 'exchange_risk.dart';
 import 'exchange_sell.dart';
+import 'exchange_chart.dart';
 
 enum ExchangePage { rates, alerts }
+
+class ExchangeHistory {
+  final DateTime date;
+  final double rate;
+
+  ExchangeHistory({
+    required this.date,
+    required this.rate,
+  });
+}
+
+
+
 
 class CurrencyRate {
   final String code;
@@ -14,9 +28,7 @@ class CurrencyRate {
   final double rate;
   final double change;
   final double changePercent;
-  final double dailyHigh;
-  final double dailyLow;
-  final List<double> history;
+  final List<ExchangeHistory> history;
 
   CurrencyRate({
     required this.code,
@@ -25,8 +37,6 @@ class CurrencyRate {
     required this.rate,
     required this.change,
     required this.changePercent,
-    required this.dailyHigh,
-    required this.dailyLow,
     required this.history,
   });
 
@@ -38,8 +48,6 @@ class CurrencyRate {
       rate: (json['rhistBaseRate'] as num).toDouble(),
       change: 0,
       changePercent: 0,
-      dailyHigh: (json['rhistBaseRate'] as num).toDouble(),
-      dailyLow: (json['rhistBaseRate'] as num).toDouble(),
       history: const [],
     );
   }
@@ -50,9 +58,7 @@ class CurrencyRate {
     double? rate,
     double? change,
     double? changePercent,
-    double? dailyHigh,
-    double? dailyLow,
-    List<double>? history,
+    List<ExchangeHistory>? history,
   }) {
     return CurrencyRate(
       code: code ?? this.code,
@@ -61,8 +67,6 @@ class CurrencyRate {
       rate: rate ?? this.rate,
       change: change ?? this.change,
       changePercent: changePercent ?? this.changePercent,
-      dailyHigh: dailyHigh ?? this.dailyHigh,
-      dailyLow: dailyLow ?? this.dailyLow,
       history: history ?? this.history,
     );
   }
@@ -73,15 +77,29 @@ String _flagFromCode(String code) {
     case 'USD': return '🇺🇸';
     case 'JPY': return '🇯🇵';
     case 'EUR': return '🇪🇺';
-    case 'CNY': return '🇨🇳';
+    case 'CNY':
+    case 'CNH': return '🇨🇳';
+    case 'GBP': return '🇬🇧';
+    case 'AUD': return '🇦🇺';
+    case 'CAD': return '🇨🇦';
+    case 'CHF': return '🇨🇭';
     case 'HKD': return '🇭🇰';
-    case 'THB': return '🇹🇭';
     case 'SGD': return '🇸🇬';
-    case 'PHP': return '🇵🇭';
+    case 'THB': return '🇹🇭';
+    case 'KRW': return '🇰🇷';
+    case 'NZD': return '🇳🇿';
+    case 'DKK': return '🇩🇰';
+    case 'NOK': return '🇳🇴';
+    case 'SEK': return '🇸🇪';
+    case 'IDR': return '🇮🇩';
+    case 'MYR': return '🇲🇾';
+    case 'SAR': return '🇸🇦';
+    case 'AED': return '🇦🇪';
+    case 'BHD': return '🇧🇭';
+    case 'BND': return '🇧🇳';
     default: return '🏳️';
   }
 }
-
 
 
 
@@ -101,47 +119,46 @@ class ExchangeRateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ExchangeBaseScaffold(
       currentPage: ExchangePage.rates,
-      child: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+      child: DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const TabBar(
+                labelColor: AppColors.pointDustyNavy,
+                tabs: [
+                  Tab(text: '실시간 환율'),
+                  Tab(text: '환율 뉴스'),
+                ],
+              ),
             ),
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
+            const SizedBox(height: 12),
+
+            // 🔥 이게 핵심
+            Expanded(
+              child: TabBarView(
                 children: [
-                  const TabBar(
-                    labelColor: AppColors.pointDustyNavy,
-                    tabs: [
-                      Tab(text: '실시간 환율'),
-                      Tab(text: '환율 뉴스'),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 520,
-                    child: TabBarView(
-                      children: [
-                        _RealtimeRateList(),
-                        _ExchangeNewsPlaceholder(
-                          onTap: () =>
-                              _goTo(context, ExchangePage.alerts),
-                        ),
-                      ],
-                    ),
+                  _RealtimeRateList(),          // ← 환율 리스트
+                  _ExchangeNewsPlaceholder(
+                    onTap: (){},
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _RealtimeRateList extends StatelessWidget {
+
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<CurrencyRate>>(
@@ -151,30 +168,61 @@ class _RealtimeRateList extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
+        if (snapshot.hasError || !snapshot.hasData) {
           return const Center(child: Text('환율 정보를 불러오지 못했습니다.'));
         }
 
-        final rates = snapshot.data!;
+        final majorOrder = ['USD', 'JPY', 'EUR', 'CNY', 'CNH', 'VND'];
+
+        final rates = snapshot.data!
+          ..sort((a, b) {
+            final aIndex = majorOrder.indexOf(a.code);
+            final bIndex = majorOrder.indexOf(b.code);
+
+            if (aIndex == -1 && bIndex == -1) return 0;
+            if (aIndex == -1) return 1;
+            if (bIndex == -1) return -1;
+            return aIndex.compareTo(bIndex);
+          });
 
         return ListView.builder(
           padding: const EdgeInsets.all(12),
           itemCount: rates.length,
           itemBuilder: (context, index) {
             final rate = rates[index];
-            return _RateCard(
-              rate: rate,
-              onTap: () async {
-                final history =
-                await ExchangeApi.fetchHistory(rate.code);
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ExchangeDetailScreen(
-                      rate: rate.copyWith(history: history),
-                    ),
-                  ),
+            return FutureBuilder<List<ExchangeHistory>>(
+              future: ExchangeApi.fetchHistory(rate.code),
+              builder: (context, snap) {
+                if (!snap.hasData || snap.data!.length < 2) {
+                  return _RateCard(rate: rate);
+                }
+
+                final history = snap.data!;
+                final today = history.last.rate;
+                final yesterday = history[history.length - 2].rate;
+
+                final double change = today - yesterday;
+                final double changePercent =
+                yesterday == 0 ? 0.0 : (change / yesterday) * 100;
+
+                final computedRate = rate.copyWith(
+                  change: change,
+                  changePercent: changePercent,
+                );
+
+                return _RateCard(
+                  rate: computedRate,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ExchangeDetailScreen(
+                          rate: computedRate.copyWith(history: history),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );
@@ -186,8 +234,7 @@ class _RealtimeRateList extends StatelessWidget {
 }
 
 
-
-class _ExchangeNewsPlaceholder extends StatelessWidget {
+            class _ExchangeNewsPlaceholder extends StatelessWidget {
   const _ExchangeNewsPlaceholder({required this.onTap});
 
   final VoidCallback onTap;
@@ -375,16 +422,19 @@ class ExchangeBaseScaffold extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
-        children: [
-          _ExchangeNavigation(
-            current: currentPage,
-            onSelected: (page) => _goTo(context, page),
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
+        child: Column(
+          children: [
+            _ExchangeNavigation(
+              current: currentPage,
+              onSelected: (page) => _goTo(context, page),
+            ),
+            const SizedBox(height: 12),
+
+            Expanded(child: child),
+          ],
+        ),
       ),
     );
   }
@@ -484,6 +534,8 @@ class _RateCard extends StatelessWidget {
     final String changeLabel =
         '${isUp ? '+' : ''}${rate.change.toStringAsFixed(2)} (${rate.changePercent.toStringAsFixed(2)}%)';
 
+
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -529,29 +581,23 @@ class _RateCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      rate.rate.toStringAsFixed(4),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.pointDustyNavy,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      isUp
-                          ? Icons.arrow_drop_up
-                          : Icons.arrow_drop_down,
-                      color: changeColor,
-                      size: 24,
-                    ),
-                  ],
-                ),
                 Text(
-                  changeLabel,
-                  style: TextStyle(color: changeColor),
+                  '${rate.rate.toStringAsFixed(2)}원',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.pointDustyNavy,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${isUp ? '+' : ''}${rate.change.toStringAsFixed(2)}원 '
+                      '(${rate.changePercent.toStringAsFixed(2)}%)',
+                  style: TextStyle(
+                    color: changeColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -574,7 +620,6 @@ class ExchangeDetailScreen extends StatefulWidget {
 
 class _ExchangeDetailScreenState
     extends State<ExchangeDetailScreen> {
-  String _selectedRange = '1일';
 
   @override
   Widget build(BuildContext context) {
@@ -582,7 +627,14 @@ class _ExchangeDetailScreenState
     final Color changeColor =
     isUp ? Colors.redAccent : Colors.blueAccent;
     final String changeLabel =
-        '${isUp ? '+' : ''}${widget.rate.change.toStringAsFixed(2)} (${widget.rate.changePercent.toStringAsFixed(2)}%)';
+        '${isUp ? '+' : ''}${widget.rate.change.toStringAsFixed(2)} (${widget
+        .rate.changePercent.toStringAsFixed(2)}%)';
+
+    final prices =
+    widget.rate.history.map((e) => e.rate).toList();
+
+    final dates =
+    widget.rate.history.map((e) => e.date).toList();
 
     return Scaffold(
       backgroundColor: AppColors.backgroundOffWhite,
@@ -594,13 +646,6 @@ class _ExchangeDetailScreenState
           widget.rate.name,
           style: const TextStyle(color: AppColors.pointDustyNavy),
         ),
-        actions: const [
-          Icon(
-            Icons.file_download_outlined,
-            color: AppColors.pointDustyNavy,
-          ),
-          SizedBox(width: 12),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -641,37 +686,18 @@ class _ExchangeDetailScreenState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 20),
-            _RangeSelector(
-              selected: _selectedRange,
-              onSelected: (value) =>
-                  setState(() => _selectedRange = value),
-            ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
+
             Expanded(
-              child: _RateChart(
-                points: widget.rate.history,
-                high: widget.rate.dailyHigh,
-                low: widget.rate.dailyLow,
-                changeColor: changeColor,
+              child: ExchangeChart(
+                prices: prices,
+                dates: dates,
+                lineColor: changeColor,
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
-              children: [
-                _Chip(
-                  label:
-                  '최고 ${widget.rate.dailyHigh.toStringAsFixed(2)}원',
-                ),
-                _Chip(
-                  label:
-                  '최저 ${widget.rate.dailyLow.toStringAsFixed(2)}원',
-                ),
-              ],
-            ),
+
             const SizedBox(height: 16),
+
             _ActionButtons(
               changeColor: changeColor,
               isUp: isUp,
@@ -684,177 +710,6 @@ class _ExchangeDetailScreenState
   }
 }
 
-class _RangeSelector extends StatelessWidget {
-  const _RangeSelector({
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final String selected;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    const ranges = ['1일', '1주', '3달', '1년'];
-    return Row(
-      children: ranges
-          .map(
-            (range) => Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ChoiceChip(
-            label: Text(range),
-            selected: selected == range,
-            onSelected: (_) => onSelected(range),
-            selectedColor: AppColors.pointDustyNavy,
-            labelStyle: TextStyle(
-              color: selected == range
-                  ? Colors.white
-                  : AppColors.pointDustyNavy,
-              fontWeight: FontWeight.bold,
-            ),
-            backgroundColor: Colors.white,
-          ),
-        ),
-      )
-          .toList(),
-    );
-  }
-}
-
-class _RateChart extends StatelessWidget {
-  const _RateChart({
-    required this.points,
-    required this.high,
-    required this.low,
-    required this.changeColor,
-  });
-
-  final List<double> points;
-  final double high;
-  final double low;
-  final Color changeColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '실시간 환율',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: CustomPaint(
-              painter: _LineChartPainter(
-                points: points,
-                lineColor: changeColor,
-              ),
-              child: Container(),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                '매수 · 매도 시점에 맞춰 확인',
-                style: TextStyle(color: Colors.black54),
-              ),
-              Icon(
-                Icons.info_outline,
-                size: 18,
-                color: Colors.black45,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LineChartPainter extends CustomPainter {
-  _LineChartPainter({
-    required this.points,
-    required this.lineColor,
-  });
-
-  final List<double> points;
-  final Color lineColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.isEmpty) return;
-
-    final double maxPoint =
-    points.reduce((a, b) => a > b ? a : b);
-    final double minPoint =
-    points.reduce((a, b) => a < b ? a : b);
-    final double range =
-    (maxPoint - minPoint).abs() < 0.01
-        ? 1
-        : maxPoint - minPoint;
-
-    final Paint linePaint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final Paint areaPaint = Paint()
-      ..color = lineColor.withOpacity(0.1)
-      ..style = PaintingStyle.fill;
-
-    final Path linePath = Path();
-    final Path areaPath = Path();
-
-    for (int i = 0; i < points.length; i++) {
-      final double dx =
-          size.width * (i / (points.length - 1));
-      final double dy = size.height -
-          ((points[i] - minPoint) / range) *
-              size.height;
-
-      if (i == 0) {
-        linePath.moveTo(dx, dy);
-        areaPath.moveTo(dx, size.height);
-        areaPath.lineTo(dx, dy);
-      } else {
-        linePath.lineTo(dx, dy);
-        areaPath.lineTo(dx, dy);
-      }
-    }
-
-    areaPath.lineTo(size.width, size.height);
-    areaPath.close();
-
-    canvas.drawPath(areaPath, areaPaint);
-    canvas.drawPath(linePath, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(
-      covariant _LineChartPainter oldDelegate,
-      ) {
-    return oldDelegate.points != points ||
-        oldDelegate.lineColor != lineColor;
-  }
-}
 
 class _ActionButtons extends StatelessWidget {
   const _ActionButtons({
@@ -1055,6 +910,8 @@ class _AlertCard extends StatelessWidget {
     );
   }
 }
+
+
 
 
 class _InfoCard extends StatelessWidget {

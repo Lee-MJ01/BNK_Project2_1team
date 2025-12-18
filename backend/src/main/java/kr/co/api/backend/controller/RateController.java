@@ -31,4 +31,6 @@ public class RateController {
     ) {
         return rateQueryService.getRateHistory(currency);
     }
+
+
 }
