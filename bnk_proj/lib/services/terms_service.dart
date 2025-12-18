@@ -19,7 +19,7 @@ class TermsService {
     final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
 
     return data
-        .map((e) => TermsDocument.fromJson(e as Map<String, dynamic>, baseUrl))
+        .map((e) => TermsDocument.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 }

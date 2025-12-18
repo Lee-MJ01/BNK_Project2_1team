@@ -21,9 +21,9 @@ class TermsDocument {
     required this.downloadUrl,
   });
 
-  factory TermsDocument.fromJson(Map<String, dynamic> json, String baseUrl) {
+  factory TermsDocument.fromJson(Map<String, dynamic> json) {
     final rawFile = json['file']?.toString() ?? '';
-    final fullUrl = _resolveFileUrl(rawFile, baseUrl);
+    final rawUrl = json['downloadUrl']?.toString();
 
     return TermsDocument(
       id: int.tryParse(json['histId']?.toString() ?? ''),
@@ -34,15 +34,8 @@ class TermsDocument {
       regDate: json['regDate']?.toString(),
       filePath: rawFile,
       content: json['content']?.toString() ?? '',
-      downloadUrl: fullUrl,
+    
+      downloadUrl: (rawUrl != null && rawUrl.isNotEmpty) ? rawUrl : rawFile,
     );
-  }
-
-  static String _resolveFileUrl(String filePath, String baseUrl) {
-    if (filePath.startsWith('http')) return filePath;
-    if (filePath.startsWith('/')) {
-      return '$baseUrl$filePath';
-    }
-    return '$baseUrl/uploads/terms/$filePath';
   }
 }

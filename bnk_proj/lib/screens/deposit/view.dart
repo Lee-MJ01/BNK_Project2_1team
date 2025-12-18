@@ -1688,7 +1688,12 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     final List<TermsDocument> result = [];
 
-    if (product.infoPdf.isNotEmpty) {
+    final String productPdfUrl = (product.infoPdfUrl.isNotEmpty
+            ? product.infoPdfUrl
+            : product.infoPdf)
+        .trim();
+
+    if (productPdfUrl.isNotEmpty) {
       result.add(
         TermsDocument(
           id: null,
@@ -1699,7 +1704,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
           regDate: null,
           filePath: product.infoPdf,
           content: '',
-          downloadUrl: _resolveTermsUrl(product.infoPdf),
+          downloadUrl: productPdfUrl,
         ),
       );
     }
@@ -1727,22 +1732,6 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
 
-
-
-  String _resolveTermsUrl(String filePath) {
-    // 1. 이미 절대경로면 그대로 사용
-    if (filePath.startsWith('http')) {
-      return filePath;
-    }
-
-    // 2. 앞에 / 가 있으면 그대로 baseUrl만 붙임
-    if (filePath.startsWith('/')) {
-      return '${TermsService.baseUrl}$filePath';
-    }
-
-    // 3. 나머지는 uploads/terms 기준
-    return '${TermsService.baseUrl}/uploads/terms/$filePath';
-  }
 
 
   Widget _termsRow(TermsDocument terms) {
@@ -1805,39 +1794,48 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
   Future<void> _openTerms(TermsDocument terms) async {
-
     //pdf 로그 찍기
     debugPrint("[TermsOpen] 보기 클릭");
     debugPrint("title=${terms.title}");
     debugPrint("url=${terms.downloadUrl}");
 
-
     await _launchTerms(terms, LaunchMode.externalApplication);
   }
-
-
-
-
 
   Future<void> _downloadTerms(TermsDocument terms) async {
     await _launchTerms(terms, LaunchMode.externalApplication);
   }
 
-  Future<void> _launchTerms(TermsDocument terms, LaunchMode mode) async {
+  Uri? _buildTermsUri(TermsDocument terms) {
+    final raw = terms.downloadUrl.trim();
+    if (raw.isEmpty) return null;
 
+    return Uri.tryParse(raw);
+  }
+
+  Future<void> _launchTerms(TermsDocument terms, LaunchMode mode) async {
+    final uri = _buildTermsUri(terms);
 
     debugPrint("🔴 [LaunchTerms] mode=$mode");
     debugPrint("🔴 [LaunchTerms] rawUrl=${terms.downloadUrl}");
+    debugPrint("🔴 [LaunchTerms] resolvedUri=$uri");
 
-    final uri = Uri.parse(terms.downloadUrl);
-    debugPrint("🔴 [LaunchTerms] parsedUri=$uri");
-
+    if (uri == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('유효한 약관 경로가 없습니다: ${terms.title}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
 
     final ok = await launchUrl(uri, mode: mode);
     debugPrint("🔴 [LaunchTerms] launch result = $ok");
 
     if (!ok && mounted) {
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('파일을 열 수 없습니다: ${terms.title}'),
