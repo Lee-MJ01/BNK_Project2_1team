@@ -10,27 +10,8 @@ import '../models/deposit/view.dart';
 import 'api_service.dart';
 
 class DepositService {
-  /// ApiService.baseUrl 예:
-  /// http://10.0.2.2:8080/backend/api/mobile
-  ///
-  /// 동일 서버의 backend 루트까지를 계산
-  static String _resolveBackendBase() {
-    final uri = Uri.parse(ApiService.baseUrl);
-    final segments = uri.pathSegments;
-    final backendIndex = segments.indexOf('backend');
-    final basePath = backendIndex >= 0
-        ? '/${segments.sublist(0, backendIndex + 1).join('/')}'
-        : '';
-    return '${uri.scheme}://${uri.authority}$basePath';
-  }
-
-  static final String _backendBase = _resolveBackendBase();
-
-  /// backend 기준 예금 API 루트
-  static final String baseUrl = '$_backendBase/deposit';
-
-  /// mobile API 루트 (토큰 필요 API)
-  static final String mobileBaseUrl = '${ApiService.baseUrl}/deposit';
+  static const String baseUrl = 'http://34.64.124.33:8080/backend';
+  static const String mobileBaseUrl = '${ApiService.baseUrl}/deposit';
 
   final http.Client _client = http.Client();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
