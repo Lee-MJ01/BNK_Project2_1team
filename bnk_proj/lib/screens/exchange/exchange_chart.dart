@@ -118,7 +118,7 @@ class _ExchangeChartState extends State<ExchangeChart> {
                   onTapDown: (details) {
                     final dx = details.localPosition.dx;
 
-                    // ✅ x좌표 → 가장 가까운 index
+                    // x좌표 → 가장 가까운 index
                     final ratio = (dx / width).clamp(0.0, 1.0);
                     final index =
                     (ratio * (prices.length - 1)).round();

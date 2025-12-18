@@ -23,12 +23,28 @@ class _ExchangeSellPageState extends State<ExchangeSellPage> {
           usdAmount = usdAmount.substring(0, usdAmount.length - 1);
           if (usdAmount.isEmpty) usdAmount = "0";
         }
-      } else {
-        if (usdAmount == "0") {
-          usdAmount = value;
+        return;
+      }
+
+      // 🔹 소수점 처리
+      if (value == ".") {
+        // 이미 소수점이 있으면 무시
+        if (usdAmount.contains(".")) return;
+
+        // "0"이거나 비어있으면 "0."
+        if (usdAmount == "0" || usdAmount.isEmpty) {
+          usdAmount = "0.";
         } else {
-          usdAmount += value;
+          usdAmount += ".";
         }
+        return;
+      }
+
+      // 🔹 숫자 입력
+      if (usdAmount == "0") {
+        usdAmount = value;
+      } else {
+        usdAmount += value;
       }
     });
   }

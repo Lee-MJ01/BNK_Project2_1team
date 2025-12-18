@@ -14,35 +14,51 @@ class ExchangeBuyPage extends StatefulWidget {
 }
 
 class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
-  String usdAmount = "1";
-  final double rate = 1477.0;
+  String foreignAmount = "1";
 
   void _onKeyTap(String value) {
     setState(() {
       if (value == "back") {
-        if (usdAmount.isNotEmpty) {
-          usdAmount = usdAmount.substring(0, usdAmount.length - 1);
-          if (usdAmount.isEmpty) usdAmount = "0";
+        if (foreignAmount.isNotEmpty) {
+          foreignAmount =
+              foreignAmount.substring(0, foreignAmount.length - 1);
+          if (foreignAmount.isEmpty) foreignAmount = "0";
         }
-      } else {
-        if (usdAmount == "0") {
-          usdAmount = value;
+        return;
+      }
+
+      // 🔹 소수점 처리
+      if (value == ".") {
+        // 이미 소수점이 있으면 무시
+        if (foreignAmount.contains(".")) return;
+
+        // "0" 또는 빈 값이면 "0."
+        if (foreignAmount.isEmpty || foreignAmount == "0") {
+          foreignAmount = "0.";
         } else {
-          usdAmount += value;
+          foreignAmount += ".";
         }
+        return;
+      }
+
+      // 🔹 숫자 처리
+      if (foreignAmount == "0") {
+        foreignAmount = value;
+      } else {
+        foreignAmount += value;
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int krwAmount =
-    (double.tryParse(usdAmount) ?? 0 * rate).round();
+    final double foreign = double.tryParse(foreignAmount) ?? 0;
+    final int krwAmount = (foreign * widget.rate.rate).round();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F7FB),
       appBar: AppBar(
-        title: const Text("USD 사기"),
+        title: Text("${widget.rate.code} 사기"),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -53,20 +69,20 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
           const SizedBox(height: 16),
 
           // 환율 텍스트
-          const Text(
-            "1 USD = 1,477원",
-            style: TextStyle(fontSize: 14, color: Colors.black54),
+          Text(
+            "1 ${widget.rate.code} = ${widget.rate.rate.toStringAsFixed(2)}원",
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
           ),
 
           const SizedBox(height: 20),
 
-          // USD 카드
+          // 외화 카드
           _currencyCard(
-            flag: "🇺🇸",
-            title: "미국 달러",
-            amount: "$usdAmount USD",
+            flag: widget.rate.flagEmoji,
+            title: widget.rate.name,
+            amount: "$foreignAmount ${widget.rate.code}",
             isActive: true,
-            balance: "잔액 0 USD",
+            balance: "잔액 0 ${widget.rate.code}",
           ),
 
           const SizedBox(height: 12),
@@ -101,12 +117,10 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
 
           const Spacer(),
 
-          // 키패드
           _keypad(),
 
           const SizedBox(height: 12),
 
-          // 확인 버튼
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
@@ -157,9 +171,10 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
             children: [
               Text(title, style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 4),
-              Text(balance,
-                  style:
-                  const TextStyle(fontSize: 12, color: Colors.black54)),
+              Text(
+                balance,
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
             ],
           ),
           const Spacer(),

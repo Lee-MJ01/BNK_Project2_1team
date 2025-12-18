@@ -198,12 +198,29 @@ class _RealtimeRateList extends StatelessWidget {
                   return _RateCard(rate: rate);
                 }
 
-                final history = snap.data!;
-                final today = history.last.rate;
-                final yesterday = history[history.length - 2].rate;
+                final history = snap.data!
+                  ..sort((a, b) => a.date.compareTo(b.date));
 
-                final double change = today - yesterday;
-                final double changePercent =
+                final daily = <ExchangeHistory>[];
+                for (final h in history) {
+                  if (daily.isEmpty ||
+                      daily.last.date.day != h.date.day ||
+                      daily.last.date.month != h.date.month ||
+                      daily.last.date.year != h.date.year) {
+                    daily.add(h);
+                  }
+                }
+
+                if (daily.length < 2) {
+                  return _RateCard(rate: rate);
+                }
+
+
+                final yesterday = daily[daily.length - 2].rate;
+                final today = daily.last.rate;
+
+                final change = today - yesterday;
+                final changePercent =
                 yesterday == 0 ? 0.0 : (change / yesterday) * 100;
 
                 final computedRate = rate.copyWith(
@@ -532,7 +549,8 @@ class _RateCard extends StatelessWidget {
     final Color changeColor =
     isUp ? Colors.redAccent : Colors.blueAccent;
     final String changeLabel =
-        '${isUp ? '+' : ''}${rate.change.toStringAsFixed(2)} (${rate.changePercent.toStringAsFixed(2)}%)';
+        '${isUp ? '+' : ''}${rate.change.toStringAsFixed(2)}원 '
+        '(${rate.changePercent.toStringAsFixed(2)}%)';
 
 
 
