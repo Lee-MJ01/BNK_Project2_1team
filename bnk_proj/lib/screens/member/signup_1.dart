@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_2.dart';
+import 'package:test_main/screens/member/signup_hidden.dart';
 
 import '../../models/cust_info.dart';
 
@@ -95,28 +96,41 @@ class _SignUp1PageState extends State<SignUp1Page> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: bottomInset, // ✅ 키보드 높이만큼 버튼을 올림
+            bottom: bottomInset, // 키보드 높이만큼 버튼을 올림
             child: ValueListenableBuilder<TextEditingValue>(
               valueListenable: _nameController,
               builder: (context, value, child) {
                 final isButtonEnabled = value.text.trim().isNotEmpty;
                 return GestureDetector(
-                  onTap: isButtonEnabled
-                      ? () {
-                    final name = value.text.trim();
+                    onTap: isButtonEnabled
+                        ? () {
+                      final name = value.text.trim();
 
-                    final custInfo = CustInfo(
-                      name: name
-                    );
+                      // 공통 CustInfo 생성
+                      final custInfo = CustInfo(name: name);
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SignUp2Page(custInfo: custInfo),
-                      ),
-                    );
-                  }
-                      : null,
+                      // 분기
+                      if (name == "test") {
+                        // 테스트용 전체 입력 페이지
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CustInfoAllInOneFormPage(),
+                          ),
+                        );
+                      } else {
+                        // 기존 회원가입 플로우
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SignUp2Page(
+                              custInfo: custInfo,
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                    : null,
                   child: Container(
                     color: isButtonEnabled
                         ? AppColors.pointDustyNavy
