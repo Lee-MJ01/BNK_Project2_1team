@@ -481,6 +481,7 @@ class _SignUp3PageState extends State<SignUp3Page> {
                             backgroundColor: AppColors.pointDustyNavy,
                           ),
                           onPressed: () async {
+                            widget.custInfo.phone = _phoneController.text;
                             _showLoading();
                             Map<String, dynamic> result = await SignupService.sendAuthCodeToMemberHp(widget.custInfo.phone!);
 
