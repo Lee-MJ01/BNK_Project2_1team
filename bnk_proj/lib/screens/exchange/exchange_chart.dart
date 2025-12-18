@@ -39,15 +39,27 @@ class _ExchangeChartState extends State<ExchangeChart> {
 
   @override
   Widget build(BuildContext context) {
-    final valid = widget.prices.where((e) => e > 0).toList();
+    // ✅ prices + dates 날짜 기준 오름차순 정렬
+    final combined = List.generate(
+      widget.prices.length,
+          (i) => {
+        'price': widget.prices[i],
+        'date': widget.dates[i],
+      },
+    )..sort((a, b) =>
+        (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+
+    final prices =
+    combined.map((e) => e['price'] as double).toList();
+    final dates =
+    combined.map((e) => e['date'] as DateTime).toList();
+
+    final maxPrice = prices.reduce(max);
+    final minPrice = prices.reduce(min);
 
 
-    if (valid.length < 2) {
-      return _EmptyChart();
-    }
+    final valid = prices.where((e) => e > 0).toList();
 
-    final maxPrice = valid.reduce(max);
-    final minPrice = valid.reduce(min);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -80,7 +92,7 @@ class _ExchangeChartState extends State<ExchangeChart> {
                 final width = constraints.maxWidth;
                 final height = constraints.maxHeight;
 
-                final prices = widget.prices;
+
                 final maxPrice = prices.reduce(max);
                 final minPrice = prices.reduce(min);
                 final todayPrice = prices.last;
@@ -132,7 +144,7 @@ class _ExchangeChartState extends State<ExchangeChart> {
                           x: calcX(selectedIndex!),
                           y: calcY(prices[selectedIndex!]),
                           price: prices[selectedIndex!],
-                          date: widget.dates[selectedIndex!],
+                          date: dates[selectedIndex!],
                           chartWidth: width,
                           chartHeight: height,
                         ),
@@ -204,6 +216,7 @@ class _EmptyChart extends StatelessWidget {
     );
   }
 }
+
 
 class _LineChartPainter extends CustomPainter {
   final List<double> prices;
