@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:test_main/screens/deposit/list.dart';
 import 'package:test_main/screens/main/search.dart';
 import '../app_colors.dart';
@@ -15,6 +18,41 @@ import '../exchange/forex_insight.dart';
 import 'alarm.dart';
 import 'package:test_main/screens/main/live_camera.dart';
 import '../chat/chat.dart';
+
+class RateDTO {
+  final String rhistCurrency;
+  final double rhistBaseRate;
+  final double rhistTtBuyRate;
+  final double rhistTtSellRate;
+  final String rhistRegDt;
+
+  RateDTO({
+    required this.rhistCurrency,
+    required this.rhistBaseRate,
+    required this.rhistTtBuyRate,
+    required this.rhistTtSellRate,
+    required this.rhistRegDt,
+  });
+
+  factory RateDTO.fromJson(Map<String, dynamic> json) {
+    return RateDTO(
+      rhistCurrency: json['rhistCurrency'],
+      rhistBaseRate: (json['rhistBaseRate'] as num).toDouble(),
+      rhistTtBuyRate: (json['rhistTtBuyRate'] as num).toDouble(),
+      rhistTtSellRate: (json['rhistTtSellRate'] as num).toDouble(),
+      rhistRegDt: json['rhistRegDt'],
+    );
+  }
+}
+
+Future<List<RateDTO>> fetchLatestRates() async {
+  final response = await http.get(
+    Uri.parse('http://34.64.124.33:8080/backend/api/exchange/rates'),
+  );
+
+  final List list = jsonDecode(response.body);
+  return list.map((e) => RateDTO.fromJson(e)).toList();
+}
 
 
 class BankHomePage extends StatefulWidget {
@@ -336,86 +374,130 @@ class _RateSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center, // ✅ 전체 중앙
-        children: [
-          const Text(
-            "환율 정보",
-            textAlign: TextAlign.center,               // ✅ 제목 중앙
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
+    return FutureBuilder<List<RateDTO>>(
+      future: fetchLatestRates(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          // ✅ 헤더 중앙 정렬
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        final rates = snapshot.data!;
+        final visibleRates = rates.where((r) =>
+        r.rhistCurrency == 'USD' ||
+            r.rhistCurrency == 'JPY' ||
+            r.rhistCurrency == 'EUR' ||
+            r.rhistCurrency == 'CNH'
+        ).toList();
+
+        const order = ['USD', 'JPY', 'EUR', 'CNH'];
+        visibleRates.sort((a, b) =>
+            order.indexOf(a.rhistCurrency)
+                .compareTo(order.indexOf(b.rhistCurrency)));
+
+        final String today = rates.first.rhistRegDt; // DB 기준일
+
+        return Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: const [
+              BoxShadow(color: Colors.black12, blurRadius: 6),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(
-                width: 50,
-                child: Center(
-                  child: Text(
-                    "통화",
-                    textAlign: TextAlign.center,
+              /// 제목 + 기준일
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "환율 정보",
                     style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black54),
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "($today 기준)",
+                    style: const TextStyle(
+                        fontSize: 13, color: Colors.black54),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "매매기준율",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black54),
+
+              const SizedBox(height: 16),
+
+              /// 헤더
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 50,
+                    child: Center(
+                      child: Text("통화",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54)),
+                    ),
                   ),
-                ),
+                  Expanded(
+                      child: Center(
+                          child: Text("매매기준율",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54)))),
+                  Expanded(
+                      child: Center(
+                          child: Text("송금받을 때",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54)))),
+                  Expanded(
+                      child: Center(
+                          child: Text("송금보낼 때",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black54)))),
+                ],
               ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "송금받을 때",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black54),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "송금보낼 때",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold, color: Colors.black54),
-                  ),
+
+              const SizedBox(height: 8),
+              Container(height: 1, color: Colors.black12),
+              const SizedBox(height: 10),
+
+              /// DB 환율 Row
+              ...visibleRates.map(
+                    (r) => _RateRow(
+                  currency: _displayCurrencyName(r.rhistCurrency),
+                  base: r.rhistBaseRate.toStringAsFixed(2),
+                  ttb: r.rhistTtBuyRate.toStringAsFixed(2),
+                  tts: r.rhistTtSellRate.toStringAsFixed(2),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-          Container(height: 1, color: Colors.black12),
-          const SizedBox(height: 10),
-
-          _RateRow(currency: "USD", base: "1,321.50", ttb: "1,309.00", tts: "1,334.00"),
-          _RateRow(currency: "JPY", base: "875.20", ttb: "870.10", tts: "882.90"),
-          _RateRow(currency: "EUR", base: "1,443.10", ttb: "1,430.00", tts: "1,455.30"),
-          _RateRow(currency: "CNY", base: "182.50", ttb: "180.20", tts: "185.60"),
-        ],
-      ),
+        );
+      },
     );
   }
 }
+String _displayCurrencyName(String code) {
+  switch (code) {
+    case 'USD':
+      return 'USD';
+    case 'JPY':
+      return 'JPY';
+    case 'EUR':
+      return 'EUR';
+    case 'CNH':
+      return 'CNH';
+    default:
+      return code;
+  }
+}
+
+
 class _RateRow extends StatelessWidget {
   final String currency;
   final String base;

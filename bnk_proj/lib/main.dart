@@ -449,4 +449,3 @@ class _ShortcutButton extends StatelessWidget {
     );
   }
 }
-

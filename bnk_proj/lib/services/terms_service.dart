@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/terms.dart';
 
 class TermsService {
-  static const String baseUrl = 'http://10.0.2.2:8080/backend';
+  static const String baseUrl = 'http://34.64.124.33:8080/backend';
   final http.Client _client = http.Client();
 
   Future<List<TermsDocument>> fetchTerms({int status = 4}) async {
