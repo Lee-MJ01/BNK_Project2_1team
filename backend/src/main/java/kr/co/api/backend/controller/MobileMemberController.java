@@ -95,15 +95,63 @@ public class MobileMemberController {
         }
     }
 
+    @PostMapping("/auth/send-code-hp")
+    public ResponseEntity<?> sendAuthCodeWithHp(@RequestBody Map<String, String> request) {
+        String phoneNumber = request.get("phone");
+
+
+        if (phoneNumber == null || phoneNumber.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of("message", "전화번호가 없습니다."));
+        }
+
+        // 3. 랜덤 인증번호 6자리 생성 (예: "123456")
+        String code = String.format("%06d", new Random().nextInt(999999));
+
+        try {
+            // 4. SMS 발송 (DB에서 가져온 번호로 전송됨)
+            smsService.sendVerificationCode(phoneNumber, code);
+
+            // 6. 앱 화면에 보여줄 마스킹된 번호 생성 (예: 010-****-5678)
+            String maskedPhone = maskPhoneNumber(phoneNumber);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "SUCCESS",
+                    "message", "인증번호가 발송되었습니다.",
+                    "maskedPhone", maskedPhone // 앱에서는 이 번호로 문자가 갔다고 알려줍니다.
+            ));
+
+        } catch (Exception e) {
+            log.error("SMS 발송 실패", e);
+            return ResponseEntity.status(500).body(Map.of("message", "SMS 발송 중 오류가 발생했습니다."));
+        }
+    }
+
     /*
      * [STEP 2] 인증번호 검증 요청
      */
     @PostMapping("/auth/verify-code")
     public ResponseEntity<?> verifyAuthCode(@RequestBody Map<String, String> request) {
+<<<<<<< Updated upstream
         String userId = request.get("userid");
         String inputCode = request.get("code");
 
         boolean isVerified = mobileAuthService.verifyAuthCode(userId, inputCode);
+=======
+        String phone = request.get("phone");
+        String inputCode = request.get("code"); // 사용자가 입력한 값
+
+        // 1. 아까 저장해둔 인증번호 꺼내오기
+        String savedCode = authCodeStore.get(phone);
+
+        // 2. 비교 로직
+        // savedCode != null : 발송 기록이 있어야 함
+        // savedCode.equals(inputCode) : 저장된 값과 입력값이 같아야 함
+        if (savedCode != null && savedCode.equals(inputCode)) {
+
+            // 3. 인증 성공!
+            // 보안을 위해 사용한 인증번호는 즉시 삭제합니다. (재사용 방지)
+            authCodeStore.remove(phone);
+>>>>>>> Stashed changes
 
         if (isVerified) {
             return ResponseEntity.ok(Map.of("status", "SUCCESS"));

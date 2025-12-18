@@ -3,6 +3,7 @@ import 'dart:async' show Future, Timer;
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_4.dart';
+import 'package:test_main/services/signup_service.dart';
 
 import '../../models/cust_info.dart';
 
@@ -325,6 +326,9 @@ class _SignUp3PageState extends State<SignUp3Page> {
   }
 
   void _showAgreementSheet() {
+
+
+
     setState(() {
       allAgree = false;
       agreements.updateAll((key, value) => false);
@@ -476,9 +480,25 @@ class _SignUp3PageState extends State<SignUp3Page> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.pointDustyNavy,
                           ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showLoadingAndGoNext();
+                          onPressed: () async {
+                            _showLoading();
+                            Map<String, dynamic> result = await SignupService.sendAuthCodeToMemberHp(widget.custInfo.phone!);
+
+                            if (!mounted) return;
+                            Navigator.pop(context); // 로딩 닫기
+
+                            if (result['status'] == 'SUCCESS') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => SignUp4Page(
+                                    custInfo : widget.custInfo
+                                ),),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(result['message'] ?? '발송 실패')),
+                              );
+                            }
                           },
                           child: const Text(
                             "동의하고 인증번호 요청",
@@ -527,6 +547,14 @@ class _SignUp3PageState extends State<SignUp3Page> {
         ),),
       );
     }
+  }
+
+  void _showLoading() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 뒤로가기 막기
+      builder: (_)  => const LoadingDialog(),
+    );
   }
 
 

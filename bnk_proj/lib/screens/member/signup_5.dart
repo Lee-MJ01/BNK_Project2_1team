@@ -34,7 +34,6 @@ class _SignUp5PageState extends State<SignUp5Page> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     debugPrint("name: ${widget.custInfo.name}");
   }
@@ -140,6 +139,17 @@ class _SignUp5PageState extends State<SignUp5Page> {
                             ),
                           );
 
+                          final expectedBackFirst = widget.custInfo.rrn!.substring(6, 7);
+                          final enteredBackFirst = result.substring(0, 1);
+
+                          if (enteredBackFirst != expectedBackFirst) {
+                            _showRrnMismatchDialog(
+                              expected: expectedBackFirst,
+                              entered: enteredBackFirst,
+                            );
+                            return;
+                          }
+
                           if (result != null && result is String) {
                             setState(() {
                               _rrnBackController.text = result;
@@ -227,6 +237,37 @@ class _SignUp5PageState extends State<SignUp5Page> {
       builder: (_) =>AgreementSheet(custInfo: widget.custInfo,),
     );
   }
+
+
+  void _showRrnMismatchDialog({required String expected, required String entered}) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("주민등록번호 확인"),
+        content: const Text(
+          "주민등록번호가 일치하지 않습니다.\n뒤 7자리를 다시 입력해주세요.",
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.pointDustyNavy,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text("확인", style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:test_main/models/cust_info.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/member/signup_5.dart';
+import 'package:test_main/services/signup_service.dart';
 
 class SignUp4Page extends StatefulWidget {
   const SignUp4Page({super.key,
@@ -221,15 +222,47 @@ class _SignUp4PageState extends State<SignUp4Page> {
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: isFilled ? () {
-                  _showSuccessDialog();
+                onPressed: isFilled ? () async {
+                  // ⛔ 타이머 만료 시 차단
+                  if (remainingSeconds == 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("인증 시간이 만료되었습니다. 다시 요청해주세요.")),
+                    );
+                    return;
+                  }
+
+                  final code = _code.join(); // "123456"
+
+                  try {
+                    final isVerified = await SignupService.verifyAuthCodeHp(
+                      widget.custInfo.phone!,
+                      code,
+                    );
+
+                    if (!mounted) return;
+
+                    if (isVerified) {
+                      _showSuccessDialog();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("인증번호가 올바르지 않습니다.")),
+                      );
+                    }
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("인증 처리 중 오류가 발생했습니다.")),
+                    );
+                  }
                 } : null,
+
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isFilled
                       ? AppColors.pointDustyNavy
                       : Colors.grey.shade300,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero, // 🔥 직사각형 모양!
+                    borderRadius: BorderRadius.zero, // 직사각형 모양!
                   ),
                 ),
                 child: Text(
@@ -247,6 +280,8 @@ class _SignUp4PageState extends State<SignUp4Page> {
       )
     );
   }
+
+  String get inputCode => _code.join();
 
   void _handleBackspace(RawKeyEvent event) {
     if (event is RawKeyDownEvent &&
