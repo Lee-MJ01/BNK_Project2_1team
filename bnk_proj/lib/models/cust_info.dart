@@ -11,6 +11,7 @@ class CustInfo {
   String? jobType;
   bool isForeignTax;
   String? deviceId;
+  String? engName;
 
   String? mailAgree;
   String? phoneAgree;
@@ -33,7 +34,8 @@ class CustInfo {
     this.mailAgree,
     this.phoneAgree,
     this.emailAgree,
-    this.smsAgree
+    this.smsAgree,
+    this.engName
   });
 
   Map<String, dynamic> toJson() => {
@@ -52,6 +54,7 @@ class CustInfo {
     "custMailAgree" : mailAgree,
     "custPhoneAgree" : phoneAgree,
     "custEmailAgree" : emailAgree,
-    "custSmsAgree" : smsAgree
+    "custSmsAgree" : smsAgree,
+    "custEngName" : engName
   };
 }

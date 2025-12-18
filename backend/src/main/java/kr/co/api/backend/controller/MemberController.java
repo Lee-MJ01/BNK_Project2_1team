@@ -13,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import kr.co.api.backend.dto.CustFrgnAcctDTO;
 import kr.co.api.backend.dto.CustInfoDTO;
 import kr.co.api.backend.dto.ReqSignupDTO;
 import kr.co.api.backend.jwt.CustomUserDetails;
@@ -196,14 +197,12 @@ public class MemberController {
 
     @PostMapping("/api/register")
     public ResponseEntity<Object> appRegister(@RequestBody ReqSignupDTO reqSignupDTO) {
-        log.info("🔥 /api/register 진입");
-        log.info("custInfo = {}", reqSignupDTO.getCustInfo());
-        log.info("custAcct = {}", reqSignupDTO.getCustAcct());
-        String custCode = custInfoService.apiRegister(reqSignupDTO.getCustInfo());
-        log.info("custInfo = {}", reqSignupDTO.getCustInfo());
-        reqSignupDTO.getCustAcct().setAcctCustCode(custCode);
-        log.info("custAcct = {}", reqSignupDTO.getCustAcct());
-        mypageService.apiSaveAcct(reqSignupDTO.getCustAcct());
+        log.info("/api/register 진입");
+
+        // insert CustInfo, CustAcct, FrgnAcct (트랜잭션 처리)
+        custInfoService.apiRegister(reqSignupDTO.getCustInfo(), reqSignupDTO.getCustAcct());
+
+
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

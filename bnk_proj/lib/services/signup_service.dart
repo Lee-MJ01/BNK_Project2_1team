@@ -6,7 +6,7 @@ import '../models/cust_info.dart';
 import '../models/cust_acct.dart';
 
 class SignupService {
-  static const String baseUrl = 'http://192.168.0.207:8080/backend';
+  static const String baseUrl = 'http://34.64.124.33:8080/backend';
   final http.Client _client = http.Client();
 
   Future<void> submitSignup(

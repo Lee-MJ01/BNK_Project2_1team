@@ -23,11 +23,13 @@ class _LoginCredentialSetupPageState
   final _idController = TextEditingController();
   final _pwController = TextEditingController();
   final _pwCheckController = TextEditingController();
+  final _engController = TextEditingController();
 
   bool get isFilled =>
       _idController.text.length >= 6 &&
       _pwController.text.length >= 8 &&
-      _pwController.text == _pwCheckController.text;
+      _pwController.text == _pwCheckController.text &&
+      _engController.text.length >= 3;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +75,24 @@ class _LoginCredentialSetupPageState
                   ),
 
                   const SizedBox(height: 36),
+
+                  const Text(
+                    "영문 이름",
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _engController,
+                    decoration: InputDecoration(
+                      hintText: "영문 3자 이상",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+
+                  const SizedBox(height: 24),
 
                   // 아이디
                   const Text(
@@ -165,7 +185,7 @@ class _LoginCredentialSetupPageState
                         // 1. loginId + loginPw 서버 전송
                         // 2. 회원 생성 완료
 
-
+                        widget.custInfo.engName = _engController.text;
                         widget.custInfo.id = _idController.text;
                         widget.custInfo.pw = _pwController.text;
                         Navigator.push(

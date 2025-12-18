@@ -38,6 +38,21 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
     return "${emailIdCtrl.text}@${emailDomain}";
   }
 
+  bool get isFormValid {
+    // 이메일 조건
+    final emailOk = noEmail
+        ? true
+        : emailIdCtrl.text.isNotEmpty && emailDomain.isNotEmpty;
+
+    // 주소 조건
+    final addressOk =
+        zip.isNotEmpty &&
+            addr1.isNotEmpty &&
+            addr2Ctrl.text.isNotEmpty;
+
+    return emailOk && addressOk;
+  }
+
 
 
   // 고객관리 안내수단
@@ -126,7 +141,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: isFormValid ? () {
                 widget.custInfo.zip = zip;
                 widget.custInfo.addr1 = addr1;
                 widget.custInfo.addr2 = addr2Ctrl.text;
@@ -142,7 +157,8 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
                         builder: (_) => ExtraInfoPage(custInfo: widget.custInfo, )
                     )
                 );
-              },
+              }
+              : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.pointDustyNavy,
                 shape: const RoundedRectangleBorder(
@@ -237,6 +253,7 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
             Expanded(
               child: TextField(
                 controller: emailIdCtrl,
+                onChanged: (_) => setState(() {}),
                 enabled: !noEmail,
                 decoration: const InputDecoration(
                   hintText: "아이디",
@@ -352,7 +369,11 @@ class _CustomerInfoPageState extends State<CustomerInfoPage> {
             hintText: "상세 주소",
             border: UnderlineInputBorder(),
           ),
-          onChanged: (v) => addr2 = v,
+          onChanged: (v) {
+            setState(() {
+              addr2 = v;
+            });
+          },
         ),
 
         const SizedBox(height: 6),

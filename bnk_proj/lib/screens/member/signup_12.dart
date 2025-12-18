@@ -107,7 +107,7 @@ class _FaceVerifyGuidePageState extends State<FaceVerifyGuidePage> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: allChecked ? Colors.black : Colors.grey,
+              color: allChecked ? Colors.white : Colors.grey,
             ),
           ),
         ),

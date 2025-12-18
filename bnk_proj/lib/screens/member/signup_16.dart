@@ -223,7 +223,7 @@ class _AccountVerifyConfirmPageState extends State<AccountVerifyConfirmPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isFilled ? Colors.black : Colors.grey,
+              color: isFilled ? Colors.white : Colors.grey,
             ),
           ),
         ),

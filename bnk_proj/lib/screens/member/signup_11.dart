@@ -70,7 +70,7 @@ class IdVerifyCompletePage extends StatelessWidget {
         ],
       ),
 
-      // ✅ 하단 버튼
+      // 하단 버튼
       bottomNavigationBar: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -86,7 +86,7 @@ class IdVerifyCompletePage extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ),
