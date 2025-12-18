@@ -1,13 +1,20 @@
 import 'dart:convert';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/deposit/application.dart';
+import '../models/deposit/context.dart';
 import '../models/deposit/list.dart';
 import '../models/deposit/view.dart';
-import '../models/deposit/application.dart';
+import 'api_service.dart';
 
 class DepositService {
   static const String baseUrl = 'http://10.0.2.2:8080/backend';
+  static const String mobileBaseUrl = '${ApiService.baseUrl}/deposit';
+
   final http.Client _client = http.Client();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   /// =========================
   /// 상품 목록
@@ -51,6 +58,27 @@ class DepositService {
     return DepositProduct.fromJson(data);
   }
 
+  Future<DepositContext> fetchContext() async {
+    final token = await _storage.read(key: 'auth_token');
+    if (token == null) {
+      throw Exception('로그인이 필요합니다.');
+    }
+
+    final response = await _client.get(
+      Uri.parse('$mobileBaseUrl/context'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('사용자 정보를 불러오지 못했습니다. (${response.statusCode})');
+    }
+
+    final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return DepositContext.fromJson(data);
+  }
+
 
 
   /// =========================
@@ -59,10 +87,17 @@ class DepositService {
   Future<DepositSubmissionResult> submitApplication(
       DepositApplication application) async {
 
+    final token = await _storage.read(key: 'auth_token');
+    if (token == null) {
+      throw Exception('로그인이 필요합니다.');
+    }
 
     final response = await _client.post(
-      Uri.parse('$baseUrl/deposit/applications'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('$mobileBaseUrl/applications'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
       body: jsonEncode(application.toJson()),
     );
 

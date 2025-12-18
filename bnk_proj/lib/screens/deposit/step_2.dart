@@ -3,6 +3,7 @@ import 'package:test_main/screens/app_colors.dart';
 import 'step_3.dart';
 import 'package:test_main/models/deposit/application.dart';
 import 'package:intl/intl.dart';
+import 'package:test_main/models/deposit/context.dart';
 import 'package:test_main/models/deposit/view.dart';
 import 'package:test_main/services/deposit_service.dart';
 
@@ -25,8 +26,10 @@ class DepositStep2Screen extends StatefulWidget {
 class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
   final DepositService _service = DepositService();
-  late Future<DepositProduct> _productFuture;
+  late Future<_Step2Data> _initFuture;
   final NumberFormat _amountFormat = NumberFormat.decimalPattern();
+
+  DepositContext? _context;
 
   String withdrawType = "krw";
   String autoRenew = "no";
@@ -63,14 +66,14 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   @override
   void initState() {
     super.initState();
-    _productFuture = _loadProductDetail();
+    _initFuture = _loadData();
   }
 
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DepositProduct>(
-      future: _productFuture,
+    return FutureBuilder<_Step2Data>(
+      future: _initFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -90,24 +93,26 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('상품 정보를 불러오지 못했습니다.'),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('다시 시도'),
-                    onPressed: () {
-                      setState(() {
-                        _productFuture = _loadProductDetail();
-                      });
-                    },
-                  )
-                ],
+                    const Text('상품 정보를 불러오지 못했습니다.'),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('다시 시도'),
+                      onPressed: () {
+                        setState(() {
+                          _initFuture = _loadData();
+                        });
+                      },
+                    )
+                  ],
               ),
             ),
           );
         }
 
-        return _buildScaffold(snapshot.data!);
+        _context ??= snapshot.data!.context;
+
+        return _buildScaffold(snapshot.data!.product);
       },
     );
   }
@@ -345,6 +350,9 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // 원화 계좌 입력
   // -------------------------------
   Widget _krwAccountFields() {
+    final accounts = _context?.krwAccounts ?? [];
+    final balance = _selectedKrwBalance();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -356,17 +364,35 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           dropdownColor: Colors.white,
           hint: const Text("계좌 선택"),
           value: selectedKrwAccount,
-          items: const [
-            DropdownMenuItem(value: "1", child: Text("104302-04-412952")),
-            DropdownMenuItem(value: "2", child: Text("104302-02-513489")),
-          ],
-          onChanged: (v) => setState(() => selectedKrwAccount = v),
+          items: accounts
+              .map(
+                (acct) => DropdownMenuItem(
+                  value: acct.accountNo,
+                  child: Text(acct.accountNo),
+                ),
+              )
+              .toList(),
+          onChanged: accounts.isEmpty
+              ? null
+              : (v) => setState(() => selectedKrwAccount = v as String?),
         ),
         const SizedBox(height: 5),
 
-        Text("출금가능금액 0원",
-            style: TextStyle(
-                color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12)),
+        if (accounts.isEmpty)
+          const Text(
+            '등록된 원화출금계좌가 없습니다.',
+            style: TextStyle(color: Colors.red, fontSize: 12),
+          ),
+
+        if (balance != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              "출금가능금액 ${_amountFormat.format(balance)} KRW",
+              style: TextStyle(
+                  color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 20),
 
         const Text("계좌 비밀번호",
@@ -400,6 +426,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // 외화 계좌 입력
   // -------------------------------
   Widget _fxAccountFields(DepositProduct product) {
+    final accounts = _context?.fxAccounts ?? [];
+    final availableCurrencies = _availableFxCurrencies(product);
+    final fxBalance = _selectedFxBalance();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -410,18 +440,36 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           dropdownColor: Colors.white,
           hint: const Text("계좌 선택"),
           value: selectedFxAccount,
-          items: const [
-            DropdownMenuItem(value: "1", child: Text("202040-11-300912 (USD)")),
-            DropdownMenuItem(value: "2", child: Text("202040-12-102300 (JPY)")),
-            DropdownMenuItem(value: "3", child: Text("202040-12-201520 (EUR)")),
-          ],
-          onChanged: (v) => setState(() => selectedFxAccount = v),
+          items: accounts
+              .map(
+                (acct) => DropdownMenuItem(
+                  value: acct.accountNo,
+                  child: Text(acct.accountNo),
+                ),
+              )
+              .toList(),
+          onChanged: accounts.isEmpty
+              ? null
+              : (v) {
+            setState(() {
+              selectedFxAccount = v as String?;
+              fxWithdrawCurrency = null;
+            });
+          },
         ),
         const SizedBox(height: 5),
 
-        Text("출금가능금액 2,000 USD",
-            style: TextStyle(
-                color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12)),
+        if (accounts.isEmpty)
+          const Text(
+            '등록된 외화출금계좌가 없습니다.',
+            style: TextStyle(color: Colors.red, fontSize: 12),
+          ),
+
+        if (fxBalance != null && fxWithdrawCurrency != null)
+          Text(
+              "출금가능금액 ${_amountFormat.format(fxBalance)} $fxWithdrawCurrency",
+              style: TextStyle(
+                  color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12)),
         const SizedBox(height: 20),
 
         const Text("비밀번호",
@@ -456,7 +504,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           dropdownColor: Colors.white,
           hint: const Text("통화 선택"),
           value: fxWithdrawCurrency,
-          items: _currencyOptions
+          items: availableCurrencies
               .map((c) => DropdownMenuItem(value: c, child: Text(c)))
               .toList(),
 
@@ -464,6 +512,49 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
         ),
       ],
     );
+  }
+
+  KrwAccount? _currentKrwAccount() {
+    if (_context == null || selectedKrwAccount == null) return null;
+    try {
+      return _context!.krwAccounts
+          .firstWhere((acct) => acct.accountNo == selectedKrwAccount);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _selectedKrwBalance() => _currentKrwAccount()?.balance;
+
+  FxAccount? _currentFxAccount() {
+    if (_context == null || selectedFxAccount == null) return null;
+    try {
+      return _context!.fxAccounts
+          .firstWhere((acct) => acct.accountNo == selectedFxAccount);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  double? _selectedFxBalance() {
+    if (fxWithdrawCurrency == null) return null;
+    final balances = _currentFxAccount()?.balances ?? [];
+    try {
+      return balances
+          .firstWhere((bal) =>
+              bal.currency.toUpperCase() == fxWithdrawCurrency!.toUpperCase())
+          .balance;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  List<String> _availableFxCurrencies(DepositProduct product) {
+    final balances = _currentFxAccount()?.balances ?? [];
+    if (balances.isEmpty) return _currencyOptions;
+
+    final available = balances.map((b) => b.currency).toSet();
+    return _currencyOptions.where((c) => available.contains(c)).toList();
   }
 
   // -------------------------------
@@ -861,9 +952,11 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // ----------------------------------------
   bool _isAllFieldsFilled() {
     if (withdrawType == "krw") {
+      if (_context?.krwAccounts.isEmpty ?? true) return false;
       if (selectedKrwAccount == null) return false;
       if (krwPassword.length != 4) return false;
     } else {
+      if (_context?.fxAccounts.isEmpty ?? true) return false;
       if (selectedFxAccount == null) return false;
       if (fxPassword.length != 4) return false;
       if (fxWithdrawCurrency == null) return false;
@@ -903,7 +996,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
         ? _findLimitFor(newCurrency, selectedProduct)
         : null;
 
-    final parsedAmount = int.tryParse(newAmount) ?? 0;
+    final parsedAmount = double.tryParse(newAmount) ?? 0;
     if (limit != null) {
       if (parsedAmount < limit.min) {
         return _err('최소 가입 금액은 ${_amountFormat.format(limit.min)} 입니다.');
@@ -914,6 +1007,14 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     }
 
     if (parsedAmount <= 0) return _err('유효한 금액을 입력해주세요.');
+
+    final availableBalance = withdrawType == 'krw'
+        ? _selectedKrwBalance()?.toDouble()
+        : _selectedFxBalance();
+
+    if (availableBalance != null && parsedAmount > availableBalance) {
+      return _err('출금가능금액을 초과했습니다.');
+    }
 
 
 
@@ -982,14 +1083,26 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     );
   }
 
-  Future<DepositProduct> _loadProductDetail() async {
+  Future<_Step2Data> _loadData() async {
     final product = await _service.fetchProductDetail(widget.application.dpstId);
+    final context = await _service.fetchContext();
+
     widget.application.product = product;
+    widget.application.customerName ??= context.customerName;
+    _context = context;
 
     _currencyOptions = _parseCurrencies(product);
     _periodOptions = _buildPeriodOptions(product);
 
     _loadFromApplication(product);
+
+    if (selectedKrwAccount == null && context.krwAccounts.isNotEmpty) {
+      selectedKrwAccount = context.krwAccounts.first.accountNo;
+    }
+
+    if (selectedFxAccount == null && context.fxAccounts.isNotEmpty) {
+      selectedFxAccount = context.fxAccounts.first.accountNo;
+    }
 
     if (newCurrency.isEmpty && _currencyOptions.isNotEmpty) {
       newCurrency = _currencyOptions.first;
@@ -1003,8 +1116,11 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       newPeriod = _periodOptions.first.toString();
     }
 
-    if (fxWithdrawCurrency == null && withdrawType == 'fx' && _currencyOptions.isNotEmpty) {
-      fxWithdrawCurrency = _currencyOptions.first;
+    if (fxWithdrawCurrency == null && withdrawType == 'fx') {
+      final fxOptions = _availableFxCurrencies(product);
+      if (fxOptions.isNotEmpty) {
+        fxWithdrawCurrency = fxOptions.first;
+      }
     }
 
     if (newAmount.isEmpty) {
@@ -1012,7 +1128,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       if (limit != null) newAmount = limit.min.toString();
     }
 
-    return product;
+    return _Step2Data(product: product, context: context);
   }
 
   void _loadFromApplication(DepositProduct product) {
@@ -1106,8 +1222,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ..selectedKrwAccount = selectedKrwAccount
       ..selectedFxAccount = selectedFxAccount
       ..fxWithdrawCurrency = fxWithdrawCurrency
-      ..withdrawPassword =
-      withdrawType == 'krw' ? krwPassword : fxPassword
+      ..withdrawPassword = withdrawType == 'krw' ? krwPassword : fxPassword
       ..newCurrency = newCurrency
       ..newAmount = int.tryParse(newAmount)
       ..newPeriodMonths = int.tryParse(newPeriod ?? '')
@@ -1117,5 +1232,12 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ..receiveMethod = receiveMethod;
   }
 
+}
+
+class _Step2Data {
+  final DepositProduct product;
+  final DepositContext context;
+
+  const _Step2Data({required this.product, required this.context});
 }
 

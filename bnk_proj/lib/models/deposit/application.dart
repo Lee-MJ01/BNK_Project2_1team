@@ -7,6 +7,7 @@ class DepositApplication {
   DepositApplication({required this.dpstId});
 
   final String dpstId;
+  String? customerName;
 
   // Step1 agreements
   bool agree1 = false;

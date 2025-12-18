@@ -51,6 +51,7 @@ class DepositStep4Screen extends StatelessWidget {
     final productName = result.productName.isNotEmpty
         ? result.productName
         : (args.application.product?.name ?? args.application.dpstId);
+    final customerName = _resolvedCustomerName();
 
     return Column(
       children: [
@@ -68,7 +69,8 @@ class DepositStep4Screen extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          "${result.customerName}님의 $productName 가입이 완료되었습니다.",          style: const TextStyle(
+          "$customerName님의 $productName 가입이 완료되었습니다.",
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: AppColors.pointDustyNavy,
@@ -94,6 +96,7 @@ class DepositStep4Screen extends StatelessWidget {
   Widget _completeTable() {
     final result = args.result;
     final application = args.application;
+    final customerName = _resolvedCustomerName();
 
     final formatter = NumberFormat.decimalPattern();
 
@@ -116,7 +119,7 @@ class DepositStep4Screen extends StatelessWidget {
 
 
 
-      ["고객명", result.customerName],
+      ["고객명", customerName],
       ["예금명", productName],
       ["신규계좌번호", result.newAccountNo.isNotEmpty ? result.newAccountNo : "-"],
       ["신규통화", result.currency.isNotEmpty ? result.currency : application.newCurrency],
@@ -228,5 +231,11 @@ class DepositStep4Screen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _resolvedCustomerName() {
+    final nameFromResult = args.result.customerName;
+    if (nameFromResult.isNotEmpty) return nameFromResult;
+    return args.application.customerName ?? '고객';
   }
 }
