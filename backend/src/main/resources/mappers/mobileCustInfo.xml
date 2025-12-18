@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="kr.co.api.backend.mapper.MobileCustInfo" >
+<mapper namespace="kr.co.api.backend.mapper.MobileCustInfoMapper" >
     <select id="countingDeviceId">
         SELECT COUNT (*) FROM TB_CUST_INFO
         WHERE CUST_DEVICE_ID = #{deviceId}
@@ -23,5 +23,15 @@
         SELECT * FROM TB_CUST_INFO
         WHERE CUST_ID = #{custId}
     </select>
+
+    <update id="updateCustInfoByPIN">
+        UPDATE TB_CUST_INFO SET CUST_PIN = #{custPin}
+        WHERE CUST_ID = #{custId}
+    </update>
+
+    <update id="updateCustInfoByBIO">
+        UPDATE TB_CUST_INFO SET BIO_AUTH_YN = #{bioAuthYn}
+        WHERE CUST_ID = #{custId}
+    </update>
 
 </mapper>

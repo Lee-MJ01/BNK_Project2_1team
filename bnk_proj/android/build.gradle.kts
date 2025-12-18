@@ -29,9 +29,9 @@ subprojects {
         project.afterEvaluate {
             if (project.plugins.hasPlugin("com.android.library")) {
                 project.extensions.configure<com.android.build.gradle.LibraryExtension> {
-                    compileSdk = 34
+                    compileSdk = 36
                     defaultConfig {
-                        targetSdk = 34
+                        targetSdk = 36
                     }
                 }
             }
