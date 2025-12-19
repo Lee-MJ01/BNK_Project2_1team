@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/chatbot_hist.dart';
@@ -19,13 +20,18 @@ class ChatbotService {
       )
           .timeout(const Duration(seconds: 15));
 
+      debugPrint('📡 statusCode: ${res.statusCode}');
+      debugPrint('📡 response body: ${res.body}');
+
       if (res.statusCode != 200) {
-        throw Exception('챗봇 응답 실패');
+        throw Exception('HTTP ${res.statusCode}');
       }
 
       return ChatResponse.fromJson(jsonDecode(res.body));
-    } catch (e) {
-      throw Exception('네트워크 오류');
+    } catch (e, s) {
+      debugPrint('❌ chatbot error: $e');
+      debugPrint('❌ stack: $s');
+      rethrow; // ← 제발 이거
     }
   }
 

@@ -13,7 +13,7 @@ class ApiService {
   static const String currentUrl = _prodUrl;
 
   static const _storage = FlutterSecureStorage();
-  static Future<Map<String, String>> _getAuthHeaders() async {
+  static Future<Map<String, String>> getAuthHeaders() async {
     String? token = await _storage.read(key: 'auth_token');
     return {
       "Content-Type": "application/json",
@@ -197,7 +197,7 @@ class ApiService {
     final url = Uri.parse('$currentUrl/member/info');
 
     // ★ 여기서 헤더를 가져옵니다!
-    final headers = await _getAuthHeaders();
+    final headers = await getAuthHeaders();
 
     try {
       final response = await http.post( // 또는 GET
