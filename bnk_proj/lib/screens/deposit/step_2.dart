@@ -1094,23 +1094,38 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   }
 
   Future<_Step2Data> _loadData() async {
+    debugPrint('[DepositStep2] _loadData start (dpstId: ${widget.application.dpstId})');
     DepositProduct? product = widget.application.product;
 
-    if (product == null) {
-      product = await _service.fetchProductDetail(widget.application.dpstId);
-    } else {
-      try {
-        product = await _service.fetchProductDetail(widget.application.dpstId);
-      } catch (_) {
-        debugPrint('기존 상품 정보를 사용합니다 (네트워크 오류)');
+    if (product != null) {
+      debugPrint('[DepositStep2] 기존 상품 정보 사용 가능: ${product.name}');
+    }
+
+    try {
+      final fetched = await _service.fetchProductDetail(widget.application.dpstId);
+      product = fetched;
+      debugPrint('[DepositStep2] 상품 상세 조회 성공: ${product.name}');
+    } catch (e, stack) {
+      debugPrint('[DepositStep2] 상품 상세 조회 실패: $e');
+      debugPrintStack(stackTrace: stack);
+
+      if (product == null) {
+        debugPrint('[DepositStep2] 사용할 기존 상품 정보가 없어 예외를 발생시킵니다.');
+        throw Exception('상품 정보를 불러오지 못했습니다.');
       }
+
+      debugPrint('[DepositStep2] 네트워크 오류로 기존 상품 정보를 그대로 사용합니다.');
     }
 
-    if (product == null) {
-      throw Exception('상품 정보를 불러오지 못했습니다.');
+    DepositContext context;
+    try {
+      context = await _service.fetchContext();
+      debugPrint('[DepositStep2] 사용자 컨텍스트 조회 성공: ${context.customerName}');
+    } catch (e, stack) {
+      debugPrint('[DepositStep2] 사용자 컨텍스트 조회 실패: $e');
+      debugPrintStack(stackTrace: stack);
+      rethrow;
     }
-
-    final context = await _service.fetchContext();
 
     widget.application.product = product;
     widget.application.customerName ??= context.customerName;
