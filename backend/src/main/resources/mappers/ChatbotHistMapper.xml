@@ -25,7 +25,7 @@
         insert into TB_CHATBOT_HIST (bot_content, bot_type, bot_dt)
         values (#{botContent}, #{botType}, SYSDATE)
     </insert>
-    <select id="selectHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
+    <select id="selectNoSessHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
         SELECT
             bot_no,
             bot_content,
