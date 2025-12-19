@@ -12,6 +12,9 @@ class DepositService {
   static const String baseUrl =
       'http://34.64.124.33:8080/backend/deposit';
 
+  static const String mobileBaseUrl =
+      'http://34.64.124.33:8080/backend/api/mobile/deposit';
+
   final http.Client _client = http.Client();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -71,7 +74,7 @@ class DepositService {
     }
 
     final response = await _client.get(
-      Uri.parse('$baseUrl/context'),
+      Uri.parse('$mobileBaseUrl/context'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -96,7 +99,7 @@ class DepositService {
     }
 
     final response = await _client.post(
-      Uri.parse('$baseUrl/applications'),
+      Uri.parse('$mobileBaseUrl/applications'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
