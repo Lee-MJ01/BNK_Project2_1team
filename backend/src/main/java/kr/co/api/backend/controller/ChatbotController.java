@@ -128,7 +128,7 @@ public class ChatbotController {
             chatbotHistService.insertHist(aHistDTO);
 
             return Map.of(
-                    "message", response,
+                    "answer", response,
                     "isUser", false,
                     "createdAt", LocalDateTime.now()
             );
