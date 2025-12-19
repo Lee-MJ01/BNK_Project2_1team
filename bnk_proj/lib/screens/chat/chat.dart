@@ -170,7 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       isUser: msg.isUser,
                       name: msg.isUser ? "나" : "AI 도우미",
                       time: _formatTime(msg.createdAt),
-                      message: msg.message,
+                      message: msg.answer,
                     ),
                   );
                 }

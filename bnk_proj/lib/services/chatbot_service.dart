@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/chatbot_hist.dart';
+import '../models/chatbot_msg.dart';
 
 class ChatbotService {
   final String baseUrl = 'http://34.64.124.33:8080/backend';
@@ -10,7 +11,7 @@ class ChatbotService {
 
   ChatbotService();
 
-  Future<ChatResponse> ask(String question) async {
+  Future<ChatMessage> ask(String question) async {
     try {
       final res = await http
           .post(
@@ -27,11 +28,11 @@ class ChatbotService {
         throw Exception('HTTP ${res.statusCode}');
       }
 
-      return ChatResponse.fromJson(jsonDecode(res.body));
+      return ChatMessage.fromJson(jsonDecode(res.body));
     } catch (e, s) {
       debugPrint('❌ chatbot error: $e');
       debugPrint('❌ stack: $s');
-      rethrow; // ← 제발 이거
+      rethrow;
     }
   }
 

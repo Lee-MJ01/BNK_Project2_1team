@@ -76,7 +76,7 @@ public class ChatbotController {
             String forbiddenResponse = chatbotRuleService.checkForbiddenWord(q);
             if (forbiddenResponse != null) {
                 aHistDTO.setBotContent(forbiddenResponse);
-                chatbotHistService.insertHist(aHistDTO);
+                chatbotHistService.insertNoSessHist(aHistDTO);
 
                 return Map.of(
                         "answer", forbiddenResponse,
@@ -125,7 +125,7 @@ public class ChatbotController {
             String response = chatGPTService.ask(q, context);
 
             aHistDTO.setBotContent(response);
-            chatbotHistService.insertHist(aHistDTO);
+            chatbotHistService.insertNoSessHist(aHistDTO);
 
             return Map.of(
                     "answer", response,
