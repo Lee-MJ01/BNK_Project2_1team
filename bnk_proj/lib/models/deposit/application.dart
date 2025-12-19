@@ -8,6 +8,7 @@ class DepositApplication {
 
   final String dpstId;
   String? customerName;
+  String? customerCode;
 
   // Step1 agreements
   bool agree1 = false;
@@ -49,6 +50,7 @@ class DepositApplication {
   Map<String, dynamic> toJson() {
     return {
       'dpstId': dpstId,
+      'customerCode': customerCode,
       'agreements': {
         'agree1': agree1,
         'agree2': agree2,
@@ -80,6 +82,49 @@ class DepositApplication {
       'signedAt': signedAt?.toIso8601String(),
 
     };
+  }
+
+  factory DepositApplication.fromJson(Map<String, dynamic> json) {
+    final agreements = json['agreements'] as Map<String, dynamic>? ?? {};
+    return DepositApplication(dpstId: json['dpstId']?.toString() ?? '')
+      ..customerCode = json['customerCode']?.toString()
+      ..customerName = json['customerName']?.toString()
+      ..agree1 = agreements['agree1'] == true
+      ..agree2 = agreements['agree2'] == true
+      ..agree3 = agreements['agree3'] == true
+      ..info1 = agreements['info1'] == true
+      ..info2 = agreements['info2'] == true
+      ..info3 = agreements['info3'] == true
+      ..important1 = agreements['important1'] == true
+      ..important2 = agreements['important2'] == true
+      ..important3 = agreements['important3'] == true
+      ..finalAgree = agreements['finalAgree'] == true
+      ..withdrawType = json['withdrawType']?.toString() ?? 'krw'
+      ..selectedKrwAccount = json['selectedKrwAccount']?.toString()
+      ..selectedFxAccount = json['selectedFxAccount']?.toString()
+      ..fxWithdrawCurrency = json['fxWithdrawCurrency']?.toString()
+      ..withdrawPassword = json['withdrawPassword']?.toString()
+      ..newCurrency = json['newCurrency']?.toString() ?? ''
+      ..newAmount = json['newAmount'] as int?
+      ..newPeriodMonths = json['newPeriodMonths'] as int?
+      ..autoRenew = json['autoRenew']?.toString() ?? 'no'
+      ..autoRenewCycle = json['autoRenewCycle'] as int?
+      ..depositPassword = json['depositPassword']?.toString() ?? ''
+      ..receiveMethod = json['receiveMethod']?.toString() ?? 'email'
+      ..signatureImage = _decodeSignature(json['signature'])
+      ..signatureMethod = json['signatureMethod']?.toString()
+      ..signedAt = json['signedAt'] != null
+          ? DateTime.tryParse(json['signedAt'].toString())
+          : null;
+  }
+
+  static Uint8List? _decodeSignature(dynamic value) {
+    if (value == null) return null;
+    try {
+      return base64Decode(value.toString());
+    } catch (_) {
+      return null;
+    }
   }
 }
 

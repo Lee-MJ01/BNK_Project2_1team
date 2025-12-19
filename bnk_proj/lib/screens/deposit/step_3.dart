@@ -3,11 +3,13 @@ import 'package:test_main/screens/app_colors.dart';
 
 import 'package:test_main/models/deposit/application.dart';
 import 'package:intl/intl.dart';
+import 'package:test_main/services/deposit_draft_service.dart';
 
 class DepositStep3Screen extends StatelessWidget {
   static const routeName = "/deposit-step3";
 
   final DepositApplication application;
+  final DepositDraftService _draftService = const DepositDraftService();
 
   const DepositStep3Screen({
     super.key,
@@ -262,12 +264,7 @@ class DepositStep3Screen extends StatelessWidget {
             elevation: 0,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              "/deposit-signature",
-              arguments: application,            );
-          },
+          onPressed: () => _goToSignature(context),
           child: const Text(
             "가입하기",
             style: TextStyle(
@@ -277,6 +274,22 @@ class DepositStep3Screen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _goToSignature(BuildContext context) async {
+    await _draftService.saveDraft(
+      application,
+      step: 3,
+      customerCode: application.customerCode,
+    );
+
+    if (!context.mounted) return;
+
+    Navigator.pushNamed(
+      context,
+      "/deposit-signature",
+      arguments: application,
     );
   }
 }
