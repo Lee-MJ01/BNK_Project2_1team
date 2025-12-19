@@ -43,7 +43,8 @@ public class SecurityConfig {
                                         "/js/**", "/images/**",
                                         "/mypage/chatbot",
                                         "/remit/info",
-                                        "/admin/login"
+                                        "/admin/login",
+                                        "/api/exchange/**"
                                 ).permitAll()
 //                        .requestMatchers("/admin/**").hasRole("ADMIN")  //이게 걸린거
                                 .requestMatchers("/admin/**").permitAll()   //이게 안걸린거 (개발용)
@@ -59,7 +60,6 @@ public class SecurityConfig {
                                 .requestMatchers("/customer/qna_write/**").authenticated()
                                 .requestMatchers("/customer/qna_edit/**").authenticated()
                                 .requestMatchers("/customer/qna_delete/**").authenticated()
-                                .requestMatchers("/api/exchange/**").authenticated()
                                 .requestMatchers("/member/**").permitAll()
                                 .requestMatchers("/uploads/**").permitAll()
 
