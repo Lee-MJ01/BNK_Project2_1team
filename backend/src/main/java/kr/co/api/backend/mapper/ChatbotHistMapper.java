@@ -10,4 +10,5 @@ public interface ChatbotHistMapper {
     public void insertHist(ChatbotHistDTO chatbotHistDTO);
     public List<ChatbotHistDTO> selectHist(String sessId);
     public List<ChatbotHistDTO> selectRecentHist();
+    public List<ChatbotHistDTO> insertNoSessHist(ChatbotHistDTO chatbotHistDTO);
 }

@@ -19,6 +19,9 @@ public class ChatbotHistService {
     public void insertHist(ChatbotHistDTO histDTO){
         chatbotHistMapper.insertHist(histDTO);
     }
+    public void insertNoSessHist(ChatbotHistDTO histDTO){
+        chatbotHistMapper.insertNoSessHist(histDTO);
+    }
 
     public List<ChatbotHistDTO> selectHist(String sessId){
         return chatbotHistMapper.selectHist(sessId);

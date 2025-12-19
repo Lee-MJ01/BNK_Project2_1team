@@ -1,8 +1,72 @@
 import 'package:flutter/material.dart';
+import '../../models/chatbot_msg.dart';
+import '../../services/chatbot_service.dart';
 import '../app_colors.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+
+
+  final TextEditingController _controller = TextEditingController();
+  final ChatbotService _chatbotService =
+  ChatbotService();
+  final ScrollController _scrollController = ScrollController();
+
+
+  final List<ChatMessage> _messages = [];
+
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _messages.add(
+        ChatMessage.bot("안녕하세요! 무엇을 도와드릴까요?")
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    if (_controller.text.trim().isEmpty) return;
+
+    final q = _controller.text;
+    _controller.clear();
+
+    setState(() {
+      _messages.add(ChatMessage.user(q));
+      _isLoading = true;
+    });
+
+    _scrollToBottom();
+
+    try {
+      final res = await _chatbotService.ask(q);
+
+      setState(() {
+        _messages.add(ChatMessage.bot(res.answer));
+      });
+
+      _scrollToBottom();
+
+    } catch (e) {
+      setState(() {
+        _messages.add(ChatMessage.bot("잠시 후 다시 시도해주세요."));
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +99,9 @@ class ChatScreen extends StatelessWidget {
       // --------------------------
       // 본문
       // --------------------------
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _chatConsole(),
-          ],
-        ),
+        child: _chatConsole(),
       ),
     );
   }
@@ -49,6 +109,24 @@ class ChatScreen extends StatelessWidget {
   // ============================
   // 채팅 콘솔 UI (유일한 카드)
   // ============================
+
+  String _formatTime(DateTime dt) {
+    return "${dt.hour.toString().padLeft(2, '0')}:"
+        "${dt.minute.toString().padLeft(2, '0')}";
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+
 
   Widget _chatConsole() {
     return Container(
@@ -79,29 +157,40 @@ class ChatScreen extends StatelessWidget {
           // --------------------------
           // 메시지들
           // --------------------------
-          const _ChatBubble(
-            isUser: false,
-            name: "AI 도우미",
-            time: "09:32",
-            message: "안녕하세요! 무엇을 도와드릴까요?",
-          ),
-          const SizedBox(height: 14),
+          SizedBox(
+            height: 420,
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _messages.length + (_isLoading ? 1 : 0),
+              itemBuilder: (context, i) {
+                if (i < _messages.length) {
+                  final msg = _messages[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _ChatBubble(
+                      isUser: msg.isUser,
+                      name: msg.isUser ? "나" : "AI 도우미",
+                      time: _formatTime(msg.createdAt),
+                      message: msg.message,
+                    ),
+                  );
+                }
 
-          const _ChatBubble(
-            isUser: true,
-            name: "나",
-            time: "09:33",
-            message: "해외 송금 우대 정보 알려줘!",
+                // 마지막: 로딩 말풍선
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 14),
+                  child: _ChatBubble(
+                    isUser: false,
+                    name: "AI 도우미",
+                    time: "",
+                    message: "입력 중...",
+                  ),
+                );
+              },
+            ),
           ),
-          const SizedBox(height: 14),
 
-          const _ChatBubble(
-            isUser: false,
-            name: "AI 도우미",
-            time: "09:33",
-            message: "해외송금 우대는 최대 90%까지 제공됩니다!",
-            suggestions: ["우대 신청", "자세히 보기"],
-          ),
+
 
           const SizedBox(height: 20),
 
@@ -112,6 +201,8 @@ class ChatScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: TextField(
+                  controller: _controller,
+                  onSubmitted: (_) => _send(),
                   decoration: InputDecoration(
                     hintText: "질문을 입력하세요...",
                     filled: true,
@@ -124,15 +215,28 @@ class ChatScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: AppColors.pointDustyNavy,
-                  shape: BoxShape.circle,
+              GestureDetector(
+                onTap: _isLoading ? null : _send,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
+                    color: AppColors.pointDustyNavy,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Icon(Icons.send, color: Colors.white),
                 ),
-                child: const Icon(Icons.send, color: Colors.white),
               )
+
             ],
           )
         ],

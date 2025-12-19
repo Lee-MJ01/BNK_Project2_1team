@@ -21,6 +21,20 @@
         ORDER BY bot_no ASC
     </select>
 
+    <insert id="insertNoSessHist">
+        insert into TB_CHATBOT_HIST (bot_content, bot_type, bot_dt)
+        values (#{botContent}, #{botType}, SYSDATE)
+    </insert>
+    <select id="selectHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
+        SELECT
+            bot_no,
+            bot_content,
+            bot_type,
+            bot_dt
+        FROM TB_CHATBOT_HIST
+        ORDER BY bot_no ASC
+    </select>
+
     <select id="selectRecentHist" resultType="kr.co.api.backend.dto.ChatbotHistDTO">
         SELECT
         bot_no,

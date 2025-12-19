@@ -30,6 +30,27 @@ class ElectronicSignaturePage extends StatefulWidget {
 class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
 
 
+  bool _agreeAll = false;
+
+  bool _agreeProductDesc = false;
+  bool _agreeProductTerms = false;
+  bool _agreeDepositBase = false;
+  bool _agreeSignature = false;
+  bool _agreeAuth = false;
+  bool _agreePrivacy = false;
+
+  bool get _allAgreed =>
+      _agreeProductDesc &&
+          _agreeProductTerms &&
+          _agreeDepositBase &&
+          _agreeSignature &&
+          _agreeAuth &&
+          _agreePrivacy;
+
+  void _syncAgreeAll() {
+    _agreeAll = _allAgreed;
+  }
+
 
   String _deviceId = "UNKNOWN_DEVICE";
 
@@ -50,8 +71,7 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
   }
 
 
-  final List<Offset?> _points = [];
-  bool get _hasSignature => _points.isNotEmpty;
+
 
   late final String personId;
 
@@ -86,135 +106,118 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
         centerTitle: true,
       ),
 
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              children: [
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _SectionTitle("전자서명"),
 
-                const SizedBox(height: 24),
+                    const SizedBox(height: 12),
 
-                // 계약 요약
-                const Text(
-                  "입출금 통장 개설 계약",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+                    // ✅ STEP 2: 전자서명 안내 박스
+                    _SignatureNoticeBox(),
 
-                const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                _contractRow("상품명", "FLO 입출금통장"),
-                _contractRow("계약자", _maskName(widget.custInfo.name)),
-                _contractRow("개설 목적", widget.custAcct.purpose!),
-                _contractRow("자금 출처", widget.custAcct.source!),
-                _contractRow("본인 소유 여부", widget.custAcct.isOwner ? "예" : "아니오"),
-                _contractRow(
-                    "해외 납세 의무자", widget.custInfo.isForeignTax ? "예" : "아니오"),
-
-                const SizedBox(height: 16),
-
-                GestureDetector(
-                  onTap: () {
-                    // TODO: 상품설명서 PDF 보기
-                  },
-                  child: const Text(
-                    "상품설명서 및 약관 보기",
-                    style: TextStyle(
-                      color: AppColors.pointDustyNavy,
-                      fontWeight: FontWeight.w600,
+                    // ✅ STEP 3: 약관 동의
+                    _AgreementGroup(
+                      title: "계좌개설 약관",
+                      children: [
+                        _AgreementTile(
+                          value: _agreeProductDesc,
+                          text: "상품설명서 확인 및 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreeProductDesc = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                        _AgreementTile(
+                          value: _agreeProductTerms,
+                          text: "상품약관 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreeProductTerms = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                        _AgreementTile(
+                          value: _agreeDepositBase,
+                          text: "예금거래기본약관 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreeDepositBase = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 32),
+                    const SizedBox(height: 16),
 
-                // 서명 영역
-                const Text(
-                  "전자서명",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 8),
-
-                const Text(
-                  "아래 영역에 서명해 주세요.",
-                  style: TextStyle(color: Colors.black54),
-                ),
-
-                const SizedBox(height: 12),
-
-                Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9F9F9),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.black26),
-                  ),
-                  child: GestureDetector(
-                    onPanUpdate: (details) {
-                      setState(() {
-                        RenderBox box = context.findRenderObject() as RenderBox;
-                        _points.add(box.globalToLocal(details.globalPosition));
-                      });
-                    },
-                    onPanEnd: (_) => _points.add(null),
-                    child: CustomPaint(
-                      painter: _SignaturePainter(_points),
-                      size: Size.infinite,
+                    _AgreementGroup(
+                      title: "전자서명 및 개인정보",
+                      children: [
+                        _AgreementTile(
+                          value: _agreeSignature,
+                          text: "전자서명 이용약관 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreeSignature = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                        _AgreementTile(
+                          value: _agreeAuth,
+                          text: "본인확인 서비스 이용약관 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreeAuth = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                        _AgreementTile(
+                          value: _agreePrivacy,
+                          text: "개인정보 수집 및 이용 동의 (필수)",
+                          onChanged: (v) => setState(() {
+                            _agreePrivacy = v;
+                            _syncAgreeAll();
+                          }),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 8),
+                    const SizedBox(height: 12),
 
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      setState(() => _points.clear());
-                    },
-                    child: const Text("다시 쓰기"),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                const Text(
-                  "본인은 위 계약 내용을 모두 확인하였으며,\n"
-                      "전자서명을 통해 입출금 통장 개설에 동의합니다.",
-                  style: TextStyle(fontSize: 14),
-                ),
-
-                const SizedBox(height: 40),
-              ],
-            ),
-          ),
-
-          // 하단 버튼
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _onSubmit ,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _hasSignature
-                    ? AppColors.pointDustyNavy
-                    : Colors.grey.shade300,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
+                    _AgreementTile(
+                      value: _agreeAll,
+                      text: "전체 약관에 동의합니다 (필수)",
+                      small: true,
+                      onChanged: (v) => setState(() {
+                        _agreeAll = v;
+                        _agreeProductDesc = v;
+                        _agreeProductTerms = v;
+                        _agreeDepositBase = v;
+                        _agreeSignature = v;
+                        _agreeAuth = v;
+                        _agreePrivacy = v;
+                      }),
+                    ),
+                  ],
                 ),
               ),
-              child: const Text(
-                "전자서명 완료",
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
             ),
-          ),
-        ],
+
+            // ✅ 하단 버튼
+            _PrimaryButton(
+              text: "동의하고 가입 완료",
+              enabled: _allAgreed,
+              onPressed: _onSubmit,
+            ),
+          ],
+        ),
       ),
+
     );
   }
 
@@ -224,13 +227,21 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
     // 계약 스냅샷 생성
     final contractSnapshot = _buildContractSnapshot(personId);
 
-    // 서명 이미지 base64
-    final signatureBase64 = await _signatureToBase64();
+
 
     // 서버로 보낼 payload
     final payload = {
       "contractSnapshot": contractSnapshot,
-      "signatureBase64": signatureBase64,
+      "signType": "TERMS_AGREEMENT",
+      "agreedTerms": {
+        "productDesc": true,
+        "productTerms": true,
+        "depositBase": true,
+        "signature": true,
+        "auth": true,
+        "privacy": true,
+      },
+      "agreedAt": DateTime.now().toIso8601String(),
     };
 
     /*
@@ -281,74 +292,155 @@ class _ElectronicSignaturePageState extends State<ElectronicSignaturePage> {
   }
 
 
-  Widget _contractRow(String title, String value) {
+}
+
+
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.pointDustyNavy,
+        ),
+      ),
+    );
+  }
+}
+
+
+class _PrimaryButton extends StatelessWidget {
+  final String text;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  const _PrimaryButton({
+    required this.text,
+    required this.onPressed,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: enabled ? onPressed : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.pointDustyNavy,
+          disabledBackgroundColor: AppColors.mainPaleBlue,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AgreementGroup extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _AgreementGroup({
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.mainPaleBlue),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 110,
-            child: Text(title,
-                style: const TextStyle(color: Colors.black54)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.pointDustyNavy,
+            ),
           ),
-          Expanded(
-            child: Text(value,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-          ),
+          const SizedBox(height: 10),
+          ...children,
         ],
       ),
     );
   }
-
-  String _maskName(String name) {
-    if (name.length <= 1) return name;
-    return name[0] + "＊" * (name.length - 1);
-  }
-
-  Future<String> _signatureToBase64() async {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < _points.length - 1; i++) {
-      if (_points[i] != null && _points[i + 1] != null) {
-        canvas.drawLine(_points[i]!, _points[i + 1]!, paint);
-      }
-    }
-
-    final picture = recorder.endRecording();
-    final image = await picture.toImage(600, 300);
-    final byteData =
-    await image.toByteData(format: ui.ImageByteFormat.png);
-
-    return base64Encode(byteData!.buffer.asUint8List());
-  }
-
 }
 
-class _SignaturePainter extends CustomPainter {
-  final List<Offset?> points;
-  _SignaturePainter(this.points);
+class _AgreementTile extends StatelessWidget {
+  final bool value;
+  final String text;
+  final bool small;
+  final ValueChanged<bool> onChanged;
+
+  const _AgreementTile({
+    required this.value,
+    required this.text,
+    required this.onChanged,
+    this.small = false,
+  });
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    for (int i = 0; i < points.length - 1; i++) {
-      if (points[i] != null && points[i + 1] != null) {
-        canvas.drawLine(points[i]!, points[i + 1]!, paint);
-      }
-    }
+  Widget build(BuildContext context) {
+    return CheckboxListTile(
+      value: value,
+      onChanged: (v) => onChanged(v ?? false),
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      title: Text(
+        text,
+        style: TextStyle(fontSize: small ? 12.5 : 14.5),
+      ),
+    );
   }
+}
 
+class _SignatureNoticeBox extends StatelessWidget {
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.mainPaleBlue),
+      ),
+      child: const Text(
+        "[전자서명 안내]\n"
+            "본 동의는 전자서명 방식으로 처리되며 전자서명법 및 "
+            "전자금융거래법에 따라 서면 서명과 동일한 법적 효력을 가집니다.\n\n"
+            "[전자서명 동의서]\n"
+            "상품설명서, 상품약관, 예금거래기본약관의 내용을 확인하였으며 "
+            "전자서명에 동의합니다.",
+        style: TextStyle(fontSize: 13, height: 1.5),
+      ),
+    );
+  }
 }
 
