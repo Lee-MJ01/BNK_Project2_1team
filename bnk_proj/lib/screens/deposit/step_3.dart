@@ -76,18 +76,7 @@ class DepositStep3Screen extends StatelessWidget {
                   : "미입력"],
               ["신규 금액", amountLabel],
               ["가입기간", periodLabel],
-              [
-                "적용 금리",
-                application.appliedRate != null
-                    ? "${application.appliedRate}%"
-                    : "미입력",
-              ],
-              [
-                "적용 환율",
-                application.appliedFxRate != null
-                    ? application.appliedFxRate.toString()
-                    : "미입력",
-              ],
+
             ]),
 
             const SizedBox(height: 28),

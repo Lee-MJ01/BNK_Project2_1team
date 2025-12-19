@@ -163,7 +163,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSteps(),
             const SizedBox(height: 25),
@@ -178,10 +178,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
             _blockTitle("신규상품가입정보입력"),
             _newDepositInfo(product),
-            const SizedBox(height: 25),
-
-            _blockTitle("이율/환율 및 필수 입력"),
-            _rateAndExchangeSection(product),
             const SizedBox(height: 25),
 
             _blockTitle("만기자동연장신청"),
@@ -795,70 +791,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     );
   }
 
-  Widget _rateAndExchangeSection(DepositProduct product) {
-    final bool requireFxRate = withdrawType == 'fx' || newCurrency.toUpperCase() != 'KRW';
-    final String displayCurrency =
-        newCurrency.isNotEmpty ? newCurrency : product.dpstCurrency;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          "적용 금리 (%)",
-          style: TextStyle(
-            color: AppColors.pointDustyNavy,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        _schemaHint('입력된 금리는 DPST_HDR_RATE 및 거래내역(DPST_DTL_APPLIED_RATE)에 매핑됩니다.'),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _appliedRateController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            hintText: '예: 3.2',
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            setState(() {
-              appliedRate = double.tryParse(value);
-            });
-          },
-        ),
-        const SizedBox(height: 20),
 
-        const Text(
-          "적용 환율",
-          style: TextStyle(
-            color: AppColors.pointDustyNavy,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        _schemaHint(requireFxRate
-            ? '출금/신규 통화가 외화이므로 환율 값이 필수입니다. (${displayCurrency}) DB 컬럼: DPST_DTL_APPLIED_FX_RATE'
-            : '원화 상품도 환율 기록이 필요하면 입력해주세요. (${displayCurrency}) DB 컬럼: DPST_DTL_APPLIED_FX_RATE'),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _appliedFxRateController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            hintText: requireFxRate ? '예: 1323.15' : '예: 1.0',
-            filled: true,
-            fillColor: Colors.white,
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (value) {
-            setState(() {
-              appliedFxRate = double.tryParse(value);
-            });
-          },
-        ),
-      ],
-    );
-  }
 
 
   // ----------------------------------------
@@ -877,32 +811,32 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
         // --------------------- 라디오 ---------------------
         Row(
           children: [
-            Radio(
+            Radio<String>(
               value: "apply",
               groupValue: autoRenew,
               activeColor: AppColors.pointDustyNavy,
-              onChanged: autoRenewAllowed
-                  ? (value) => setState(() => autoRenew = value!)
-                  : null,
+              onChanged: (value) => setState(() => autoRenew = value!),
             ),
             const Text("신청 (월 단위)"),
             const SizedBox(width: 16),
-            Radio(
+
+            Radio<String>(
               value: "no",
               groupValue: autoRenew,
               activeColor: AppColors.pointDustyNavy,
-              onChanged: (value) => setState(() {
-                autoRenew = value!;
-                if (autoRenew == 'no') {
+              onChanged: (value) {
+                setState(() {
+                  autoRenew = value!;
                   autoRenewCycle = null;
                   autoRenewCount = null;
                   _autoRenewCountController.clear();
-                }
-              }),
+                });
+              },
             ),
             const Text("미신청"),
           ],
         ),
+
 
         const SizedBox(height: 16),
 
@@ -912,7 +846,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             style: TextStyle(color: Colors.red, fontSize: 12),
           ),
 
-        _schemaHint('자동연장 선택은 DPST_HDR_AUTO_RENEW_YN / DPST_HDR_AUTO_RENEW_CNT / DPST_HDR_AUTO_RENEW_TERM, 자동해지 여부는 DPST_HDR_AUTO_TERMI_YN에 매핑됩니다.'),
 
         // --------------------- 연장 주기 ---------------------
         if (autoRenew == "apply" && autoRenewAllowed) ...[
@@ -987,7 +920,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               color: AppColors.pointDustyNavy,
             ),
           ),
-          _schemaHint('DPST_HDR_AUTO_RENEW_CNT 값으로 저장됩니다.'),
           const SizedBox(height: 10),
           TextField(
             controller: _autoRenewCountController,
@@ -1004,16 +936,16 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               });
             },
           ),
-
+],
           const SizedBox(height: 16),
+
           SwitchListTile(
             title: const Text('만기 시 자동 해지'),
-            subtitle: const Text('DPST_HDR_AUTO_TERMI_YN 컬럼으로 전달됩니다.'),
             value: autoTerminateAtMaturity,
             activeColor: AppColors.pointDustyNavy,
             onChanged: (v) => setState(() => autoTerminateAtMaturity = v),
           ),
-        ],
+
       ],
     );
   }
@@ -1025,7 +957,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     return Column(
       children: [
         const SizedBox(height: 10),
-        _schemaHint('상품 설정에 따라 스위치가 비활성화될 수 있습니다.'),
 
         SwitchListTile(
           title: const Text('추가납입'),
@@ -1134,64 +1065,82 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   // ④ 비밀번호
   // ----------------------------------------
   Widget _passwordSection() {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-
-        const Text("정기예금 비밀번호",
-            style: TextStyle(color: AppColors.pointDustyNavy)),
-        SizedBox(
-          width: 140,
-          child: TextField(
-            obscureText: true,
-            maxLength: 4,
-            keyboardType: TextInputType.number,
-            onChanged: (v) {
-              setState(() {
-                depositPw = v;
-                isPwMatched = (depositPw == depositPwCheck);
-              });
-            },
-            decoration: const InputDecoration(counterText: ""),
+        const Text(
+          "정기예금 비밀번호",
+          style: TextStyle(
+            color: AppColors.pointDustyNavy,
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
           ),
         ),
 
+        const SizedBox(height: 14),
 
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 200,
+              child: TextField(
+                obscureText: true,
+                maxLength: 4,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "비밀번호",
+                  counterText: "",
+                  border: UnderlineInputBorder(),
+                ),
+                onChanged: (v) {
+                  setState(() {
+                    depositPw = v;
+                    isPwMatched = (depositPw == depositPwCheck);
+                  });
+                },
+              ),
+            ),
 
-        const SizedBox(height: 20),
-        const Text("비밀번호 확인",
-            style: TextStyle(color: AppColors.pointDustyNavy)),
-        SizedBox(
-          width: 140,
-          child: TextField(
-            obscureText: true,
-            maxLength: 4,
-            keyboardType: TextInputType.number,
-            onChanged: (v) {
-              setState(() {
-                depositPwCheck = v;
-                isPwMatched = (depositPw == depositPwCheck);
-              });
-            },
-            decoration: const InputDecoration(counterText: ""),
-          ),
+            const SizedBox(height: 18),
+
+            SizedBox(
+              width: 200,
+              child: TextField(
+                obscureText: true,
+                maxLength: 4,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: "비밀번호 확인",
+                  counterText: "",
+                  border: UnderlineInputBorder(),
+                ),
+                onChanged: (v) {
+                  setState(() {
+                    depositPwCheck = v;
+                    isPwMatched = (depositPw == depositPwCheck);
+                  });
+                },
+              ),
+            ),
+          ],
         ),
+
 
         if (!isPwMatched)
           const Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
               "비밀번호가 일치하지 않습니다.",
-              style:
-              TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Colors.red, fontSize: 12),
             ),
           ),
-
       ],
     );
   }
+
+
 
   Widget _schemaHint(String text) {
     return Padding(
@@ -1226,8 +1175,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     if (newPeriod == null) return false;
     if (autoRenew == 'apply' && autoRenewCycle == null) return false;
 
-    if (appliedRate == null) return false;
-    if (appliedFxRate == null) return false;
+
 
     if (autoRenew == 'apply') {
       if (autoRenewCycle == null) return false;
@@ -1290,13 +1238,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       return _err('출금가능금액을 초과했습니다.');
     }
 
-    if (appliedRate == null || appliedRate! <= 0) {
-      return _err('적용 금리를 입력해주세요.');
-    }
-
-    if (appliedFxRate == null || appliedFxRate! <= 0) {
-      return _err('유효한 적용 환율을 입력해주세요.');
-    }
 
     if (autoRenew == 'apply') {
       if (selectedProduct != null &&
@@ -1646,8 +1587,18 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ..partialWithdrawCount =
           partialWithdrawEnabled ? partialWithdrawCount : null
       ..depositPassword = depositPw;
+
+
   }
 
+  DateTime _deriveStartDate() {
+    return DateTime.now();
+  }
+
+  DateTime _deriveMaturityDate(DateTime startDate) {
+    final months = int.tryParse(newPeriod ?? '0') ?? 0;
+    return DateTime(startDate.year, startDate.month + months, startDate.day);
+  }
 }
 
 class _Step2Data {
