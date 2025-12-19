@@ -5,7 +5,7 @@ import 'package:test_main/utils/device_manager.dart';
 
 class ApiService {
   // 환경에 맞게 주소 변경 (백엔드 Controller 경로: /api/mobile/member)
-  static const String _prodUrl = "http://34.64.124.33:8080/backend/api/mobile";
+  static const String _prodUrl = "https://flobank.kro.kr/backend/api/mobile";
   static const String baseUrl = "http://10.0.2.2:8080/backend/api/mobile"; // 에뮬레이터
   static const String base2Url = "http://192.168.0.209:8080/backend/api/mobile";  // 케이블 연결 했을 때 로컬 테스트(본인 컴퓨터 IP로 바꿔야함)
 
