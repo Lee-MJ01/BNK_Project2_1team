@@ -13,6 +13,13 @@ class ApiService {
   static const String currentUrl = _prodUrl;
 
   static const _storage = FlutterSecureStorage();
+  static Future<Map<String, String>> _getAuthHeaders() async {
+    String? token = await _storage.read(key: 'auth_token');
+    return {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token", // ★ 여기가 핵심! 서버에 출입증 제시
+    };
+  }
 
   /// [STEP 0] 기기 상태 및 일치 여부 확인 (스플래시 화면용)
   /// 반환값: { "status": "MATCH", "hasPin": true, "useBio": false } 형태의 Map
@@ -184,6 +191,28 @@ class ApiService {
       return jsonDecode(utf8.decode(response.bodyBytes));
     } catch (e) {
       return {"status": "ERROR", "message": "통신 오류가 발생했습니다."};
+    }
+  }
+  static Future<Map<String, dynamic>> getUserInfo(String userid) async {
+    final url = Uri.parse('$currentUrl/member/info');
+
+    // ★ 여기서 헤더를 가져옵니다!
+    final headers = await _getAuthHeaders();
+
+    try {
+      final response = await http.post( // 또는 GET
+        url,
+        headers: headers, // ★ 만든 헤더를 여기에 넣습니다.
+        body: jsonEncode({"userid": userid}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(utf8.decode(response.bodyBytes));
+      } else {
+        return {"status": "FAIL", "message": "세션이 만료되었습니다."};
+      }
+    } catch (e) {
+      return {"status": "ERROR"};
     }
   }
 
