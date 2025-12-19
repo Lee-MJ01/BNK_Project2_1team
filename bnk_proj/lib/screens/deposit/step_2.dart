@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:test_main/models/deposit/context.dart';
 import 'package:test_main/models/deposit/view.dart';
 import 'package:test_main/services/deposit_service.dart';
+import 'package:test_main/services/deposit_draft_service.dart';
 
 
 class DepositStep2Screen extends StatefulWidget {
@@ -26,6 +27,7 @@ class DepositStep2Screen extends StatefulWidget {
 class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
   final DepositService _service = DepositService();
+  final DepositDraftService _draftService = const DepositDraftService();
   late Future<_Step2Data> _initFuture;
   final NumberFormat _amountFormat = NumberFormat.decimalPattern();
 
@@ -1064,15 +1066,23 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             elevation: 0,
           ),
           onPressed: canNext
-              ? () {
-            if (_validateInputs()) {
-              _saveToApplication();
-              Navigator.pushNamed(
-                context,
-                DepositStep3Screen.routeName,
-                arguments: widget.application,              );
-            }
-          }
+              ? () async {
+                  if (_validateInputs()) {
+                    _saveToApplication();
+                    await _draftService.saveDraft(
+                      widget.application,
+                      step: 2,
+                      customerCode: _context?.customerCode,
+                    );
+
+                    if (!mounted) return;
+                    Navigator.pushNamed(
+                      context,
+                      DepositStep3Screen.routeName,
+                      arguments: widget.application,
+                    );
+                  }
+                }
               : null,
           child: const Text(
             "다음",
@@ -1089,6 +1099,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
     widget.application.product = product;
     widget.application.customerName ??= context.customerName;
+    widget.application.customerCode ??= context.customerCode;
     _context = context;
 
     _currencyOptions = _parseCurrencies(product);
@@ -1218,6 +1229,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   void _saveToApplication() {
     widget.application
       ..product = widget.application.product
+      ..customerCode = _context?.customerCode ?? widget.application.customerCode
       ..withdrawType = withdrawType
       ..selectedKrwAccount = selectedKrwAccount
       ..selectedFxAccount = selectedFxAccount

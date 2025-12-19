@@ -57,11 +57,13 @@ class FxAccount {
 
 class DepositContext {
   final String customerName;
+  final String? customerCode;
   final List<KrwAccount> krwAccounts;
   final List<FxAccount> fxAccounts;
 
   const DepositContext({
     required this.customerName,
+    this.customerCode,
     required this.krwAccounts,
     required this.fxAccounts,
   });
@@ -77,6 +79,7 @@ class DepositContext {
 
     return DepositContext(
       customerName: json['customerName']?.toString() ?? '고객',
+      customerCode: json['custCode']?.toString(),
       krwAccounts: krw,
       fxAccounts: fx,
     );

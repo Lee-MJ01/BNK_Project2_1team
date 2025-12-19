@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:test_main/models/deposit/application.dart';
+import 'package:test_main/services/deposit_draft_service.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/screens/app_colors.dart';
 import '../deposit/step_4.dart';
@@ -36,6 +37,8 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
 
   String? _selectedMethod;
   Uint8List? _certificateImage;
+
+  final DepositDraftService _draftService = const DepositDraftService();
 
   bool _agreeAll = false;
 
@@ -402,6 +405,8 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
 
     final result =
     await DepositService().submitApplication(widget.application);
+
+    await _draftService.clearDraft(widget.application.dpstId);
 
     if (!mounted) return;
 
