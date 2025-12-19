@@ -52,10 +52,6 @@ flobank:
   aes:
     secret: ${AES_SECRET}
 
-mybatis:
-  mapper-locations: classpath:mappers/**/*.xml
-  configuration:
-    map-underscore-to-camel-case: true
 
 jwt:
   secret: ${JWT_SECRET}
