@@ -37,7 +37,6 @@ class DepositApplication {
   int? autoRenewCycle;
 
   String depositPassword = '';
-  String receiveMethod = 'email';
 
   // Product meta for UI/flow
   DepositProduct? product;
@@ -74,7 +73,6 @@ class DepositApplication {
       'autoRenew': autoRenew,
       'autoRenewCycle': autoRenewCycle,
       'depositPassword': depositPassword,
-      'receiveMethod': receiveMethod,
       'signature': signatureImage != null
           ? base64Encode(signatureImage!)
           : null,
@@ -110,7 +108,6 @@ class DepositApplication {
       ..autoRenew = json['autoRenew']?.toString() ?? 'no'
       ..autoRenewCycle = json['autoRenewCycle'] as int?
       ..depositPassword = json['depositPassword']?.toString() ?? ''
-      ..receiveMethod = json['receiveMethod']?.toString() ?? 'email'
       ..signatureImage = _decodeSignature(json['signature'])
       ..signatureMethod = json['signatureMethod']?.toString()
       ..signedAt = json['signedAt'] != null

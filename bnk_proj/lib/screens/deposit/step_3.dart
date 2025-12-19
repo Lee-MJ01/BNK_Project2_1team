@@ -88,14 +88,11 @@ class DepositStep3Screen extends StatelessWidget {
             ]),
 
             const SizedBox(height: 28),
-            _sectionTitle("비밀번호 및 서류 수령방법"),
+            _sectionTitle("비밀번호"),
             _infoCard([
               ["정기예금 비밀번호", application.depositPassword.isNotEmpty
                   ? "입력완료"
                   : "미입력"],
-              ["상품서류 수령방법", application.receiveMethod == "sms"
-                  ? "문자"
-                  : "이메일"],
             ]),
 
             const SizedBox(height: 40),

@@ -28,6 +28,49 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
   final DepositService _service = DepositService();
   final DepositDraftService _draftService = const DepositDraftService();
+  static const List<_TableField> _headerFields = [
+    _TableField('예금 계좌번호', 'dpst_hdr_acct_no', isRequired: true,
+        note: '트리거를 통해 자동 생성 (예: 8888-상품ID뒤2자리-시퀀스-고객코드뒤4자리)'),
+    _TableField('예금 계좌 ID', 'dpst_hdr_dpst_id', isRequired: true,
+        note: '상품 코드와 매핑'),
+    _TableField('비밀번호', 'dpst_hdr_pw', isRequired: false,
+        note: '정기예금 비밀번호(암호화 저장 가정)'),
+    _TableField('고객코드', 'dpst_hdr_cust_code', isRequired: true),
+    _TableField('예치월수', 'dpst_hdr_month', isRequired: false,
+        note: '가입 월수'),
+    _TableField('개설일자', 'dpst_hdr_start_dy'),
+    _TableField('만기일자', 'dpst_hdr_fin_dy'),
+    _TableField('통화', 'dpst_hdr_currency'),
+    _TableField('통화표기', 'dpst_hdr_currency_exp'),
+    _TableField('예치금액', 'dpst_hdr_balance'),
+    _TableField('거치이자', 'dpst_hdr_interest'),
+    _TableField('이자율', 'dpst_hdr_rate'),
+    _TableField('가입상태', 'dpst_hdr_status', isRequired: false, note: '기본값 1'),
+    _TableField('출금계좌번호', 'dpst_hdr_linked_acct_no'),
+    _TableField('자동연장 여부', 'dpst_hdr_auto_renew_yn', isRequired: false, note: "기본값 'n'"),
+    _TableField('자동연장 횟수', 'dpst_hdr_auto_renew_cnt'),
+    _TableField('자동연장 기간', 'dpst_hdr_auto_renew_term'),
+    _TableField('자동해지 여부', 'dpst_hdr_auto_termi_yn', isRequired: false, note: "기본값 'n'"),
+    _TableField('추가납입 횟수', 'dpst_hdr_add_pay_cnt', isRequired: false, note: '기본값 0'),
+    _TableField('중도인출 횟수', 'dpst_hdr_part_wdrw_cnt'),
+    _TableField('동의 여부', 'dpst_hdr_info_agree_yn'),
+    _TableField('동의 일시', 'dpst_hdr_info_agree_dt'),
+    _TableField('계약 일시', 'dpst_hdr_contract_dt'),
+    _TableField('만기지정계좌', 'dpst_hdr_exp_acct_no'),
+    _TableField('연결계좌 구분', 'dpst_hdr_linked_acct_type'),
+  ];
+
+  static const List<_TableField> _detailFields = [
+    _TableField('거래번호', 'dpst_dtl_no', isRequired: true, note: 'IDENTITY 컬럼'),
+    _TableField('거래 종류', 'dpst_dtl_type'),
+    _TableField('거래금액', 'dpst_dtl_amount', isRequired: true),
+    _TableField('거래일자', 'dpst_tran_dt'),
+    _TableField('헤더 계좌번호', 'dpst_dtl_hdr_no', isRequired: true,
+        note: 'TB_DPST_ACCT_HDR.dpst_hdr_acct_no FK'),
+    _TableField('전자서명 여부', 'dpst_dtl_esign_yn'),
+    _TableField('전자서명 일자', 'dpst_dtl_esign_dt'),
+    _TableField('적용이율', 'dpst_dtl_applied_rate'),
+  ];
   late Future<_Step2Data> _initFuture;
   final NumberFormat _amountFormat = NumberFormat.decimalPattern();
   _Step2Data? _cachedData;
@@ -36,7 +79,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
   String withdrawType = "krw";
   String autoRenew = "no";
-  String receiveMethod = "email";
 
   int? autoRenewCycle;       // 선택된 연장주기 (1,2,3,6)
 
@@ -158,8 +200,12 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             _autoRenewSection(),
             const SizedBox(height: 40),
 
-            _blockTitle("정기예금 비밀번호 및 상품서류 수령방법"),
-            _passwordAndReceiveMethod(),
+            _blockTitle("정기예금 비밀번호"),
+            _passwordSection(),
+            const SizedBox(height: 40),
+
+            _blockTitle("가입 테이블 구조"),
+            _tableReferenceSection(),
             const SizedBox(height: 40),
 
             _buttons(context),
@@ -348,6 +394,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           ],
         ),
 
+        _schemaHint(
+          '선택한 출금계좌가 DPST_HDR_LINKED_ACCT_NO, 출금유형이 DPST_HDR_LINKED_ACCT_TYPE(원화=0/외화=1)로 저장됩니다.',
+        ),
+
         if (withdrawType == "krw") _krwAccountFields(),
         if (withdrawType == "fx") _fxAccountFields(product),
       ],
@@ -401,6 +451,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                   color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12),
             ),
           ),
+        _schemaHint('원화 출금 선택 시 DPST_HDR_LINKED_ACCT_TYPE=0 으로 저장됩니다.'),
         const SizedBox(height: 20),
 
         const Text("계좌 비밀번호",
@@ -420,6 +471,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             decoration: const InputDecoration(counterText: ""),
           ),
         ),
+
+        _schemaHint('계좌 인증 비밀번호는 출금 확인용이며, 본 예금 비밀번호(DPST_HDR_PW)와 구분됩니다.'),
 
         if (!isKrwPwValid)
           const Text(
@@ -479,6 +532,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               style: TextStyle(
                   color: AppColors.pointDustyNavy.withOpacity(0.6), fontSize: 12)),
         const SizedBox(height: 20),
+
+        _schemaHint('외화 출금 선택 시 DPST_HDR_LINKED_ACCT_TYPE=1 으로 저장됩니다.'),
 
         const Text("비밀번호",
             style: TextStyle(color: AppColors.pointDustyNavy)),
@@ -597,6 +652,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           },
 
         ),
+        _schemaHint('신규 통화는 DPST_HDR_CURRENCY 및 DPST_HDR_CURRENCY_EXP에 반영됩니다.'),
         const SizedBox(height: 20),
 
         const Text("신규 금액",
@@ -614,6 +670,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             },
           ),
         ),
+        _schemaHint('입력 금액은 DPST_HDR_BALANCE(헤더)와 거래내역 DPST_DTL_AMOUNT에 전달됩니다.'),
         if (_findLimitFor(newCurrency, product) != null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -635,6 +692,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             fontWeight: FontWeight.w600,
           ),
         ),
+
+        _schemaHint('선택한 가입기간은 DPST_HDR_MONTH에 저장되며 만기일(DPST_HDR_FIN_DY) 산정에 활용됩니다.'),
 
         const SizedBox(height: 10),
 
@@ -787,6 +846,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
         const SizedBox(height: 16),
 
+        _schemaHint('자동연장 선택은 DPST_HDR_AUTO_RENEW_YN / DPST_HDR_AUTO_RENEW_CNT / DPST_HDR_AUTO_RENEW_TERM, 자동해지 여부는 DPST_HDR_AUTO_TERMI_YN에 매핑됩니다.'),
+
         // --------------------- 연장 주기 ---------------------
         if (autoRenew == "apply") ...[
           const Text(
@@ -858,9 +919,9 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
 
   // ----------------------------------------
-  // ④ 비밀번호 및 서류 수령방법
+  // ④ 비밀번호
   // ----------------------------------------
-  Widget _passwordAndReceiveMethod() {
+  Widget _passwordSection() {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -884,6 +945,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             decoration: const InputDecoration(counterText: ""),
           ),
         ),
+
+        _schemaHint('정기예금 비밀번호는 DPST_HDR_PW에 저장됩니다.'),
 
         const SizedBox(height: 20),
         const Text("비밀번호 확인",
@@ -914,44 +977,100 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
             ),
           ),
 
-        const SizedBox(height: 30),
-
-        const Text("상품서류 수령방법",
-            style: TextStyle(color: AppColors.pointDustyNavy)),
-        Row(
-          children: [
-            Radio(
-              value: "email",
-              groupValue: receiveMethod,
-              activeColor: AppColors.pointDustyNavy,
-              onChanged: (value) => setState(() => receiveMethod = value!),
-            ),
-            const Text("이메일", style: TextStyle(color: AppColors.pointDustyNavy)),
-
-            Radio(
-              value: "sms",
-              groupValue: receiveMethod,
-              activeColor: AppColors.pointDustyNavy,
-              onChanged: (value) => setState(() => receiveMethod = value!),
-            ),
-            const Text("문자", style: TextStyle(color: AppColors.pointDustyNavy)),
-          ],
-        ),
-
-        if (receiveMethod == "email")
-          Text(
-            "이메일로 상품설명서가 전송됩니다.",
-            style: TextStyle(
-                color: AppColors.pointDustyNavy.withOpacity(0.7), fontSize: 12),
-          ),
-
-        if (receiveMethod == "sms")
-          Text(
-            "휴대폰 번호로 알림톡이 발송됩니다.",
-            style: TextStyle(
-                color: AppColors.pointDustyNavy.withOpacity(0.7), fontSize: 12),
-          ),
       ],
+    );
+  }
+
+  Widget _tableReferenceSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Text(
+          '※ 백엔드 API 수정 없이 화면에서만 참고용 스키마를 보여줍니다.',
+          style: TextStyle(
+            color: AppColors.pointDustyNavy.withOpacity(0.75),
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildTableCard('TB_DPST_ACCT_HDR (예금 계좌 헤더)', _headerFields),
+        const SizedBox(height: 16),
+        _buildTableCard('TB_DPST_ACCT_DTL (예금 거래 내역)', _detailFields),
+      ],
+    );
+  }
+
+  Widget _buildTableCard(String title, List<_TableField> fields) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.mainPaleBlue.withOpacity(0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.pointDustyNavy,
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: MaterialStateColor.resolveWith(
+                      (_) => AppColors.mainPaleBlue.withOpacity(0.2)),
+              columns: const [
+                DataColumn(label: Text('항목')),
+                DataColumn(label: Text('컬럼명')),
+                DataColumn(label: Text('필수')),
+                DataColumn(label: Text('비고')),
+              ],
+              rows: fields
+                  .map(
+                    (f) => DataRow(
+                  cells: [
+                    DataCell(Text(f.label)),
+                    DataCell(Text(f.column)),
+                    DataCell(Text(f.isRequired ? 'Y' : 'N')),
+                    DataCell(Text(f.note ?? '-')),
+                  ],
+                ),
+              )
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _schemaHint(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 2),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          color: AppColors.pointDustyNavy.withOpacity(0.7),
+        ),
+      ),
     );
   }
 
@@ -1182,8 +1301,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     withdrawType = widget.application.withdrawType;
     autoRenew = widget.application.autoRenew;
     autoRenewCycle = widget.application.autoRenewCycle;
-    receiveMethod = widget.application.receiveMethod;
-
     selectedKrwAccount = widget.application.selectedKrwAccount;
     selectedFxAccount = widget.application.selectedFxAccount;
     fxWithdrawCurrency = widget.application.fxWithdrawCurrency;
@@ -1276,8 +1393,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ..newPeriodMonths = int.tryParse(newPeriod ?? '')
       ..autoRenew = autoRenew
       ..autoRenewCycle = autoRenew == 'apply' ? autoRenewCycle : null
-      ..depositPassword = depositPw
-      ..receiveMethod = receiveMethod;
+      ..depositPassword = depositPw;
   }
 
 }
@@ -1287,5 +1403,14 @@ class _Step2Data {
   final DepositContext context;
 
   const _Step2Data({required this.product, required this.context});
+}
+
+class _TableField {
+  final String label;
+  final String column;
+  final bool isRequired;
+  final String? note;
+
+  const _TableField(this.label, this.column, {this.isRequired = false, this.note});
 }
 
