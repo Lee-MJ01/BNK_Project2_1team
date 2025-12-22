@@ -23,16 +23,14 @@ public class OnlineExchangeController {
      */
     @PostMapping("/online")
     public ResponseEntity<?> onlineExchange(
-            @RequestBody FrgnExchOnlineDTO dto
+            @RequestBody FrgnExchOnlineDTO dto,
+            Authentication authentication
     ) {
-        CustomUserDetails user =
-                (CustomUserDetails) SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getPrincipal();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
+        }
 
-        String userId = user.getUsername();
-
+        String userId = authentication.getName(); // 여기 하나로 끝
         onlineExchangeService.processOnlineExchange(dto, userId);
 
         return ResponseEntity.ok("온라인 환전이 정상적으로 처리되었습니다.");
@@ -41,26 +39,34 @@ public class OnlineExchangeController {
 
 
 
+
     @GetMapping("/accounts")
     public ResponseEntity<?> getMyExchangeAccounts(
-            @RequestParam String currency
+            @RequestParam String currency,
+            Authentication authentication
     ) {
-        CustomUserDetails user =
-                (CustomUserDetails) SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-                        .getPrincipal();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
+        }
 
-        String userId = user.getUsername();
+        Object principal = authentication.getPrincipal();
 
-        Map<String, Object> result =
-                onlineExchangeService.getMyExchangeAccounts(userId, currency);
+        String userId;
+        if (principal instanceof CustomUserDetails user) {
+            userId = user.getUsername();
+        } else if (principal instanceof String s) {
+            // principal이 String으로 들어오는 케이스 대응
+            userId = s;
+            if ("anonymousUser".equals(userId)) {
+                return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
+            }
+        } else {
+            return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
+        }
 
+        Map<String, Object> result = onlineExchangeService.getMyExchangeAccounts(userId, currency);
         return ResponseEntity.ok(result);
     }
-
-
-
 
 
 

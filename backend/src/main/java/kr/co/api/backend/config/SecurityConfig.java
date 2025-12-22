@@ -43,8 +43,7 @@ public class SecurityConfig {
                                         "/js/**", "/images/**",
                                         "/mypage/chatbot",
                                         "/remit/info",
-                                        "/admin/login",
-                                        "/api/exchange/**"
+                                        "/admin/login"
                                 ).permitAll()
 //                        .requestMatchers("/admin/**").hasRole("ADMIN")  //이게 걸린거
                                 .requestMatchers("/admin/**").permitAll()   //이게 안걸린거 (개발용)
