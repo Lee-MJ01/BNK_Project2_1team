@@ -1671,7 +1671,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   Widget _productGuideRow(model.DepositProduct product, String pdfPath) {
     return _documentRow(
       title: '${product.name} 상품설명서',
-      subtitle: '상품 안내서',
+      subtitle: 'v${product.infoPdfVersion} · 상품 안내서',
       onOpen: () => _openProductGuide(pdfPath, product.name),
       onDownload: () => _downloadProductGuide(pdfPath, product.name),
     );
@@ -1812,8 +1812,18 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     if (parsed.hasScheme) return parsed;
 
     final Uri base = Uri.parse(TermsService.baseUrl);
-    final String relativePath = raw.startsWith('/') ? raw.substring(1) : raw;
-    return base.resolve(relativePath);
+
+    // 1) 절대 경로 형태("/uploads/..." or "/api/pdf/products/...") → 앞의 슬래시 제거 후 resolve
+    if (raw.startsWith('/')) {
+      return base.resolve(raw.substring(1));
+    }
+
+    // 2) 파일명만 내려오는 경우 → 신규 PdfController 경로로 prefix
+    final String normalized = raw.contains('/')
+        ? raw
+        : 'api/pdf/products/$raw';
+
+    return base.resolve(normalized);
   }
 
   Uri? _buildTermsUri(TermsDocument terms) {

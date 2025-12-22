@@ -1,6 +1,7 @@
 package kr.co.api.backend.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -8,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.nio.file.Paths;
 
 
-
+@Slf4j
 @RequiredArgsConstructor
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -37,9 +38,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/backend/uploads/terms/**")
                 .addResourceLocations(termsLocation);
 
-        //  backend 없는 경로 (지금 에러의 원인)
+        //  backend 없는 경로
         registry.addResourceHandler("/uploads/terms/**")
                 .addResourceLocations(termsLocation);
+
 
         // -------------------------------------------------
         // 상품설명서 PDF
@@ -50,12 +52,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
             productLocation += "/";
         }
 
-        //  backend 포함
-        registry.addResourceHandler("/backend/uploads/products/**")
+        log.info("▶ Product Resource Mapping");
+        log.info(" - handler = /backend/uploads/pdf_products/**");
+        log.info(" - handler = /uploads/pdf_products/**");
+        log.info(" - location = {}", productLocation);
+
+        // backend 포함
+        registry.addResourceHandler("/backend/uploads/pdf_products/**")
                 .addResourceLocations(productLocation);
 
-        //  backend 없는 경우 대비 (권장)
-        registry.addResourceHandler("/uploads/products/**")
+        // backend 없는 경우
+        registry.addResourceHandler("/uploads/pdf_products/**")
                 .addResourceLocations(productLocation);
+
     }
 }
