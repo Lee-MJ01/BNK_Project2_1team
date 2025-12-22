@@ -326,12 +326,12 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     if (product.minPeriodMonth != null && product.maxPeriodMonth != null) {
       return "${product.minPeriodMonth}~${product.maxPeriodMonth}개월";
     }
-    return "기간 정보 없음";
+    return "제한 없음";
   }
 
   String _buildLimitLabel(model.DepositProduct product) {
     if (product.limits.isEmpty) {
-      return "한도\n정보 없음";
+      return "제한 없음";
     }
 
     final first = product.limits.first;
@@ -1682,7 +1682,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     final List<TermsDocument> result = [];
 
-    final String productPdfUrl = _resolveProductPdfUrl(product).trim();
+    final String productPdfUrl = _resolveProductPdfPath(product).trim();
 
     if (productPdfUrl.isNotEmpty) {
       result.add(
@@ -1693,7 +1693,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
           title: '${product.name} 상품설명서',
           version: 1,
           regDate: null,
-          filePath: product.infoPdf,
+          filePath: productPdfUrl,
           content: '',
           downloadUrl: productPdfUrl,
         ),
@@ -1712,20 +1712,13 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     return result;
   }
 
-  String _resolveProductPdfUrl(model.DepositProduct product) {
-    if (product.infoPdfUrl.trim().isNotEmpty) {
-      return product.infoPdfUrl.trim();
+  String _resolveProductPdfPath(model.DepositProduct product) {
+    final candidates = [product.infoPdfUrl.trim(), product.infoPdf.trim()];
+    for (final path in candidates) {
+      if (path.isNotEmpty) return path;
     }
 
-    final String fallback = product.infoPdf.trim();
-    if (fallback.isEmpty) return '';
-
-    final bool hasUploadsPrefix = fallback.contains('/uploads/');
-    final String normalizedPath = hasUploadsPrefix
-        ? (fallback.startsWith('/') ? fallback : '/$fallback')
-        : '/uploads/products/$fallback';
-
-    return '${TermsService.baseUrl}$normalizedPath';
+    return '';
   }
 
 
@@ -1803,7 +1796,10 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
   Uri? _buildTermsUri(TermsDocument terms) {
-    final raw = terms.downloadUrl.trim();
+    final raw = terms.downloadUrl.trim().isNotEmpty
+        ? terms.downloadUrl.trim()
+        : terms.filePath.trim();
+
     if (raw.isEmpty) return null;
 
     final Uri? parsed = Uri.tryParse(raw);
