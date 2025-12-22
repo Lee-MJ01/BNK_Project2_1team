@@ -5,8 +5,8 @@ import '../services/api_service.dart';
 
 
 class ExchangeApi {
-  static const String baseUrl =
-      'http://34.64.124.33:8080/backend/api/exchange';
+  static String get baseUrl =>
+      ApiService.currentUrl.replaceFirst('/api/mobile', '/api/exchange');
 
   static Future<List<CurrencyRate>> fetchRates() async {
     final headers = await ApiService.getAuthHeaders();

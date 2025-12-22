@@ -49,16 +49,30 @@ class RateDTO {
 Future<List<RateDTO>> fetchLatestRates() async {
   final headers = await ApiService.getAuthHeaders();
 
-  final response = await http.get(
-    Uri.parse('http://34.64.124.33:8080/backend/api/exchange/rates'),
-    headers: headers,
-  );
+  final baseUrl =
+  ApiService.currentUrl.replaceFirst('/api/mobile', '/api/exchange');
 
-  if (response.statusCode != 200) {
-    throw Exception("환율 조회 실패: ${response.statusCode} ${response.body}");
+  final url = Uri.parse('$baseUrl/rates');
+
+  print("📌 headers = $headers");
+  print("📌 rates url = $url");
+
+  final req = http.Request('GET', url)
+    ..headers.addAll(headers)
+    ..followRedirects = false; // ✅ 리다이렉트 추적 끔
+
+  final streamed = await http.Client().send(req);
+  final res = await http.Response.fromStream(streamed);
+
+  print("📌 status = ${res.statusCode}");
+  print("📌 location = ${res.headers['location']}"); // ✅ 302면 여기 찍힘
+  print("📌 body = ${res.body}");
+
+  if (res.statusCode != 200) {
+    throw Exception("환율 조회 실패: ${res.statusCode} ${res.body}");
   }
 
-  final List list = jsonDecode(utf8.decode(response.bodyBytes));
+  final List list = jsonDecode(utf8.decode(res.bodyBytes));
   return list.map((e) => RateDTO.fromJson(e)).toList();
 }
 
