@@ -1526,10 +1526,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
           }
 
           final terms = snapshot.data ?? [];
-          final displayTerms = _buildTermsForProduct(product, terms);
-
-
-
+          final String? productGuidePath = _resolveProductPdfPath(product);
+          final displayTerms = _buildTermsForProduct(terms);
 
           return Container(
             padding: const EdgeInsets.all(18),
@@ -1538,46 +1536,32 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: AppColors.mainPaleBlue.withOpacity(0.8),
-
-            ),
-
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              const Text(
-              '상품설명서 및 약관',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.pointDustyNavy,
-              ),
-
-
-
-
-
+                const Text(
+                  '상품설명서 및 약관',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.pointDustyNavy,
+                  ),
                 ),
-
-            const SizedBox(height: 8),
-            Text(
-              ' 최신 버전의 상품별 설명서와 약관을 제공합니다.',
-              style: TextStyle(
-                color: Colors.black87.withOpacity(0.7),
-                height: 1.5,
-              ),
-
-
-
-
-
-
+                const SizedBox(height: 8),
+                Text(
+                  ' 최신 버전의 상품별 설명서와 약관을 제공합니다.',
+                  style: TextStyle(
+                    color: Colors.black87.withOpacity(0.7),
+                    height: 1.5,
+                  ),
                 ),
-
-
                 const SizedBox(height: 16),
+                if (productGuidePath != null)
+                  _productGuideRow(product, productGuidePath),
                 ...displayTerms.map((t) => _termsRow(t)).toList(),
-                if (displayTerms.isEmpty)
+                if (productGuidePath == null && displayTerms.isEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -1591,18 +1575,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
                     child: const Text(
                       '조회된 약관이 없습니다. 잠시 후 다시 시도해주세요.',
                       style: TextStyle(color: Colors.black54),
-
-
-
-
-
-
-
-                     ),
-
+                    ),
                   ),
-
-
                 const SizedBox(height: 28),
 
                 // ------------------------------------------------------
@@ -1675,50 +1649,32 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     );
   }
 
-  List<TermsDocument> _buildTermsForProduct(
-      model.DepositProduct product, List<TermsDocument> terms) {
-
-
-
-    final List<TermsDocument> result = [];
-
-    final String productPdfUrl = _resolveProductPdfPath(product).trim();
-
-    if (productPdfUrl.isNotEmpty) {
-      result.add(
-        TermsDocument(
-          id: null,
-          cate: null,
-          order: null,
-          title: '${product.name} 상품설명서',
-          version: 1,
-          regDate: null,
-          filePath: productPdfUrl,
-          content: '',
-          downloadUrl: productPdfUrl,
-        ),
-      );
-    }
+  List<TermsDocument> _buildTermsForProduct(List<TermsDocument> terms) {
     const specialTitle = 'flobank 외화예금 통합 특약';
 
-
-
-    result.addAll(
-      terms.where(
-            (t) => t.title.trim().toLowerCase() == specialTitle.toLowerCase(),
-      ),
-    );
-
-    return result;
+    return terms
+        .where(
+          (t) => t.title.trim().toLowerCase() == specialTitle.toLowerCase(),
+        )
+        .toList();
   }
 
-  String _resolveProductPdfPath(model.DepositProduct product) {
+  String? _resolveProductPdfPath(model.DepositProduct product) {
     final candidates = [product.infoPdfUrl.trim(), product.infoPdf.trim()];
     for (final path in candidates) {
       if (path.isNotEmpty) return path;
     }
 
-    return '';
+    return null;
+  }
+
+  Widget _productGuideRow(model.DepositProduct product, String pdfPath) {
+    return _documentRow(
+      title: '${product.name} 상품설명서',
+      subtitle: '상품 안내서',
+      onOpen: () => _openProductGuide(pdfPath, product.name),
+      onDownload: () => _downloadProductGuide(pdfPath, product.name),
+    );
   }
 
 
@@ -1726,7 +1682,12 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
 
 
-  Widget _termsRow(TermsDocument terms) {
+  Widget _documentRow({
+    required String title,
+    String? subtitle,
+    required VoidCallback onOpen,
+    required VoidCallback onDownload,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -1734,54 +1695,95 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
         borderRadius: BorderRadius.circular(10),
         color: AppColors.subIvoryBeige,
       ),
-
-
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         title: Text(
-          terms.title,
+          title,
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.pointDustyNavy,
           ),
         ),
-        subtitle: Text(
-          'v${terms.version} · ${terms.regDate ?? "등록일 미상"}',
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
-        ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle,
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
-
           children: [
             IconButton(
-              onPressed: () => _openTerms(terms),
-              icon:
-              const Icon(Icons.description_outlined, color: AppColors.pointDustyNavy),
+              onPressed: onOpen,
+              icon: const Icon(
+                Icons.description_outlined,
+                color: AppColors.pointDustyNavy,
+              ),
               tooltip: '보기',
             ),
             const SizedBox(width: 4),
             IconButton(
-              onPressed: () => _downloadTerms(terms),
-              icon:
-              const Icon(Icons.download_outlined, color: AppColors.pointDustyNavy),
+              onPressed: onDownload,
+              icon: const Icon(
+                Icons.download_outlined,
+                color: AppColors.pointDustyNavy,
+              ),
               tooltip: '다운로드',
             ),
-
-
-
-
-
-
-
           ],
         ),
-        onTap: () => _openTerms(terms),
-
-
+        onTap: onOpen,
       ),
-
     );
+  }
+
+  Widget _termsRow(TermsDocument terms) {
+    return _documentRow(
+      title: terms.title,
+      subtitle: 'v${terms.version} · ${terms.regDate ?? "등록일 미상"}',
+      onOpen: () => _openTerms(terms),
+      onDownload: () => _downloadTerms(terms),
+    );
+  }
+
+  Future<void> _openProductGuide(String path, String productName) async {
+    await _launchDocument(path, productName, LaunchMode.externalApplication);
+  }
+
+  Future<void> _downloadProductGuide(String path, String productName) async {
+    await _launchDocument(path, productName, LaunchMode.externalApplication);
+  }
+
+  Future<void> _launchDocument(
+    String path,
+    String productName,
+    LaunchMode mode,
+  ) async {
+    final uri = _buildProductUri(path);
+
+    if (uri == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('유효한 상품 설명서 경로가 없습니다: $productName'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
+
+    final ok = await launchUrl(uri, mode: mode);
+
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('상품 설명서를 열 수 없습니다: $productName'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
 
@@ -1793,6 +1795,19 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
   Future<void> _downloadTerms(TermsDocument terms) async {
     await _launchTerms(terms, LaunchMode.externalApplication);
+  }
+
+  Uri? _buildProductUri(String rawPath) {
+    final String raw = rawPath.trim();
+    if (raw.isEmpty) return null;
+
+    final Uri? parsed = Uri.tryParse(raw);
+    if (parsed == null) return null;
+    if (parsed.hasScheme) return parsed;
+
+    final Uri base = Uri.parse(TermsService.baseUrl);
+    final String relativePath = raw.startsWith('/') ? raw.substring(1) : raw;
+    return base.resolve(relativePath);
   }
 
   Uri? _buildTermsUri(TermsDocument terms) {
