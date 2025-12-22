@@ -24,6 +24,7 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
 
   int krwBalance = 0;
   bool isLoading = true;
+  int foreignBalance = 0;
 
   @override
   void initState() {
@@ -38,10 +39,12 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
       );
 
       setState(() {
-        krwBalance = data['krwBalance']; // 서버 응답 키
+        krwBalance = (data['krwBalance'] as num?)?.toInt() ?? 0;
+        foreignBalance = (data['frgnBalance'] as num?)?.toInt() ?? 0; // ✅ 추가
         isLoading = false;
       });
     } catch (e) {
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("계좌 조회 실패: $e")),
       );
@@ -131,7 +134,7 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
             title: widget.rate.name,
             amount: "$foreignAmount ${widget.rate.code}",
             isActive: true,
-            balance: "잔액 0 ${widget.rate.code}",
+            balance: "잔액 $foreignBalance ${widget.rate.code}",
           ),
 
           const SizedBox(height: 12),
