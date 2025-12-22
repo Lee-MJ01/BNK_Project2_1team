@@ -1748,6 +1748,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
   Future<void> _openProductGuide(String path, String productName) async {
+    print("👉 PRODUCT PDF PATH = $path");
+    print("👉 BUILT URI = ${_buildProductUri(path)}");
     await _launchDocument(path, productName, LaunchMode.externalApplication);
   }
 
@@ -1760,7 +1762,11 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     String productName,
     LaunchMode mode,
   ) async {
+
+    print("👉 RAW PATH = $path");
+
     final uri = _buildProductUri(path);
+    print("👉 FINAL URI = $uri");
 
     if (uri == null) {
       if (mounted) {
