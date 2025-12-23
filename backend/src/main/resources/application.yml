@@ -21,9 +21,10 @@ spring:
   #  profiles:
   #    active: dev
   elasticsearch:
-    uris: ${ELASTIC_URI}
-    username: ${ELASTIC_USERNAME}
-    password: ${ELASTIC_PASSWORD}
+    uris: http://34.64.225.88:9200
+    username: elastic
+    password: bnk1234!
+
 
   mail:
     host: smtp.gmail.com

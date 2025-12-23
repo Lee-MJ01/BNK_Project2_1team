@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import '../../services/search_api.dart';
+import 'package:test_main/screens/deposit/view.dart'; // DepositViewScreen 있는 파일
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -10,347 +14,570 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  late TabController _tabController;
 
-  // 검색 상태 관리
   bool _isSearching = false;
   String _query = "";
 
-  late TabController _tabController;
+  // ES 검색 결과
+  Map<String, dynamic>? _searchResult;
+  final Map<String, Map<String, dynamic>> _tabResults = {};
+  final Map<String, bool> _tabLoading = {};
 
-  // 최근 검색어 데이터
-  List<Map<String, String>> _recentSearches = [
-    {"term": "엔화 환전", "date": "10.24"},
-    {"term": "적금 금리", "date": "10.23"},
-    {"term": "오사카 여행", "date": "10.22"},
-    {"term": "달러 환율", "date": "10.20"},
-  ];
+  // 최근 검색어
+  List<dynamic> _recentSearches = [];
+
+  // 자동완성
+  Timer? _debounce;
+  bool _isSuggesting = false;
+  List<String> _suggestions = [];
+  String _lastAutoQuery = "";
 
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: 6, vsync: this);
+
+    // ✅ 탭 클릭 시 해당 탭(type) 상세검색 호출
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      if (!_isSearching) return;
+
+      final String? type = switch (_tabController.index) {
+        1 => "product",
+        2 => "faq",
+        3 => "docs",
+        4 => "notice",
+        5 => "event",
+        _ => null,
+      };
+
+      if (type == null) return;
+
+      if (_tabLoading[type] == true) return;
+      if (_tabResults.containsKey(type)) return;
+
+      _fetchTab(type);
+    });
+
+    _loadRecentSearches();
+  }
+
+  // ---------------------------
+  // 자동완성(추천 검색어)
+  // ---------------------------
+  void _onKeywordChanged(String value) {
+    final q = value.trim();
+
+    // 입력이 비면 자동완성/검색 모두 정리
+    if (q.isEmpty) {
+      _debounce?.cancel();
+      setState(() {
+        _isSearching = false;
+        _isSuggesting = false;
+        _suggestions = [];
+        _lastAutoQuery = "";
+        _query = "";
+        _searchResult = null;
+        _tabResults.clear();
+        _tabLoading.clear();
+      });
+      return;
+    }
+
+    // 타이핑 중엔 검색결과 화면보다 자동완성을 우선 노출
+    setState(() {
+      _isSearching = false;
+    });
+
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 250), () async {
+      if (_lastAutoQuery == q) return;
+
+      setState(() {
+        _isSuggesting = true;
+        _lastAutoQuery = q;
+      });
+
+      try {
+        // ✅ SearchApi.autoComplete(String) 이 있어야 함
+        final list = await SearchApi.autoComplete(q);
+        if (!mounted) return;
+
+        setState(() {
+          _suggestions = list;
+          _isSuggesting = false;
+        });
+      } catch (e) {
+        debugPrint("❌ autocomplete error = $e");
+        if (!mounted) return;
+        setState(() {
+          _suggestions = [];
+          _isSuggesting = false;
+        });
+      }
+    });
+  }
+
+  void _selectSuggestion(String keyword) {
+    _searchController.text = keyword;
+    _searchController.selection =
+        TextSelection.fromPosition(TextPosition(offset: keyword.length));
+
+    setState(() {
+      _suggestions = [];
+      _isSuggesting = false;
+    });
+
+    _doSearch(keyword);
+  }
+
+  Widget _buildSuggestionView() {
+    if (_isSuggesting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_suggestions.isEmpty) {
+      return const Center(child: Text("추천 검색어가 없습니다."));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _suggestions.length,
+      itemBuilder: (context, index) {
+        final text = _suggestions[index];
+        return ListTile(
+          title: Text(text),
+          onTap: () => _selectSuggestion(text),
+        );
+      },
+    );
+  }
+
+  // ---------------------------
+  // 기존 검색 기능
+  // ---------------------------
+  Future<void> _fetchTab(String type) async {
+    setState(() => _tabLoading[type] = true);
+
+    try {
+      final res = await SearchApi.tabSearch(keyword: _query, type: type, page: 0);
+      setState(() => _tabResults[type] = res);
+    } catch (e) {
+      debugPrint("❌ tab search error ($type) = $e");
+      setState(() => _tabResults[type] = {});
+    } finally {
+      setState(() => _tabLoading[type] = false);
+    }
+  }
+
+  String? _extractDpstIdFromUrl(dynamic urlValue) {
+    final url = urlValue?.toString();
+    if (url == null || url.isEmpty) return null;
+
+    // 예: "/deposit/view?dpstId=DPST0001"
+    final uri = Uri.tryParse("https://dummy.com$url");
+    return uri?.queryParameters["dpstId"];
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final data = await SearchApi.recentKeywords();
+    setState(() => _recentSearches = data);
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _tabController.dispose();
     super.dispose();
   }
 
-  // 검색어 삭제
-  void _removeSearchTerm(int index) {
-    setState(() => _recentSearches.removeAt(index));
-  }
+  Future<void> _doSearch(String text) async {
+    debugPrint("✅ _doSearch called: [$text]");
 
-  // 전체 삭제
-  void _clearAll() {
-    setState(() => _recentSearches.clear());
-  }
+    final keyword = text.trim();
+    if (keyword.isEmpty) return;
 
-  // 검색 실행
-  void _doSearch(String text) {
-    if (text.isEmpty) return;
     setState(() {
-      _query = text;
+      _query = keyword;
       _isSearching = true;
-      _recentSearches.insert(0, {"term": text, "date": "오늘"});
+
+      // ✅ 검색 시작할 때 자동완성 정리
+      _isSuggesting = false;
+      _suggestions = [];
+
+      _searchResult = null;
+      _tabResults.clear();
+      _tabLoading.clear();
     });
+
+    _tabController.animateTo(0);
+
+    try {
+      final result = await SearchApi.integratedSearch(keyword);
+      debugPrint("🔥 search result keys = ${result.keys}");
+      debugPrint("🔥 search result = $result");
+      if (!mounted) return;
+      setState(() => _searchResult = result);
+    } catch (e) {
+      debugPrint("❌ search error = $e");
+      if (!mounted) return;
+      setState(() => _searchResult = {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final hasTyping = _searchController.text.trim().isNotEmpty;
+    final showSuggest =
+        !_isSearching && hasTyping && (_isSuggesting || _suggestions.isNotEmpty);
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (_isSearching) {
-              setState(() {
-                _isSearching = false;
-                _searchController.clear();
-              });
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
-        title: TextField(
-          controller: _searchController,
-          textInputAction: TextInputAction.search,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: "검색어를 입력해주세요",
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.grey),
-          ),
-          style: const TextStyle(color: Colors.black, fontSize: 16),
-          onSubmitted: _doSearch,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Color(0xFF3E5D9C)),
-            onPressed: () => _doSearch(_searchController.text),
-          ),
-        ],
-        bottom: _isSearching
-            ? TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          labelColor: const Color(0xFF3E5D9C),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF3E5D9C),
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          tabs: const [
-            Tab(text: "통합검색"),
-            Tab(text: "상품"),
-            Tab(text: "FAQ"),
-            Tab(text: "약관"),
-            Tab(text: "공지사항"),
-            Tab(text: "이벤트"),
-          ],
-        )
-            : null,
-      ),
-      body: _isSearching ? _buildSearchResultView() : _buildRecentSearchView(),
+      appBar: _buildAppBar(),
+      body: showSuggest
+          ? _buildSuggestionView()
+          : (_isSearching ? _buildSearchResultView() : _buildRecentSearchView()),
     );
   }
 
-  // ---------------- [1] 검색 전 화면 ----------------
+  // ================= APP BAR =================
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        onPressed: () {
+          // 자동완성 화면이면 먼저 자동완성/입력만 정리
+          if (!_isSearching && _searchController.text.trim().isNotEmpty) {
+            setState(() {
+              _searchController.clear();
+              _isSuggesting = false;
+              _suggestions = [];
+              _lastAutoQuery = "";
+            });
+            return;
+          }
+
+          if (_isSearching) {
+            setState(() {
+              _isSearching = false;
+              _searchController.clear();
+              _isSuggesting = false;
+              _suggestions = [];
+              _lastAutoQuery = "";
+            });
+          } else {
+            Navigator.pop(context);
+          }
+        },
+      ),
+      title: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        autofocus: true,
+        decoration: const InputDecoration(
+          hintText: "검색어를 입력해주세요",
+          border: InputBorder.none,
+        ),
+        onChanged: _onKeywordChanged, // ✅ 자동완성 연결
+        onSubmitted: _doSearch,
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search, color: Color(0xFF3E5D9C)),
+          onPressed: () => _doSearch(_searchController.text),
+        ),
+      ],
+      bottom: _isSearching
+          ? TabBar(
+        controller: _tabController,
+        isScrollable: true,
+        labelColor: const Color(0xFF3E5D9C),
+        unselectedLabelColor: Colors.grey,
+        indicatorColor: const Color(0xFF3E5D9C),
+        tabs: const [
+          Tab(text: "통합검색"),
+          Tab(text: "상품"),
+          Tab(text: "FAQ"),
+          Tab(text: "약관"),
+          Tab(text: "공지사항"),
+          Tab(text: "이벤트"),
+        ],
+      )
+          : null,
+    );
+  }
+
+  // ================= 최근 검색 =================
   Widget _buildRecentSearchView() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          // ✅ 1. AI에게 물어보기 (심플한 둥근 테두리 버튼)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            child: InkWell(
-              onTap: () {
-                print("AI 채팅방 이동");
-              },
-              borderRadius: BorderRadius.circular(30),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30), // 둥근 모서리
-                  border: Border.all(color: const Color(0xFF3E5D9C), width: 1.5), // 파란 테두리
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  "AI에게 물어보기",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E5D9C), // 글씨색 파란색
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 10), // 간격
-
-          // ✅ 2. 최근 검색어 리스트
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 헤더
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "최근 검색어",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    if (_recentSearches.isNotEmpty)
-                      GestureDetector(
-                        onTap: _clearAll,
-                        child: Text(
-                          "전체삭제",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // 리스트 뷰
-                _recentSearches.isEmpty
-                    ? Container(
-                  height: 100,
-                  alignment: Alignment.center,
-                  child: Text(
-                    "최근 검색 내역이 없습니다.",
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                )
-                    : ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _recentSearches.length,
-                  separatorBuilder: (context, index) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final item = _recentSearches[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        item["term"]!,
-                        style: const TextStyle(fontSize: 15, color: Colors.black87),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            item["date"]!,
-                            style: const TextStyle(fontSize: 13, color: Colors.grey),
-                          ),
-                          const SizedBox(width: 10),
-                          IconButton(
-                            icon: const Icon(Icons.close, size: 18, color: Colors.grey),
-                            onPressed: () => _removeSearchTerm(index),
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        _searchController.text = item["term"]!;
-                        _doSearch(item["term"]!);
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: _recentSearches.length,
+      itemBuilder: (context, index) {
+        final item = _recentSearches[index];
+        return ListTile(
+          title: Text(item["keyword"]),
+          subtitle: Text(item["createdAt"].substring(0, 10)),
+          onTap: () {
+            _searchController.text = item["keyword"];
+            _searchController.selection = TextSelection.fromPosition(
+              TextPosition(offset: _searchController.text.length),
+            );
+            _doSearch(item["keyword"]);
+          },
+        );
+      },
     );
   }
 
-  // ---------------- [2] 검색 결과 화면 (기존 동일) ----------------
+  // ================= 검색 결과 =================
   Widget _buildSearchResultView() {
     return TabBarView(
       controller: _tabController,
       children: [
         _buildUnifiedSearchTab(),
-        _buildSimpleListTab("상품 검색 결과"),
-        _buildSimpleListTab("FAQ 검색 결과"),
-        _buildSimpleListTab("약관 검색 결과"),
-        _buildSimpleListTab("공지사항 검색 결과"),
-        _buildSimpleListTab("이벤트 검색 결과"),
+        _buildListTab("product"),
+        _buildListTab("faq"),
+        _buildListTab("docs"),
+        _buildListTab("notice"),
+        _buildListTab("event"),
       ],
     );
   }
 
   Widget _buildUnifiedSearchTab() {
-    return SingleChildScrollView(
+    if (_searchResult == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final total = (_searchResult?["totalCount"] as num?)?.toInt() ?? 0;
+    final sections = _searchResult!["sections"] ?? {};
+
+    final products = (sections["product"]?["results"] as List?) ?? [];
+    final faqs = (sections["faq"]?["results"] as List?) ?? [];
+    final docs = (sections["docs"]?["results"] as List?) ?? [];
+    final notices = (sections["notice"]?["results"] as List?) ?? [];
+    final events = (sections["event"]?["results"] as List?) ?? [];
+
+    int sectionTotal(String key, List list) =>
+        ((sections[key]?["totalCount"] as num?)?.toInt()) ?? list.length;
+
+    return ListView(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.black, fontSize: 15),
-              children: [
-                TextSpan(
-                  text: '"$_query"',
-                  style: const TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+      children: [
+        RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+            children: [
+              TextSpan(
+                text: "‘$_query’",
+                style: const TextStyle(
+                  color: Color(0xFF3E5D9C),
+                  fontWeight: FontWeight.w700,
                 ),
-                const TextSpan(text: "에 대한 검색 결과가 총 "),
-                const TextSpan(text: "29건", style: TextStyle(fontWeight: FontWeight.bold)),
-                const TextSpan(text: " 검색되었습니다."),
-              ],
+              ),
+              const TextSpan(text: "에 대한 검색결과가 총 "),
+              TextSpan(
+                text: "${total}건",
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const TextSpan(text: " 검색되었습니다."),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        if (products.isNotEmpty) ...[
+          _section("상품", sectionTotal("product", products)),
+          ...products.take(4).map(
+                (p) => _item(
+              p["title"] ?? "",
+              p["summary"] ?? "",
+              onTap: () {
+                final dpstId = _extractDpstIdFromUrl(p["url"]);
+                if (dpstId == null || dpstId.isEmpty) return;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DepositViewScreen(dpstId: dpstId),
+                  ),
+                );
+              },
             ),
           ),
-          const SizedBox(height: 20),
-          const Divider(),
-          _buildSectionHeader("상품", 7),
-          _buildProductItem("FLOBANK 외화정기예금", "여유자금을 일정기간 정해 예치하는 외화 정기예금"),
-          _buildProductItem("FLOBANK 외화보통예금", "단기자금 운용에 적합한 외화 자유적립식 예금"),
-          _buildProductItem("FLOBANK 외화슈퍼플러스 예금", "금리·환율·외환수수료 우대를 제공하는 자유적립식 외화 적금"),
-          const SizedBox(height: 20),
-          _buildSectionHeader("FAQ", 5),
-          _buildFaqItem("외화예금은 어떻게 개설하나요?", "인터넷뱅킹 또는 가까운 지점 방문을 통해 외화예금을 개설하실 수 있습니다."),
-          const SizedBox(height: 20),
-          _buildSectionHeader("약관", 12),
-          _buildTermsItem("외화예금거래기본약관 (v3)", "이 약관은 예금주와 FLOBANK(이하 '은행'이라 한다)과의 외화예금거래에 적용됩니다."),
-          const SizedBox(height: 20),
         ],
-      ),
+
+        if (faqs.isNotEmpty) ...[
+          _section("FAQ", sectionTotal("faq", faqs)),
+          ...faqs.take(4).map((f) => _item(f["title"] ?? "", f["summary"] ?? "")),
+        ],
+
+        if (docs.isNotEmpty) ...[
+          _section("약관", sectionTotal("docs", docs)),
+          ...docs.take(4).map((t) => _item(t["title"] ?? "", t["summary"] ?? "")),
+        ],
+
+        if (notices.isNotEmpty) ...[
+          _section("공지사항", sectionTotal("notice", notices)),
+          ...notices.take(4).map((n) => _item(n["title"] ?? "", n["summary"] ?? "")),
+        ],
+
+        if (events.isNotEmpty) ...[
+          _section("이벤트", sectionTotal("event", events)),
+          ...events.take(4).map((e) => _item(e["title"] ?? "", e["summary"] ?? "")),
+        ],
+      ],
     );
   }
 
-  Widget _buildSectionHeader(String title, int count) {
+  Widget _buildListTab(String key) {
+    if (_searchResult == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_query.trim().isEmpty) {
+      return const Center(child: Text("검색어를 입력해주세요."));
+    }
+
+    final bool isLoading = _tabLoading[key] == true;
+    final Map<String, dynamic>? tabRes = _tabResults[key];
+
+    if (tabRes == null && !isLoading) {
+      Future.microtask(() => _fetchTab(key));
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (isLoading && tabRes == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final sections = (tabRes?["sections"] as Map?) ?? {};
+    final section = (sections[key] as Map?) ?? {};
+    final List list = (section["results"] as List?) ?? [];
+    final int total = (section["totalCount"] as num?)?.toInt() ?? 0;
+
+    if (list.isEmpty) {
+      return const Center(child: Text("검색 결과가 없습니다."));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: list.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 14, color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: "‘$_query’ ",
+                    style: const TextStyle(
+                      color: Color(0xFF3E5D9C),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const TextSpan(text: "검색 결과 총 "),
+                  TextSpan(
+                    text: "$total건",
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final item = list[index - 1];
+        final bool isLast = (index - 1) == list.length - 1;
+
+        VoidCallback? onTap;
+
+        if (key == "product") {
+          final dpstId = _extractDpstIdFromUrl(item["url"]);
+          if (dpstId != null && dpstId.isNotEmpty) {
+            onTap = () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DepositViewScreen(dpstId: dpstId),
+                ),
+              );
+            };
+          }
+        }
+
+        return _item(
+          item["title"] ?? "",
+          item["summary"] ?? "",
+          showDivider: !isLast,
+          onTap: onTap,
+        );
+      },
+    );
+  }
+
+  Widget _section(String title, int count) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text("$title ($count)", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF3E5D9C))),
-          const Text("더보기", style: TextStyle(fontSize: 13, color: Colors.grey)),
-        ],
+      child: Text(
+        "$title ($count)",
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF3E5D9C),
+        ),
       ),
     );
   }
 
-  Widget _buildProductItem(String title, String desc) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF3E5D9C))),
-          const SizedBox(height: 4),
-          Text(desc, style: const TextStyle(fontSize: 13, color: Colors.black54)),
-        ],
+  Widget _item(
+      String title,
+      String content, {
+        bool showDivider = true,
+        VoidCallback? onTap,
+      }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: showDivider
+              ? const Border(
+            bottom: BorderSide(color: Color(0xFFE6E6E6), width: 1),
+          )
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF3E5D9C),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              content,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _buildFaqItem(String question, String answer) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Q. $question", style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF3E5D9C))),
-          const SizedBox(height: 4),
-          Text(answer, style: const TextStyle(fontSize: 13, color: Colors.black54), maxLines: 1, overflow: TextOverflow.ellipsis),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTermsItem(String title, String desc) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 14, color: Color(0xFF3E5D9C))),
-          const SizedBox(height: 4),
-          Text(desc, style: const TextStyle(fontSize: 12, color: Colors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleListTab(String title) {
-    return Center(child: Text(title));
   }
 }
