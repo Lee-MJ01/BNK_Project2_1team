@@ -6,6 +6,8 @@ import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/models/terms.dart';
 import 'package:test_main/services/terms_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:test_main/screens/deposit/step_3.dart';
+import 'package:test_main/services/deposit_draft_service.dart';
 
 class DepositViewArgs {
   final String dpstId;
@@ -37,6 +39,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   late Future<model.DepositProduct> _futureProduct;
   final TermsService _termsService = TermsService();
   late Future<List<TermsDocument>> _futureTerms;
+  final DepositDraftService _draftService = const DepositDraftService();
 
   @override
   void initState() {
@@ -1883,16 +1886,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                DepositStep1Screen.routeName,
-                arguments: DepositStep1Args(
-                  dpstId: widget.dpstId,
-                  product: product,
-                ),
-              );
-            },
+            onPressed: () => _handleJoin(context, product),
+
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.pointDustyNavy,
               foregroundColor: Colors.white,
@@ -1937,6 +1932,67 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
       ],
     );
   }
+
+  Future<void> _handleJoin(
+      BuildContext context,
+      model.DepositProduct product,
+      ) async {
+    final draft = await _draftService.loadDraft(widget.dpstId);
+
+    final canResume =
+        draft != null && draft.application != null && (draft.step) >= 3;
+
+    if (canResume) {
+      final resume = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('이어서 진행할까요?'),
+            content: const Text('이전에 진행한 가입 내역이 있습니다. 이어서 진행하시겠어요?'),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  await _draftService.clearDraft(widget.dpstId);
+                  if (mounted) Navigator.of(context).pop(false);
+                },
+                child: const Text('새로 시작'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('이어하기'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (resume == true) {
+        final application = draft!.application!;
+        application.product ??= product;
+
+        if (!mounted) return;
+
+        Navigator.pushNamed(
+          context,
+          DepositStep3Screen.routeName,
+          arguments: application,
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
+
+    Navigator.pushNamed(
+      context,
+      DepositStep1Screen.routeName,
+      arguments: DepositStep1Args(
+        dpstId: widget.dpstId,
+        product: product,
+      ),
+    );
+  }
+
 }
 
 // --------------------------------------------------------------

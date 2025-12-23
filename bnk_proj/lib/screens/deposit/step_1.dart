@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/screens/deposit/step_2.dart';
-import 'package:test_main/screens/deposit/step_3.dart';
 import 'package:test_main/models/deposit/application.dart';
-import 'package:test_main/models/deposit/draft.dart';
 
 import 'package:test_main/models/terms.dart';
 import 'package:test_main/services/terms_service.dart';
@@ -60,14 +58,12 @@ class _DepositStep1ScreenState extends State<DepositStep1Screen> {
 
   bool finalAgree = false;
 
-  DepositDraft? _draft;
   final DepositDraftService _draftService = const DepositDraftService();
 
   @override
   void initState() {
     super.initState();
     _termsFuture = _loadTerms();
-    _loadDraft();
   }
 
 
@@ -93,13 +89,7 @@ class _DepositStep1ScreenState extends State<DepositStep1Screen> {
             _buildStepHeader(),
             const SizedBox(height: 30),
 
-            if (_draft != null) ...[
-              _cardBox(
-                mini: true,
-                child: _buildDraftBanner(),
-              ),
-              const SizedBox(height: 8),
-            ],
+
 
             /// ================================
             /// 카드 1 - 약관 및 상품설명서
@@ -215,108 +205,7 @@ class _DepositStep1ScreenState extends State<DepositStep1Screen> {
     );
   }
 
-  Future<void> _loadDraft() async {
-    final draft = await _draftService.loadDraft(widget.dpstId);
-    if (!mounted) return;
 
-    if (draft?.application != null && (draft?.step ?? 0) <= 1) {
-      _applyDraftToState(draft!.application!);
-    }
-
-    setState(() {
-      _draft = draft;
-    });
-  }
-
-  void _applyDraftToState(DepositApplication application) {
-    setState(() {
-      agree1 = application.agree1;
-      agree2 = application.agree2;
-      agree3 = application.agree3;
-      info1 = application.info1;
-      info2 = application.info2;
-      info3 = application.info3;
-      important1 = application.important1;
-      important2 = application.important2;
-      important3 = application.important3;
-      finalAgree = application.finalAgree;
-      _termChecks = _termChecks.isNotEmpty
-          ? _termChecks
-          : List<bool>.filled(_terms.length, false);
-      _updateAllAgreeState();
-    });
-  }
-
-  Widget _buildDraftBanner() {
-    final updatedText = _draft?.updatedAt != null
-        ? "최근 저장: ${_draft!.updatedAt!.toLocal().toString().split('.').first}"
-        : '저장된 가입 정보가 있습니다.';
-
-    String stepLabel = '동의 단계에서 멈췄어요.';
-    if ((_draft?.step ?? 1) >= 3) {
-      stepLabel = '입력확인 단계까지 진행했어요.';
-    } else if (_draft?.step == 2) {
-      stepLabel = '정보입력 단계까지 진행했어요.';
-    }
-
-    return Row(
-      children: [
-        const Icon(Icons.refresh, color: AppColors.pointDustyNavy),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                stepLabel,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.pointDustyNavy,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                updatedText,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-            ],
-          ),
-        ),
-        TextButton(
-          onPressed: _resumeDraft,
-          child: const Text('이어하기'),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _resumeDraft() async {
-    if (_draft == null) return;
-
-    final application = _draft!.application ??
-        DepositApplication(dpstId: widget.dpstId);
-
-    application.product ??= widget.product;
-
-    if (_draft!.step <= 1) {
-      _applyDraftToState(application);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('동의 정보를 불러왔습니다.')),
-      );
-      return;
-    }
-
-    final targetRoute = _draft!.step >= 3
-        ? DepositStep3Screen.routeName
-        : DepositStep2Screen.routeName;
-
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(
-      context,
-      targetRoute,
-      arguments: application,
-    );
-  }
 
   // =============================
   // 공통 카드 UI
