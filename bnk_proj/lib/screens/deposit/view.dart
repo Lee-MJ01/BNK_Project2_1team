@@ -1940,7 +1940,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     final draft = await _draftService.loadDraft(widget.dpstId);
 
     final canResume =
-        draft != null && draft.application != null && (draft.step) >= 3;
+        draft != null && draft.application != null && (draft.step) >= 2;
 
     if (canResume) {
       final resume = await showDialog<bool>(

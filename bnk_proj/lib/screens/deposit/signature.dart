@@ -403,21 +403,29 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
     if (_submitting) return;
     setState(() => _submitting = true);
 
-    final result =
-    await DepositService().submitApplication(widget.application);
+    try {
+      final result =
+      await DepositService().submitApplication(widget.application);
 
-    await _draftService.clearDraft(widget.application.dpstId);
+      // 전자서명 후 DB insert가 끝난 시점에서는 이어가기 임시저장을 종료한다.
+      await _draftService.clearDraft(widget.application.dpstId);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    Navigator.pushReplacementNamed(
-      context,
-      DepositStep4Screen.routeName,
-      arguments: DepositCompletionArgs(
-        application: widget.application,
-        result: result,
-      ),
-    );
+      Navigator.pushReplacementNamed(
+        context,
+        DepositStep4Screen.routeName,
+        arguments: DepositCompletionArgs(
+          application: widget.application,
+          result: result,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+
   }
 }
 

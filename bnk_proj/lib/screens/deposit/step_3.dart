@@ -83,15 +83,7 @@ class DepositStep3Screen extends StatelessWidget {
             _sectionTitle("만기자동연장"),
             _infoCard([
               ["자동연장 여부", application.autoRenew == "apply" ? "신청" : "미신청"],
-              ["연장 주기", application.autoRenew == "apply"
-                  ? "${application.autoRenewCycle ?? '-'}개월"
-                  : "-"],
-              [
-                "연장 횟수",
-                application.autoRenew == "apply"
-                    ? (application.autoRenewCount?.toString() ?? "-")
-                    : "-",
-              ],
+
               [
                 "만기 자동 해지",
                 application.autoRenew == "apply" &&
@@ -101,22 +93,7 @@ class DepositStep3Screen extends StatelessWidget {
               ],
             ]),
 
-            const SizedBox(height: 28),
-            _sectionTitle("추가 옵션"),
-            _infoCard([
-              [
-                "추가납입",
-                application.addPaymentEnabled
-                    ? "가능 (${application.addPaymentCount ?? '-'}회)"
-                    : "불가",
-              ],
-              [
-                "일부출금",
-                application.partialWithdrawEnabled
-                    ? "가능 (${application.partialWithdrawCount ?? '-'}회)"
-                    : "불가",
-              ],
-            ]),
+
 
             const SizedBox(height: 28),
             _sectionTitle("비밀번호"),
