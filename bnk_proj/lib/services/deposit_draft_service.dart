@@ -41,6 +41,8 @@ class DepositDraftService {
       linkedAccountNo: application.withdrawType == 'fx'
           ? application.selectedFxAccount
           : application.selectedKrwAccount,
+      withdrawPassword: application.withdrawPassword,
+      amount: application.newAmount,
       autoRenewYn: application.autoRenew == 'apply',
       autoRenewTerm:
           application.autoRenew == 'apply' ? application.autoRenewCycle : null,
