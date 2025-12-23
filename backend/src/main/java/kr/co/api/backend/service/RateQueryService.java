@@ -30,4 +30,20 @@ public class RateQueryService {
     public List<RateDTO> getLatestRatesWithChange() {
         return rateMapper.selectLatestRatesWithChange();
     }
+
+
+    /**
+     * 단일 통화의 최신 환율 1건 조회
+     * TB_EXCH_RATE_HIST 에 저장된 가장 최근 고시일 데이터를 사용한다.
+     */
+    public RateDTO getLatestRateForCurrency(String currency) {
+        if (currency == null || currency.isBlank()) {
+            return null;
+        }
+        return rateMapper.selectLatestRate(currency);
+    }
+
+
+
+
 }

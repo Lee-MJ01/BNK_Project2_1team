@@ -7,6 +7,7 @@ import 'package:test_main/models/deposit/context.dart';
 import 'package:test_main/models/deposit/view.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/services/deposit_draft_service.dart';
+import 'package:test_main/services/exchange_api.dart';
 
 
 class DepositStep2Screen extends StatefulWidget {
@@ -50,6 +51,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   bool partialWithdrawEnabled = false;
   int? partialWithdrawCount;
 
+  Map<String, double> _latestFxRates = {};
 
   bool isPwMatched = true;
   bool isKrwPwValid = true;
@@ -627,10 +629,38 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
               if (withdrawType == 'krw' && newCurrency != 'KRW') {
                 withdrawType = 'fx';
               }
+              _syncAppliedFxRate();
             });
           },
 
         ),
+        if (newCurrency.isNotEmpty && newCurrency.toUpperCase() != 'KRW')
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                const Text(
+                  "적용 환율",
+                  style: TextStyle(color: AppColors.pointDustyNavy),
+                ),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: Text(
+                    appliedFxRate != null
+                        ? '1 $newCurrency = ${appliedFxRate!.toStringAsFixed(4)} KRW'
+                        : (_latestFxRates.isEmpty
+                        ? '환율 정보를 불러오지 못했습니다.'
+                        : '환율 정보를 불러오는 중입니다.'),
+                    style: TextStyle(
+                      color: appliedFxRate != null
+                          ? AppColors.pointDustyNavy
+                          : AppColors.pointDustyNavy.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         const SizedBox(height: 20),
 
@@ -806,24 +836,24 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
         SwitchListTile(
 
-        title: const Text('만기 자동연장'),
-        subtitle: Text(autoRenewAllowed
-            ? '만기 시 동일 조건으로 자동연장합니다.'
-            : '이 상품은 자동연장을 지원하지 않습니다.'),
-        value: autoRenew == 'apply' && autoRenewAllowed,
+          title: const Text('만기 자동연장'),
+          subtitle: Text(autoRenewAllowed
+              ? '만기 시 동일 조건으로 자동연장합니다.'
+              : '이 상품은 자동연장을 지원하지 않습니다.'),
+          value: autoRenew == 'apply' && autoRenewAllowed,
+
 
 
 
           activeColor: AppColors.pointDustyNavy,
           onChanged: autoRenewAllowed
-               ? (v) {
-                  setState(() {
+              ? (v) {
+            setState(() {
                     autoRenew = v ? 'apply' : 'no';
                     if (!v) {
                       autoRenewCycle = null;
                       autoRenewCount = null;
                       _autoRenewCountController.clear();
-                      autoTerminateAtMaturity = false;
 
 
                     }
@@ -836,14 +866,12 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
         SwitchListTile(
           title: const Text('만기 시 자동 해지'),
-          subtitle: const Text('자동연장 신청 시에만 설정됩니다.'),
+          subtitle: const Text('만기 시 자동으로 해지합니다.'),
           value: autoTerminateAtMaturity,
 
           activeColor: AppColors.pointDustyNavy,
-          onChanged: autoRenew == 'apply' && autoRenewAllowed
-          ? (v) => setState(() => autoTerminateAtMaturity = v)
+          onChanged: (v) => setState(() => autoTerminateAtMaturity = v),
 
-              : null,
         ),
 
 
@@ -947,10 +975,27 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   }
 
 
-  double? _effectiveFxRate() {
-    if (_appliedFxRateController.text.isNotEmpty) {
-      return double.tryParse(_appliedFxRateController.text);
+  void _syncAppliedFxRate({Map<String, double>? rates}) {
+    final Map<String, double> rateSource = rates ?? _latestFxRates;
+    final upperCurrency = newCurrency.toUpperCase();
+
+    if (rateSource.isEmpty) {
+      _appliedFxRateController.text =
+      appliedFxRate != null ? appliedFxRate.toString() : '';
+      return;
     }
+
+    appliedFxRate = upperCurrency.isEmpty || upperCurrency == 'KRW'
+        ? null
+        : (rateSource[upperCurrency] ?? appliedFxRate);
+
+    _appliedFxRateController.text =
+    appliedFxRate != null ? appliedFxRate.toString() : '';
+  }
+
+
+  double? _effectiveFxRate() {
+
     return appliedFxRate;
   }
 
@@ -1037,7 +1082,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     final fxRate = _effectiveFxRate();
     if (withdrawType == 'krw' && newCurrency.toUpperCase() != 'KRW' &&
         fxRate == null) {
-      return _err('환율 정보를 확인할 수 없습니다. 적용 환율을 입력해주세요.');
+      return _err('환율 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
     }
 
     final availableBalance = withdrawType == 'krw'
@@ -1168,10 +1213,25 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       rethrow;
     }
 
+    Map<String, double> fetchedFxRates = {};
+    try {
+      final rates = await ExchangeApi.fetchRates();
+      fetchedFxRates = {
+        for (final rate in rates) rate.code.toUpperCase(): rate.rate,
+      };
+      debugPrint('[DepositStep2] 환율 조회 성공: ${fetchedFxRates.length}개 통화');
+    } catch (e, stack) {
+      debugPrint('[DepositStep2] 환율 조회 실패: $e');
+      debugPrintStack(stackTrace: stack);
+    }
+
+
+
     widget.application.product = product;
     widget.application.customerName ??= context.customerName;
     widget.application.customerCode ??= context.customerCode;
     _context = context;
+    _latestFxRates = fetchedFxRates;
 
     _currencyOptions = _parseCurrencies(product);
     _periodOptions = _buildPeriodOptions(product);
@@ -1210,6 +1270,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       final limit = _findLimitFor(newCurrency, product);
       if (limit != null) newAmount = limit.min.toString();
     }
+
+    _syncAppliedFxRate();
 
     return _Step2Data(product: product, context: context);
   }
@@ -1257,7 +1319,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       autoRenew = 'no';
       autoRenewCycle = null;
       autoRenewCount = null;
-      autoTerminateAtMaturity = false;
       _autoRenewCountController.clear();
     }
 
@@ -1345,7 +1406,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       ..autoRenewCycle = null
       ..autoRenewCount = null
 
-      ..autoTerminateAtMaturity = autoRenew == 'apply' && autoTerminateAtMaturity
+      ..autoTerminateAtMaturity = autoTerminateAtMaturity
+
       ..appliedRate = appliedRate
       ..appliedFxRate = appliedFxRate
 

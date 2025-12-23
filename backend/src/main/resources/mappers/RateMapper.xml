@@ -115,4 +115,22 @@
         ORDER BY curr.rhist_currency
     </select>
 
+
+    <!-- =========================
+   특정 통화의 최신 환율 1건 조회
+   TB_EXCH_RATE_HIST 에 저장된 가장 최근 고시일 기준
+   ========================= -->
+    <select id="selectLatestRate" resultType="kr.co.api.backend.dto.RateDTO">
+        SELECT *
+        FROM (
+                 SELECT
+                     t.*,
+                     ROW_NUMBER() OVER (ORDER BY t.rhist_reg_dt DESC) AS rn
+                 FROM TB_EXCH_RATE_HIST t
+                 WHERE t.rhist_currency = #{currency}
+             )
+        WHERE rn = 1
+    </select>
+
+    
 </mapper>

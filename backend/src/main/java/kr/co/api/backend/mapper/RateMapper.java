@@ -32,4 +32,6 @@ public interface RateMapper {
 
     List<RateDTO> selectLatestRatesWithChange();
 
+    RateDTO selectLatestRate(@Param("currency") String currency);
+
 }

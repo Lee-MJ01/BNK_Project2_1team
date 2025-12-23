@@ -86,8 +86,7 @@ class DepositStep3Screen extends StatelessWidget {
 
               [
                 "만기 자동 해지",
-                application.autoRenew == "apply" &&
-                    application.autoTerminateAtMaturity
+                application.autoTerminateAtMaturity
                     ? "예"
                     : "아니오",
               ],
