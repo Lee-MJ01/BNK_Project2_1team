@@ -1,10 +1,19 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:test_main/screens/deposit/list.dart';
 import 'package:test_main/screens/main/search.dart';
+import 'package:test_main/voice/controller/voice_session_controller.dart';
 import '../../services/api_service.dart';
+import '../../voice/core/voice_state_machine.dart';
+import '../../voice/script/voice_script_resolver.dart';
+import '../../voice/service/voice_stt_service.dart';
+import '../../voice/service/voice_tts_service.dart';
+import '../../voice/ui/voice_assistant_overlay.dart';
+import '../../voice/ui/voice_ui_state.dart';
+import '../../voice/ui/voice_waveform.dart';
 import '../app_colors.dart';
 import '../../main.dart';
 import '../mypage/transaction_history.dart';
@@ -803,14 +812,31 @@ List<ServiceHighlight> buildAiAndFxServices(BuildContext context) => [
     icon: 'images/flobankIcon5_음성비서.png',
     title: 'AI 음성비서',
     description: '시리처럼 말로 송금·조회·추천을 요청해보세요.',
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const VoiceAssistantScreen(),
-        ),
+    onTap: () async {
+      final agreed = await _ensureVoiceTermsAgreed(context);
+      if (!agreed) return;
+
+      final tts = VoiceTtsService();
+      final stt = VoiceSttService();
+
+      late VoiceSessionController controller;
+
+      final fsm = VoiceStateMachine();
+
+      controller = VoiceSessionController(
+        stt: stt,
+        tts: tts,
+        fsm: fsm,
       );
+
+      _openVoiceAssistantOverlay(
+        context,
+        controller,
+      );
+
+      controller.startSession(); // 🔊 여기서 첫 음성
     },
+
   ),
   const ServiceHighlight(
     icon: Icons.smart_toy_outlined,
@@ -872,3 +898,139 @@ Widget _QuickMenu(String title, dynamic iconOrImage, {VoidCallback? onTap}) {
     ),
   );
 }
+
+Future<bool> _ensureVoiceTermsAgreed(BuildContext context) async {
+  // TODO: 실제로는 SharedPreferences / SecureStorage
+  bool alreadyAgreed = false;
+
+  if (alreadyAgreed) return true;
+
+  final result = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const VoiceTermsSheet(),
+  );
+
+  return result == true;
+}
+
+void _openVoiceAssistantOverlay(BuildContext context, VoiceSessionController controller) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.transparent,
+    builder: (_) {
+      return VoiceAssistantOverlay(controller: controller,);
+    },
+  );
+}
+
+
+
+class VoiceTermsSheet extends StatefulWidget {
+  const VoiceTermsSheet();
+
+  @override
+  State<VoiceTermsSheet> createState() => _VoiceTermsSheetState();
+}
+
+class _VoiceTermsSheetState extends State<VoiceTermsSheet> {
+  bool agreed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 드래그 핸들
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'AI 음성 가이드 이용 안내',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              '음성 명령 처리를 위해 마이크 접근 권한이 필요하며,\n'
+                  '음성 데이터는 서비스 제공 목적에만 사용됩니다.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                height: 1.4,
+              ),
+            ),
+
+
+            // 체크박스
+            GestureDetector(
+              onTap: () => setState(() => agreed = !agreed),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: agreed,
+                    onChanged: (v) => setState(() => agreed = v ?? false),
+                    activeColor: AppColors.mainPaleBlue,
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'AI 음성비서 이용에 동의합니다. (필수)',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 동의 버튼
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: agreed
+                    ? () {
+                  // TODO: 동의 여부 저장
+                  Navigator.pop(context, true);
+                }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3C4F76),
+                  disabledBackgroundColor: Colors.grey.shade300,
+                ),
+                child: const Text(
+                  '동의하고 시작하기',
+                  style: TextStyle(fontSize: 15, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' hide Intent;
-import 'package:test_main/voice/voice_intent.dart';
-import 'package:test_main/voice/voice_state.dart';
+import 'package:test_main/voice/core/voice_intent.dart';
+import 'package:test_main/voice/core/voice_state.dart';
 
 import 'end_reason.dart';
 
@@ -9,14 +9,25 @@ class VoiceStateMachine {
   EndReason? _endReason;
   final String? productCode;
 
+  final void Function(VoiceState state)? onStateChanged;
+
   VoiceStateMachine({
     VoiceState initialState = VoiceState.idle,
-    this.productCode
+    this.productCode,
+    this.onStateChanged,
   }) : _state = initialState;
 
 
   VoiceState get state => _state;
   EndReason? get endReason => _endReason;
+
+  VoiceStateMachine withProduct(String productCode) {
+    return VoiceStateMachine(
+      initialState: _state,          // 현재 상태 유지
+      productCode: productCode,      // 새 상품 컨텍스트
+      onStateChanged: onStateChanged,
+    );
+  }
 
   bool _inputDone = false;
   void markInputDone(bool done) => _inputDone = done;
@@ -25,6 +36,11 @@ class VoiceStateMachine {
   void _setState(VoiceState next) {
     _state = next;
     debugPrint('[VoiceState] -> $next');
+    onStateChanged?.call(next);
+  }
+
+  void enterInitial() {
+    _setState(_state); // 강제로 onStateChanged 발생
   }
 
   // 세션 종료

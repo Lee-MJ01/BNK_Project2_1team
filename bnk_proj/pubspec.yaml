@@ -65,6 +65,10 @@ dependencies:
   firebase_core: ^4.3.0
   firebase_messaging: ^16.1.0
 
+  #tts
+  flutter_tts: ^4.2.3
+  speech_to_text: ^7.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
