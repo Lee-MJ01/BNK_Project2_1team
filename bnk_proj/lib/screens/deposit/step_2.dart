@@ -680,6 +680,13 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
           ),
         ),
 
+        if (newAmount.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: _krwEstimateText(),
+          ),
+
+
         if (_findLimitFor(newCurrency, product) != null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
@@ -998,6 +1005,49 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
     return appliedFxRate;
   }
+
+
+  double? _krwEquivalentAmount() {
+    if (newAmount.isEmpty) return null;
+
+    final parsedAmount = double.tryParse(newAmount);
+    if (parsedAmount == null) return null;
+
+    if (newCurrency.toUpperCase() == 'KRW') return parsedAmount.toDouble();
+
+    final rate = _effectiveFxRate();
+    if (rate == null) return null;
+
+    return parsedAmount * rate;
+  }
+
+  Widget _krwEstimateText() {
+    final upperCurrency = newCurrency.toUpperCase();
+    if (upperCurrency.isEmpty) return const SizedBox.shrink();
+
+    final krwAmount = _krwEquivalentAmount();
+
+    if (krwAmount == null) {
+      if (upperCurrency != 'KRW') {
+        return Text(
+          '환율 정보를 불러오는 중입니다.',
+          style: TextStyle(color: AppColors.pointDustyNavy.withOpacity(0.7)),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    final label = upperCurrency == 'KRW' ? '입력 금액' : '환율 적용 금액';
+
+    return Text(
+      '원화 환산 금액($label): ${_amountFormat.format(krwAmount)} KRW',
+      style: const TextStyle(
+        color: AppColors.pointDustyNavy,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
 
   double _withdrawAmountForValidation(double baseAmount) {
     if (withdrawType == 'krw' && newCurrency.toUpperCase() != 'KRW') {

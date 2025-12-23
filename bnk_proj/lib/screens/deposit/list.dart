@@ -7,6 +7,7 @@ import 'package:test_main/models/deposit/list.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/screens/deposit/step_3.dart';
 import 'package:test_main/services/deposit_draft_service.dart';
+import 'package:test_main/models/deposit/view.dart';
 
 class DepositListPage extends StatefulWidget {
   const DepositListPage({super.key});
@@ -38,7 +39,8 @@ class _DepositListPageState extends State<DepositListPage> {
   }
 
 
-  Future<void> _handleJoin(String dpstId) async {
+  Future<void> _handleJoin(DepositProductList productList) async {
+    final dpstId = productList.id;
     final draft = await _draftService.loadDraft(dpstId);
 
     final canResume =
@@ -71,6 +73,14 @@ class _DepositListPageState extends State<DepositListPage> {
       if (resume == true && mounted) {
         final application = draft!.application!;
 
+        try {
+          final product = await _service.fetchProductDetail(dpstId);
+          application.product ??= product;
+        } catch (_) {
+          // 상세 정보를 불러오지 못해도 이어가기는 가능하도록 둡니다.
+        }
+
+
         Navigator.pushNamed(
           context,
           DepositStep3Screen.routeName,
@@ -82,11 +92,20 @@ class _DepositListPageState extends State<DepositListPage> {
 
     if (!mounted) return;
 
+    DepositProduct? product;
+    try {
+      product = await _service.fetchProductDetail(dpstId);
+    } catch (_) {
+      // 상세 조회 실패 시 상품 정보 없이도 신규 가입을 진행합니다.
+    }
+
+
     Navigator.pushNamed(
       context,
       DepositStep1Screen.routeName,
       arguments: DepositStep1Args(
         dpstId: dpstId,
+        product: product,
       ),
     );
   }
@@ -298,7 +317,7 @@ class _DepositListPageState extends State<DepositListPage> {
 
                                         // 가입하기 버튼
                                         ElevatedButton(
-                                          onPressed: () => _handleJoin(item.id),
+                                          onPressed: () => _handleJoin(item),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                             AppColors.pointDustyNavy,

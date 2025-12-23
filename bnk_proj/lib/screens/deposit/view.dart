@@ -40,12 +40,14 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   final TermsService _termsService = TermsService();
   late Future<List<TermsDocument>> _futureTerms;
   final DepositDraftService _draftService = const DepositDraftService();
+  bool _canResume = false;
 
   @override
   void initState() {
     super.initState();
     _futureProduct = _service.fetchProductDetail(widget.dpstId);
     _futureTerms = _termsService.fetchTerms(status: 4);
+    _checkDraftAvailability();
   }
 
 
@@ -54,6 +56,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
       _futureProduct = _service.fetchProductDetail(widget.dpstId);
       _futureTerms = _termsService.fetchTerms(status: 4);
     });
+
+    _checkDraftAvailability();
   }
 
 
@@ -65,7 +69,17 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     ]);
   }
 
+  Future<void> _checkDraftAvailability() async {
+    final draft = await _draftService.loadDraft(widget.dpstId);
+    final hasDraft =
+        draft != null && draft.application != null && (draft.step) >= 2;
 
+    if (mounted) {
+      setState(() {
+        _canResume = hasDraft;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +151,8 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_canResume) _buildResumeBanner(),
+                  if (_canResume) const SizedBox(height: 12),
                   _buildHeader(product),
                   const SizedBox(height: 20),
                   _buildTabs(),
@@ -318,6 +334,36 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
 
+
+
+  Widget _buildResumeBanner() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.mainPaleBlue.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.mainPaleBlue),
+      ),
+      child: Row(
+        children: const [
+          Icon(
+            Icons.play_circle_fill,
+            color: AppColors.pointDustyNavy,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '이전에 진행한 가입 내역이 있어 이어서 진행할 수 있습니다.',
+              style: TextStyle(
+                color: AppColors.pointDustyNavy,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 
 

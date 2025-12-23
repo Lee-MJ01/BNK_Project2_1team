@@ -110,6 +110,13 @@ class DepositStep4Screen extends StatelessWidget {
         ? '${application.newCurrency} ${formatter.format(application.newAmount)}'
         : "-");
 
+    final krwAmount = _krwDepositAmount();
+    final krwAmountLabel = krwAmount != null
+        ? '${formatter.format(krwAmount)} KRW'
+        : "-";
+
+
+
     final withdrawCurrency = result.withdrawCurrency ??
         (application.withdrawType == 'fx'
             ? (application.fxWithdrawCurrency ?? '-')
@@ -124,6 +131,7 @@ class DepositStep4Screen extends StatelessWidget {
       ["신규계좌번호", result.newAccountNo.isNotEmpty ? result.newAccountNo : "-"],
       ["신규통화", result.currency.isNotEmpty ? result.currency : application.newCurrency],
       ["신규금액", amountLabel],
+      ["원화 환산금액", krwAmountLabel],
       ["예금이율", result.rate ?? "확인중"],
       ["만기일", result.maturityDate ?? "-"],
       ["예치기간", result.periodLabel ??
@@ -238,4 +246,19 @@ class DepositStep4Screen extends StatelessWidget {
     if (nameFromResult.isNotEmpty) return nameFromResult;
     return args.application.customerName ?? '고객';
   }
+
+  double? _krwDepositAmount() {
+    final application = args.application;
+    final amount = application.newAmount?.toDouble();
+    if (amount == null) return null;
+
+    final currency = application.newCurrency.toUpperCase();
+    if (currency == 'KRW' || currency.isEmpty) return amount;
+
+    final rate = application.appliedFxRate;
+    if (rate == null) return null;
+
+    return amount * rate;
+  }
+
 }
