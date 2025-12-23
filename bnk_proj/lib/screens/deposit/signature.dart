@@ -407,7 +407,8 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
       final result =
       await DepositService().submitApplication(widget.application);
 
-      // 전자서명 후 DB insert가 끝난 시점에서는 이어가기 임시저장을 종료한다.
+      // 전자서명과 계좌 생성이 끝났으면 이어가기 임시 테이블(TB_DPST_ACCT_DRAFT)도 정리한다.
+      // 서버/DB 삭제 요청은 실패해도 가입 완료 이동은 막지 않도록 best-effort 로 수행한다.
       await _draftService.clearDraft(widget.application.dpstId);
 
       if (!mounted) return;

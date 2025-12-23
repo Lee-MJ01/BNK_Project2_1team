@@ -38,6 +38,9 @@ class DepositStep3Screen extends StatelessWidget {
         ? "${application.newPeriodMonths}개월"
         : "미입력";
 
+    final rateLabel = _resolveRateLabel(application);
+    final maturityLabel = _resolveMaturityLabel(application);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundOffWhite,
       appBar: AppBar(
@@ -76,6 +79,8 @@ class DepositStep3Screen extends StatelessWidget {
                   : "미입력"],
               ["신규 금액", amountLabel],
               ["가입기간", periodLabel],
+              ["예금이율", rateLabel],
+              ["만기일", maturityLabel],
 
             ]),
 
@@ -295,5 +300,39 @@ class DepositStep3Screen extends StatelessWidget {
       "/deposit-signature",
       arguments: application,
     );
+  }
+
+  String _resolveRateLabel(DepositApplication application) {
+    final rate = application.appliedRate;
+    if (rate != null) {
+      return "${rate.toStringAsFixed(2)}%";
+    }
+
+    return "확인중";
+  }
+
+  String _resolveMaturityLabel(DepositApplication application) {
+    final maturity = application.dpstHdrFinDy;
+    if (maturity != null && maturity.isNotEmpty) {
+      final parsedMaturity = DateTime.tryParse(maturity);
+      if (parsedMaturity != null) {
+        return DateFormat('yyyy.MM.dd').format(parsedMaturity);
+      }
+
+      return maturity.replaceAll('-', '.');
+    }
+
+    if (application.newPeriodMonths != null) {
+      final today = DateTime.now();
+      final derived = DateTime(
+        today.year,
+        today.month + application.newPeriodMonths!,
+        today.day,
+      );
+
+      return DateFormat('yyyy.MM.dd').format(derived);
+    }
+
+    return "-";
   }
 }

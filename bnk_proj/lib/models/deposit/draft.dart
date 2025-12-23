@@ -12,6 +12,7 @@ class DepositDraft {
   final int step;
   final String? linkedAccountNo;
   final String? withdrawPassword;
+  final String? depositPassword;
   final int? amount;
   final bool autoRenewYn;
   final int? autoRenewTerm;
@@ -28,6 +29,7 @@ class DepositDraft {
     required this.step,
     this.linkedAccountNo,
     this.withdrawPassword,
+    this.depositPassword,
     this.amount,
     this.autoRenewYn = false,
     this.autoRenewTerm,
@@ -45,6 +47,7 @@ class DepositDraft {
     int? step,
     String? linkedAccountNo,
     String? withdrawPassword,
+    String? depositPassword,
     int? amount,
     bool? autoRenewYn,
     int? autoRenewTerm,
@@ -61,6 +64,7 @@ class DepositDraft {
       step: step ?? this.step,
       linkedAccountNo: linkedAccountNo ?? this.linkedAccountNo,
       withdrawPassword: withdrawPassword ?? this.withdrawPassword,
+      depositPassword: depositPassword ?? this.depositPassword,
       amount: amount ?? this.amount,
       autoRenewYn: autoRenewYn ?? this.autoRenewYn,
       autoRenewTerm: autoRenewTerm ?? this.autoRenewTerm,
@@ -80,6 +84,7 @@ class DepositDraft {
       'step': step,
       'linkedAccountNo': linkedAccountNo,
       'withdrawPassword': withdrawPassword,
+      'depositPassword': depositPassword,
       'amount': amount,
       'autoRenewYn': autoRenewYn,
       'autoRenewTerm': autoRenewTerm,
@@ -99,6 +104,7 @@ class DepositDraft {
       step: _parseInt(json['step']) ?? 1,
       linkedAccountNo: json['linkedAccountNo']?.toString(),
       withdrawPassword: json['withdrawPassword']?.toString(),
+      depositPassword: json['depositPassword']?.toString(),
       amount: _parseInt(json['amount']),
       autoRenewYn: json['autoRenewYn'] == true ||
           json['autoRenewYn']?.toString().toUpperCase() == 'Y',
