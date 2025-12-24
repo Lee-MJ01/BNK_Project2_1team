@@ -45,7 +45,11 @@ public class SecurityConfig {
                         // 🔓 로그인, 회원가입 관련 허용
                         .requestMatchers(
                                 "/api/mobile/member/login",
-                                "/api/mobile/member/auth/**"
+                                "/api/mobile/member/check-device",    // 기기 확인
+                                "/api/mobile/member/auth/send-code",  // 인증번호 발송
+                                "/api/mobile/member/auth/verify-code",// 인증번호 검증
+                                "/api/mobile/member/register-device", // 기기 등록 허용
+                                "/api/mobile/member/login-pin"        // PIN 로그인
                         ).permitAll()
 
                         // 🔓 환율 조회 API는 로그인 없이 허용

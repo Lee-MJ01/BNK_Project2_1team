@@ -36,7 +36,7 @@ public class SmsService {
 
         try {
             messageService.send(message);
-            System.out.println("[SMS] 인증번호 전송 성공: " + to);
+            System.out.println("[SMS] 인증번호 전송 성공: " + to +" 인증번호: "+ code);
         } catch (Exception e) {
             System.err.println("[SMS] 전송 실패: " + e.getMessage());
             throw e;

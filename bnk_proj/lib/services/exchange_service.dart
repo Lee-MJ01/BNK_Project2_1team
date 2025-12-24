@@ -27,6 +27,8 @@ class ExchangeService {
     final url = Uri.parse("$baseUrl/online");
     final headers = await ApiService.getAuthHeaders();
 
+    print(">>> 전송하는 헤더: $headers");
+
     final response = await http.post(
       url,
       headers: headers,

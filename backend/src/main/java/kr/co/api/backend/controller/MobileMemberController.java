@@ -217,6 +217,9 @@ public class MobileMemberController {
         log.info("기기 등록 요청 - ID: {}, DeviceID: {}", request.getUserid(), request.getDeviceId());
 
         CustInfoDTO user = custInfoService.login(request.getUserid(), request.getPassword());
+        log.info("dto 출력: {}", user);
+        log.info("아이디: {}, 기기ID: {}", request.getUserid(), request.getDeviceId());
+
         if (user == null) {
             return ResponseEntity.status(401).body("인증 실패");
         }

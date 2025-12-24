@@ -3,6 +3,7 @@ package kr.co.api.backend.service;
 import kr.co.api.backend.dto.*;
 import kr.co.api.backend.mapper.OnlineExchangeMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,28 +12,19 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OnlineExchangeService {
 
-
     private final OnlineExchangeMapper onlineExchangeMapper;
-
-
-
-
-
-
 
     /**
      * 온라인 환전 처리
      * (로그인 사용자 기준, 트랜잭션 보장)
      */
     @Transactional
-    public void processOnlineExchange(FrgnExchOnlineDTO dto, String userId) {
-
-        // 0. 로그인 userId → custCode 조회
-        String custCode = onlineExchangeMapper.selectCustCodeByUserId(userId);
+    public void processOnlineExchange(FrgnExchOnlineDTO dto, String custCode) {
 
         if (custCode == null) {
             throw new IllegalStateException("고객 정보를 찾을 수 없습니다.");
@@ -40,6 +32,8 @@ public class OnlineExchangeService {
 
         // DTO에 고객 코드 세팅 (필수)
         dto.setExchCustCode(custCode);
+
+        log.info(dto.toString());
 
         String custName = onlineExchangeMapper.selectCustNameByCustCode(custCode);
 
@@ -60,9 +54,11 @@ public class OnlineExchangeService {
         /* =========================
            2. 원화 계좌 잠금 조회
            ========================= */
+
+
         CustAcctDTO krwAcct =
                 onlineExchangeMapper.selectKrwAcctForUpdate(
-                        dto.getExchKrwAcctNo()
+                        custCode
                 );
 
         if (krwAcct == null) {
@@ -72,6 +68,8 @@ public class OnlineExchangeService {
         /* =========================
            3. 외화 자식 계좌 잠금 조회
            ========================= */
+        FrgnAcctDTO frgnAcctDTO = onlineExchangeMapper.selectMyFrgnAccount(custCode);
+        dto.setExchFrgnBalNo(frgnAcctDTO.getFrgnAcctNo());
         FrgnAcctBalanceDTO frgnBalance =
                 onlineExchangeMapper.selectFrgnBalanceForUpdate(
                         dto.getExchFrgnBalNo()
@@ -207,9 +205,8 @@ public class OnlineExchangeService {
 
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getMyExchangeAccounts(String userId, String currency) {
+    public Map<String, Object> getMyExchangeAccounts(String custCode, String currency) {
 
-        String custCode = onlineExchangeMapper.selectCustCodeByUserId(userId);
         if (custCode == null) {
             throw new IllegalStateException("고객 정보를 찾을 수 없습니다.");
         }

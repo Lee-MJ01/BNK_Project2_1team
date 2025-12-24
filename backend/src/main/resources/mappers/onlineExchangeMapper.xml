@@ -35,17 +35,9 @@
     <select id="selectKrwAcctForUpdate"
             resultType="kr.co.api.backend.dto.CustAcctDTO">
         SELECT
-            acct_no        AS acctNo,
-            acct_pw        AS acctPw,
-            acct_balance   AS acctBalance,
-            acct_reg_dt    AS acctRegDt,
-            acct_status    AS acctStatus,
-            acct_cust_code AS acctCustCode,
-            acct_fund_source AS acctFundSource,
-            acct_purpose   AS acctPurpose,
-            acct_name      AS acctName
+            *
         FROM TB_CUST_ACCT
-        WHERE acct_no = #{acctNo}
+        WHERE ACCT_CUST_CODE = #{custCode}
             FOR UPDATE
     </select>
 
@@ -168,12 +160,12 @@
         FROM TB_CUST_ACCT
         WHERE acct_cust_code = #{custCode}
           AND acct_status = 1
-          AND acct_currency = 'KRW'
+
     </select>
 
 
     <!-- =========================
-         통화별 외화 자식 계좌
+         외환 부모 계좌 조회
          ========================= -->
     <select id="selectMyFrgnAccount" resultType="kr.co.api.backend.dto.FrgnAcctDTO">
         SELECT
@@ -192,11 +184,7 @@
     <select id="selectMyFrgnBalance"
             resultType="kr.co.api.backend.dto.FrgnAcctBalanceDTO">
         SELECT
-            bal_no           AS balNo,
-            bal_currency     AS balCurrency,
-            bal_balance      AS balBalance,
-            bal_reg_dt       AS balRegDt,
-            bal_frgn_acct_no AS balFrgnAcctNo
+            *
         FROM TB_FRGN_ACCT_BALANCE
         WHERE bal_frgn_acct_no = #{frgnAcctNo}
           AND bal_currency = #{currency}

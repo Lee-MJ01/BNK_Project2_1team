@@ -31,7 +31,7 @@ public interface OnlineExchangeMapper {
     /* =========================
        2. 원화 계좌 조회 (FOR UPDATE)
        ========================= */
-    CustAcctDTO selectKrwAcctForUpdate(@Param("acctNo") String acctNo);
+    CustAcctDTO selectKrwAcctForUpdate(@Param("custCode") String custCode);
 
 
     /* =========================

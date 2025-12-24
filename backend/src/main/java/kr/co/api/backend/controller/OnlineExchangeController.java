@@ -6,6 +6,7 @@ import kr.co.api.backend.jwt.CustomUserDetails;
 import kr.co.api.backend.service.OnlineExchangeService;
 import kr.co.api.backend.service.RateQueryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/mobile/exchange")
 @RequiredArgsConstructor
@@ -53,12 +55,12 @@ public class OnlineExchangeController {
         }
 
         // 1. ID 추출 통일
-        String userId = authentication.getName();
+        String custCode = authentication.getName();
 
         // 2. 로그 찍어서 확인해보기 (디버깅용)
-        System.out.println(">>> 환전 요청 userId: " + userId);
-
-        onlineExchangeService.processOnlineExchange(dto, userId);
+        System.out.println(">>> 환전 요청 userId: " + custCode);
+        log.info("컨트롤러 dto" + dto.toString());
+        onlineExchangeService.processOnlineExchange(dto, custCode);
 
         return ResponseEntity.ok("온라인 환전이 정상적으로 처리되었습니다.");
     }
@@ -77,13 +79,13 @@ public class OnlineExchangeController {
         }
 
         // 1. 복잡한 instanceof 제거 -> getName()으로 통일
-        String userId = authentication.getName();
+        String custCode = authentication.getName(); // custCode 출력됨
 
         // 2. 로그 찍어서 확인해보기 (에러 원인 파악용)
-        System.out.println(">>> 계좌 조회 요청 userId: " + userId);
+        System.out.println(">>> 계좌 조회 요청 userId: " + custCode);
 
         // 3. 서비스 호출
-        Map<String, Object> result = onlineExchangeService.getMyExchangeAccounts(userId, currency);
+        Map<String, Object> result = onlineExchangeService.getMyExchangeAccounts(custCode, currency);
 
         return ResponseEntity.ok(result);
     }
