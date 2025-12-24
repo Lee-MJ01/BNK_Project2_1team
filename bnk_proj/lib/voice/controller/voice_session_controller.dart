@@ -1,131 +1,151 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
+import '../core/end_reason.dart';
 import '../core/voice_intent.dart';
+import '../core/voice_res_dto.dart';
 import '../core/voice_state.dart';
-import '../core/voice_state_machine.dart';
-import '../intent/voice_intent_classifier.dart';
 import '../script/voice_script_resolver.dart';
+import '../service/voice_api.dart';
 import '../service/voice_stt_service.dart';
 import '../service/voice_tts_service.dart';
 import '../ui/voice_ui_state.dart';
 
 class VoiceSessionController {
-  final VoiceSttService stt;
-  final VoiceTtsService tts;
-  VoiceStateMachine fsm;
+  VoiceState _state = VoiceState.s0Idle;
 
+  // 🔹 UI 상태
   final ValueNotifier<VoiceUiState> uiState =
   ValueNotifier(VoiceUiState.idle);
+
+  // 🔹 음성 볼륨 (파형용)
   final ValueNotifier<double> volume =
   ValueNotifier(0.0);
 
-  final bool autoListenAfterTts = true;
-  VoiceState _currentState = VoiceState.idle;
+  final VoiceSttService _stt;
+  final VoiceTtsService _tts;
+  final _uuid = Uuid();
+  String _generateSessionId() {
+    return _uuid.v4();
+  }
+  late final String _sessionId;
+
 
   VoiceSessionController({
-    required this.stt,
-    required this.tts,
-    required this.fsm,
-  }) {
-    tts.onComplete(() async {
-      uiState.value = VoiceUiState.idle;
-      await Future.delayed(const Duration(milliseconds: 250));
-      if (autoListenAfterTts && _shouldAutoListen(_currentState)) {
-        startListening(fromAuto: true);
-      }
-    });
+    required VoiceSttService stt,
+    required VoiceTtsService tts,
+  })  : _stt = stt,
+        _tts = tts;
 
-    final originalFsm = fsm;
+  /// 1️⃣ 음성 세션 시작
+  Future<void> start() async {
+    _sessionId = _generateSessionId();
 
-    fsm = VoiceStateMachine(
-      initialState: originalFsm.state,
-      productCode: originalFsm.productCode,
-      onStateChanged: _onStateChanged,
-    );
+    uiState.value = VoiceUiState.speaking;
+    await _playScript(initial: true);
+    uiState.value = VoiceUiState.idle;
   }
 
-  void startSession() {
-    // 세션 시작 시 FSM을 idle로 "의도적으로" 진입시킴
-    fsm.enterInitial();
-  }
+  void startListening() {
+    uiState.value = VoiceUiState.listening;
 
-  Future<void> _onStateChanged(VoiceState state) async {
-    _currentState = state;
-    final script = VoiceScriptResolver.resolve(state);
-    if (script.isNotEmpty) {
-      uiState.value = VoiceUiState.speaking; // ✅ 안내 중
-      await tts.speak(script);
-    }
-  }
-
-
-
-
-  void startListening({bool fromAuto = false}) {
-    if (!fromAuto) tts.stop();
-
-    stt.startListening(
-      onResult: _onSpeechResult,
-      onSoundLevel: (rms) {
-        volume.value = rms; // ✅ 파형
+    _stt.startListening(
+      onResult: (text) async {
+        uiState.value = VoiceUiState.thinking;
+        await _sendToServer(text);
       },
-      onStatus: (s) {
-        if (s == 'listening') {
-          uiState.value = VoiceUiState.listening; // ✅ 듣고 있어요
-        } else if (s == 'done' || s == 'notListening') {
-          uiState.value = VoiceUiState.thinking;
-        }
-      },
-      onError: (_) {
-        uiState.value = VoiceUiState.idle;
+      onSoundLevel: (v) {
+        volume.value = v;
       },
     );
   }
 
   void stopListening() {
-    stt.stop();
-    uiState.value = VoiceUiState.thinking;
+    _stt.stop();
+    uiState.value = VoiceUiState.idle;
   }
 
-  void _onSpeechResult(String text) async {
 
-    debugPrint('🎤 [STT RESULT] "$text"');
 
-    // 네트워크 / 서버는 반드시 try-catch
-    try {
-      final result = await VoiceIntentClassifier.classify(text);
+  /// 3️⃣ 서버에 전달
+  Future<void> _sendToServer(String text) async {
+    final res = await VoiceApi.process(
+      sessionId: _sessionId,
+      text: text,
+    );
 
-      debugPrint(
-        '[INTENT RESULT] intent=${result.intent}, product=${result.productCode}',
-      );
+    await _handleServerResponse(res);
+  }
 
-      if (result.productCode != null) {
-        fsm = fsm.withProduct(result.productCode!);
-      }
+  /// 4️⃣ 서버 응답 처리
+  Future<void> _handleServerResponse(VoiceResDTO res) async {
+    _state = res.currentState;
 
-      fsm.onIntent(result.intent);
+    if (res.endReason != null) {
+      uiState.value = VoiceUiState.speaking;
+      await _playEnd(res);
+      _cleanup();
+      return;
+    }
 
-    } catch (e, s) {
-      // 여기로 오면 네트워크/DNS 실패
-      debugPrint('❌ [INTENT ERROR] $e');
-      debugPrint('$s');
+    final script = VoiceScriptResolver.resolve(
+      state: res.currentState,
+      intent: res.intent,
+      noticeCode: res.noticeCode,
+    );
 
-      // UI 복구
-      uiState.value = VoiceUiState.idle;
+    if (script != null) {
+      uiState.value = VoiceUiState.speaking;
+      await _tts.speak(script);
+    }
 
-      // 사용자에게 음성으로 알려주기
-      tts.speak('네트워크 연결이 원활하지 않습니다.');
+    uiState.value = VoiceUiState.idle;
+  }
+
+
+  Future<void> _playScript({bool initial = false}) async {
+    final script = VoiceScriptResolver.resolve(
+      state: _state,
+      intent: null,
+      noticeCode: initial ? 'START' : null,
+    );
+    if (script != null) {
+      await _tts.speak(script);
+    }
+  }
+
+  Future<void> _playEnd(VoiceResDTO res) async {
+    String? script;
+
+    switch (res.endReason) {
+      case EndReason.completed:
+        script = "예금 가입이 완료되었어요. 이용해 주셔서 감사합니다.";
+        break;
+
+      case EndReason.canceled:
+        script = "진행을 취소했어요. 이용해 주셔서 감사합니다.";
+        break;
+
+      case EndReason.timeout:
+        script = "시간이 초과되어 종료할게요.";
+        break;
+
+      case EndReason.error:
+        script = "문제가 발생했어요. 다시 시도해 주세요.";
+        break;
+
+      default:
+        script = null;
+    }
+
+    if (script != null) {
+      await _tts.speak(script);
     }
   }
 
 
-  bool _shouldAutoListen(VoiceState state) {
-    return state == VoiceState.idle ||
-        state == VoiceState.joinConfirm ||
-        state == VoiceState.s4Input;
+  void _cleanup() {
+    _stt.stop();
   }
 
-  void _onVolume(double rms) {
-    // overlay waveform 업데이트
-  }
 }

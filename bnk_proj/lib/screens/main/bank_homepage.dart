@@ -7,8 +7,6 @@ import 'package:test_main/screens/deposit/list.dart';
 import 'package:test_main/screens/main/search.dart';
 import 'package:test_main/voice/controller/voice_session_controller.dart';
 import '../../services/api_service.dart';
-import '../../voice/core/voice_state_machine.dart';
-import '../../voice/script/voice_script_resolver.dart';
 import '../../voice/service/voice_stt_service.dart';
 import '../../voice/service/voice_tts_service.dart';
 import '../../voice/ui/voice_assistant_overlay.dart';
@@ -838,14 +836,9 @@ List<ServiceHighlight> buildAiAndFxServices(BuildContext context) => [
       final tts = VoiceTtsService();
       final stt = VoiceSttService();
 
-      late VoiceSessionController controller;
-
-      final fsm = VoiceStateMachine();
-
-      controller = VoiceSessionController(
+      final controller = VoiceSessionController(
         stt: stt,
         tts: tts,
-        fsm: fsm,
       );
 
       _openVoiceAssistantOverlay(
@@ -853,7 +846,7 @@ List<ServiceHighlight> buildAiAndFxServices(BuildContext context) => [
         controller,
       );
 
-      controller.startSession(); // 🔊 여기서 첫 음성
+      controller.start(); // 🔊 세션 시작 + 첫 음성
     },
 
   ),

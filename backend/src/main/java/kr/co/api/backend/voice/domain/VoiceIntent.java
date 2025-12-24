@@ -1,4 +1,4 @@
-package kr.co.api.backend.voice;
+package kr.co.api.backend.voice.domain;
 
 public enum VoiceIntent {
     REQ_RECOMMEND,
@@ -15,5 +15,6 @@ public enum VoiceIntent {
     REQ_BACK,
     REQ_CANCEL,
 
+    SUCCESS,
     UNKNOWN
 }

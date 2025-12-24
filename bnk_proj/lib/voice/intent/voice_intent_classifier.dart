@@ -6,10 +6,10 @@ import '../core/voice_intent.dart';
 class VoiceIntentClassifier {
   static Future<IntentResult> classify(String text) async {
     final res = await http.post(
-      Uri.parse('https://api.flobank.co.kr/voice/classify'),
+      Uri.parse('https://flobank.kro.kr/backend/voice/classify'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'utterance': text,
+        'text': text,
       }),
     );
 

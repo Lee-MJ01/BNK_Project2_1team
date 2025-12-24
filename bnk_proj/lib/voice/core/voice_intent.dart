@@ -19,5 +19,12 @@ enum Intent {
 
   unknown,
 
-  success
+  success;
+
+  static Intent from(String value) {
+    return Intent.values.firstWhere(
+          (e) => e.name.toUpperCase() == value.toUpperCase(),
+      orElse: () => Intent.unknown,
+    );
+  }
 }

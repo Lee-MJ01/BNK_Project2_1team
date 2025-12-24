@@ -58,6 +58,9 @@ public class SecurityConfig {
                                 "/api/mobile/exchange/rates/**"   // 특정 통화 히스토리
 
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/mobile/voice/process"
+                        ).permitAll()
 
                         // 🔐 나머지는 전부 인증 필요 (환전 신청, 계좌 조회 등)
                         .anyRequest().authenticated()
