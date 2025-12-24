@@ -95,6 +95,10 @@ dependencies {
 
     // 엘라스틱 서치
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
+    // firebase 앱 푸쉬
+    implementation 'com.google.firebase:firebase-admin:9.4.3'
+
 }
 
 

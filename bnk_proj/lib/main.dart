@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:test_main/screens/auth/pin_login_screen.dart';
 import 'package:test_main/screens/member/signup_1.dart';
@@ -30,6 +35,57 @@ import 'package:test_main/screens/main/menu/review_write.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
+final FlutterLocalNotificationsPlugin localNoti = FlutterLocalNotificationsPlugin();
+
+const AndroidNotificationChannel highChannel = AndroidNotificationChannel(
+  'high_importance_channel',
+  'High Importance Notifications',
+  description: 'Foreground notifications',
+  importance: Importance.high,
+);
+
+Future<void> initLocalNotifications() async {
+  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: androidInit);
+
+  await localNoti.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse: (res) {
+      // 알림 눌렀을 때 처리(원하면 payload로 라우팅 가능)
+    },
+  );
+
+  final androidPlugin =
+  localNoti.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+  // Android 13+ 로컬 알림 권한(없으면 heads-up 안 뜰 수 있음)
+  await androidPlugin?.requestNotificationsPermission();
+
+  // Android 8+ 채널 생성
+  await androidPlugin?.createNotificationChannel(highChannel);
+}
+Future<void> showForegroundNotification(RemoteMessage message) async {
+  final n = message.notification;
+  if (n == null) return;
+
+  final details = AndroidNotificationDetails(
+    highChannel.id,
+    highChannel.name,
+    channelDescription: highChannel.description,
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+
+  await localNoti.show(
+    DateTime.now().millisecondsSinceEpoch ~/ 1000, // unique id
+    n.title ?? '',
+    n.body ?? '',
+    NotificationDetails(android: details),
+    payload: jsonEncode(message.data),
+  );
+}
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -45,6 +101,8 @@ Future<void> main() async {
 
   // 알림 권한 요청 (iOS 필수, Android는 보통 자동 허용)
   await FirebaseMessaging.instance.requestPermission();
+  await initLocalNotifications();
+
 
   // 토픽 구독 + 토큰 확인
   await FirebaseMessaging.instance.subscribeToTopic('notice');
@@ -53,9 +111,31 @@ Future<void> main() async {
   final token = await FirebaseMessaging.instance.getToken();
   debugPrint('FCM token: $token');
 
+  if (token != null && token.isNotEmpty) {
+    await sendTokenToServer(
+      baseUrl: "http://34.64.124.33:8080",
+      token: token,
+      platform: "ANDROID",
+      deviceId: deviceId,
+      appVersion: "1.0.0",
+      locale: "ko-KR",
+      // jwt: accessToken,
+    );
+  }
+
   // 토큰 갱신 리스너 (서버에 업데이트할 때 사용)
-  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
     debugPrint('FCM token refreshed: $newToken');
+
+    await sendTokenToServer(
+      baseUrl: "http://34.64.124.33:8080",
+      token: newToken,
+      platform: "ANDROID",
+      deviceId: deviceId,
+      appVersion: "1.0.0",
+      locale: "ko-KR",
+      // jwt: accessToken,
+    );
   });
 
   // 앱이 "종료 상태"에서 푸시 눌러 켜진 경우
@@ -75,9 +155,43 @@ Future<void> main() async {
       navigatorKey.currentState?.pushNamed(route);
     }
   });
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    await showForegroundNotification(message);
+  });
+
 
   runApp(const MyApp());
 }
+
+Future<void> sendTokenToServer({
+  required String baseUrl,
+  required String token,
+  required String platform,
+  String? deviceId,
+  String? appVersion,
+  String? locale,
+  String? jwt, // 로그인 붙이면 여기에 Bearer 토큰 넣기
+}) async {
+  final body = {
+    "token": token,
+    "platform": platform,
+    "deviceId": deviceId,
+    "appVersion": appVersion ?? "1.0.0",
+    "locale": locale ?? "ko-KR",
+  };
+
+  final res = await http.post(
+    Uri.parse('$baseUrl/api/device-tokens'),
+    headers: {
+      "Content-Type": "application/json",
+      if (jwt != null && jwt.isNotEmpty) "Authorization": "Bearer $jwt",
+    },
+    body: jsonEncode(body),
+  );
+
+  debugPrint("FCM token register => ${res.statusCode} ${res.body}");
+}
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

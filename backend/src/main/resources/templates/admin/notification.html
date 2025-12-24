@@ -136,9 +136,9 @@
             <section class="product-card write-section">
                 <h2 class="product-title">새 알림 보내기</h2>
 
-                <form id="notiForm" action="/admin/notification/send" method="post">
+                <form id="notiForm" th:action="@{/admin/notification/send}" method="post">
 
-                    <div class="form-section">
+                <div class="form-section">
                         <h3>발송 대상 설정</h3>
                         <div class="form-group">
                             <label>수신 대상 선택</label>

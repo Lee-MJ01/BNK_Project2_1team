@@ -94,3 +94,5 @@ ai-server:
 ai-server-qna:
   url: http://34.64.84.82:8000/api/qna/auto_process
 
+firebase:
+  service-account-path: C:/keys/qwerasdf-44b9d-firebase-adminsdk-fbsvc-adff1edee4.json

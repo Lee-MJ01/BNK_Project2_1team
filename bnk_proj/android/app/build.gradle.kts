@@ -14,6 +14,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -65,4 +66,5 @@ flutter {
 
 dependencies {
     implementation("com.google.mlkit:text-recognition-korean:16.0.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 }
