@@ -11,7 +11,7 @@ class ApiService {
   static const String base2Url = "http://192.168.0.207:8080/backend/api/mobile";  // 케이블 연결 했을 때 로컬 테스트(본인 컴퓨터 IP로 바꿔야함)
 
   // 현재 테스트 환경에 맞춰 선택하세요
-  static const String currentUrl = base2Url;
+  static const String currentUrl = _prodUrl;
 
   static const _storage = FlutterSecureStorage();
   static Future<Map<String, String>> getAuthHeaders() async {
