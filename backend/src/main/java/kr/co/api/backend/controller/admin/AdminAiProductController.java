@@ -1,5 +1,9 @@
 package kr.co.api.backend.controller.admin;
 
+import kr.co.api.backend.dto.admin.survey.SurveyDetailDTO;
+import kr.co.api.backend.dto.admin.survey.SurveyOptionDTO;
+import kr.co.api.backend.dto.admin.survey.SurveyQuestionDTO;
+import kr.co.api.backend.dto.admin.survey.SurveyQuestionRequestDTO;
 import kr.co.api.backend.dto.admin.survey.SurveyRequestDTO;
 import kr.co.api.backend.dto.admin.survey.SurveySaveDTO;
 import kr.co.api.backend.dto.admin.survey.SurveySummaryDTO;
@@ -18,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin") // 이 컨트롤러의 기본 URL 경로
@@ -50,23 +55,28 @@ public class AdminAiProductController {
         return surveyAdminService.getSurveys();
     }
 
+    @GetMapping("/ai-product/surveys/{surveyId}")
+    @ResponseBody
+    public ResponseEntity<SurveyDetailDTO> getSurveyDetail(@PathVariable Long surveyId) {
+        SurveyDetailDTO detail = surveyAdminService.getSurveyDetail(surveyId);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
+    }
+
     @PostMapping("/ai-product/surveys")
     @ResponseBody
-    public ResponseEntity<SurveySummaryDTO> createSurvey(@RequestBody SurveyRequestDTO request) {
-        SurveySaveDTO dto = new SurveySaveDTO();
-        dto.setTitle(request.getTitle());
-        dto.setDescription(request.getDescription());
-        dto.setIsActive(request.getIsActive() != null ? request.getIsActive() : "Y");
-        dto.setCreatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "admin");
-        dto.setUpdatedBy(request.getUpdatedBy() != null ? request.getUpdatedBy() : dto.getCreatedBy());
-
-        SurveySummaryDTO saved = surveyAdminService.createSurvey(dto);
+    public ResponseEntity<SurveyDetailDTO> createSurvey(@RequestBody SurveyRequestDTO request) {
+        SurveySaveDTO survey = buildSurveySaveDTO(request, null);
+        List<SurveyQuestionDTO> questions = buildQuestionDTOs(request.getQuestions());
+        SurveyDetailDTO saved = surveyAdminService.createSurveyWithQuestions(survey, questions);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @PutMapping("/ai-product/surveys/{surveyId}")
     @ResponseBody
-    public ResponseEntity<SurveySummaryDTO> updateSurvey(
+    public ResponseEntity<SurveyDetailDTO> updateSurvey(
             @PathVariable Long surveyId,
             @RequestBody SurveyRequestDTO request
     ) {
@@ -75,14 +85,50 @@ public class AdminAiProductController {
             return ResponseEntity.notFound().build();
         }
 
+        SurveySaveDTO survey = buildSurveySaveDTO(request, existing.getSurveyId());
+        survey.setIsActive(request.getIsActive() != null ? request.getIsActive() : existing.getIsActive());
+        List<SurveyQuestionDTO> questions = buildQuestionDTOs(request.getQuestions());
+        SurveyDetailDTO saved = surveyAdminService.updateSurveyWithQuestions(survey, questions);
+        return ResponseEntity.ok(saved);
+    }
+
+    private SurveySaveDTO buildSurveySaveDTO(SurveyRequestDTO request, Long surveyId) {
         SurveySaveDTO dto = new SurveySaveDTO();
         dto.setSurveyId(surveyId);
         dto.setTitle(request.getTitle());
         dto.setDescription(request.getDescription());
-        dto.setIsActive(request.getIsActive() != null ? request.getIsActive() : existing.getIsActive());
-        dto.setUpdatedBy(request.getUpdatedBy() != null ? request.getUpdatedBy() : "admin");
+        dto.setIsActive(request.getIsActive() != null ? request.getIsActive() : "Y");
+        dto.setCreatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "admin");
+        dto.setUpdatedBy(request.getUpdatedBy() != null ? request.getUpdatedBy() : dto.getCreatedBy());
+        return dto;
+    }
 
-        SurveySummaryDTO saved = surveyAdminService.updateSurvey(dto);
-        return ResponseEntity.ok(saved);
+    private List<SurveyQuestionDTO> buildQuestionDTOs(List<SurveyQuestionRequestDTO> requests) {
+        if (requests == null) {
+            return List.of();
+        }
+        return requests.stream().map(request -> {
+            SurveyQuestionDTO question = new SurveyQuestionDTO();
+            question.setQNo(request.getQNo());
+            question.setQKey(request.getQKey());
+            question.setQText(request.getQText());
+            question.setQType(request.getQType());
+            question.setIsRequired(request.getIsRequired());
+            question.setMaxSelect(request.getMaxSelect());
+            question.setIsActive(request.getIsActive());
+            if (request.getOptions() != null) {
+                List<SurveyOptionDTO> options = request.getOptions().stream().map(optionRequest -> {
+                    SurveyOptionDTO option = new SurveyOptionDTO();
+                    option.setOptCode(optionRequest.getOptCode());
+                    option.setOptText(optionRequest.getOptText());
+                    option.setOptValue(optionRequest.getOptValue());
+                    option.setOptOrder(optionRequest.getOptOrder());
+                    option.setIsActive(optionRequest.getIsActive());
+                    return option;
+                }).collect(Collectors.toList());
+                question.setOptions(options);
+            }
+            return question;
+        }).collect(Collectors.toList());
     }
 }

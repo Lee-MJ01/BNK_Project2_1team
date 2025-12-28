@@ -1,5 +1,7 @@
 package kr.co.api.backend.mapper.admin;
 
+import kr.co.api.backend.dto.admin.survey.SurveyOptionDTO;
+import kr.co.api.backend.dto.admin.survey.SurveyQuestionDTO;
 import kr.co.api.backend.dto.admin.survey.SurveySaveDTO;
 import kr.co.api.backend.dto.admin.survey.SurveySummaryDTO;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,4 +19,16 @@ public interface SurveyAdminMapper {
     int insertSurvey(SurveySaveDTO dto);
 
     int updateSurvey(SurveySaveDTO dto);
+
+    List<SurveyQuestionDTO> selectSurveyQuestions(@Param("surveyId") Long surveyId);
+
+    List<SurveyOptionDTO> selectQuestionOptions(@Param("qId") Long qId);
+
+    int insertSurveyQuestion(SurveyQuestionDTO dto);
+
+    int insertSurveyOption(SurveyOptionDTO dto);
+
+    int deleteSurveyOptionsBySurveyId(@Param("surveyId") Long surveyId);
+
+    int deleteSurveyQuestionsBySurveyId(@Param("surveyId") Long surveyId);
 }

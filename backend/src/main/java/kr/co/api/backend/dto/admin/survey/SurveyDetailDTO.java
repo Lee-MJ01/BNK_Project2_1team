@@ -5,11 +5,15 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SurveyRequestDTO {
+public class SurveyDetailDTO {
+    private Long surveyId;
     private String title;
     private String description;
     private String isActive;
+    private Integer questionCount;
+    private java.time.LocalDateTime createdAt;
     private String createdBy;
+    private java.time.LocalDateTime updatedAt;
     private String updatedBy;
-    private List<SurveyQuestionRequestDTO> questions;
+    private List<SurveyQuestionDTO> questions;
 }

@@ -75,4 +75,106 @@
         WHERE survey_id = #{surveyId}
     </update>
 
+    <select id="selectSurveyQuestions"
+            resultType="kr.co.api.backend.dto.admin.survey.SurveyQuestionDTO">
+        SELECT
+            q.q_id AS qId,
+            q.survey_id AS surveyId,
+            q.q_no AS qNo,
+            q.q_key AS qKey,
+            q.q_text AS qText,
+            q.q_type AS qType,
+            q.is_required AS isRequired,
+            q.max_select AS maxSelect,
+            q.is_active AS isActive
+        FROM TB_SURVEY_Q q
+        WHERE q.survey_id = #{surveyId}
+        ORDER BY q.q_no ASC
+    </select>
+
+    <select id="selectQuestionOptions"
+            resultType="kr.co.api.backend.dto.admin.survey.SurveyOptionDTO">
+        SELECT
+            o.opt_id AS optId,
+            o.q_id AS qId,
+            o.opt_code AS optCode,
+            o.opt_text AS optText,
+            o.opt_value AS optValue,
+            o.opt_order AS optOrder,
+            o.is_active AS isActive
+        FROM TB_SURVEY_OPT o
+        WHERE o.q_id = #{qId}
+        ORDER BY o.opt_order ASC
+    </select>
+
+    <insert id="insertSurveyQuestion"
+            parameterType="kr.co.api.backend.dto.admin.survey.SurveyQuestionDTO"
+            useGeneratedKeys="true"
+            keyProperty="qId"
+            keyColumn="q_id">
+        INSERT INTO TB_SURVEY_Q (
+            survey_id,
+            q_no,
+            q_key,
+            q_text,
+            q_type,
+            is_required,
+            max_select,
+            is_active,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{surveyId},
+            #{qNo},
+            #{qKey},
+            #{qText},
+            #{qType},
+            #{isRequired},
+            #{maxSelect},
+            #{isActive},
+            #{createdBy},
+            #{updatedBy}
+        )
+    </insert>
+
+    <insert id="insertSurveyOption"
+            parameterType="kr.co.api.backend.dto.admin.survey.SurveyOptionDTO"
+            useGeneratedKeys="true"
+            keyProperty="optId"
+            keyColumn="opt_id">
+        INSERT INTO TB_SURVEY_OPT (
+            q_id,
+            opt_code,
+            opt_text,
+            opt_value,
+            opt_order,
+            is_active,
+            created_by,
+            updated_by
+        ) VALUES (
+            #{qId},
+            #{optCode},
+            #{optText},
+            #{optValue},
+            #{optOrder},
+            #{isActive},
+            #{createdBy},
+            #{updatedBy}
+        )
+    </insert>
+
+    <delete id="deleteSurveyOptionsBySurveyId">
+        DELETE FROM TB_SURVEY_OPT
+        WHERE q_id IN (
+            SELECT q_id
+            FROM TB_SURVEY_Q
+            WHERE survey_id = #{surveyId}
+        )
+    </delete>
+
+    <delete id="deleteSurveyQuestionsBySurveyId">
+        DELETE FROM TB_SURVEY_Q
+        WHERE survey_id = #{surveyId}
+    </delete>
+
 </mapper>

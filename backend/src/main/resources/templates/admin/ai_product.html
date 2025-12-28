@@ -211,6 +211,83 @@
                 grid-column: 1 / -1;
             }
 
+            .question-builder {
+                margin-top: 20px;
+                border-top: 1px solid #e2e6ef;
+                padding-top: 16px;
+            }
+
+            .question-card {
+                border: 1px solid #dfe4ee;
+                border-radius: 10px;
+                background: #fff;
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .question-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            }
+
+            .question-title {
+                font-weight: 700;
+                color: #22304e;
+            }
+
+            .question-actions {
+                display: flex;
+                gap: 6px;
+            }
+
+            .option-list {
+                margin-top: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .option-row {
+                display: grid;
+                grid-template-columns: 1fr 2fr 1fr 80px auto;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .option-row input {
+                width: 100%;
+            }
+
+            .question-meta-row {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .question-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 10px;
+            }
+
+            .btn-inline {
+                background: #f5f6f9;
+                border: 1px solid #ccd3df;
+                border-radius: 6px;
+                padding: 6px 10px;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+            .btn-inline.danger {
+                color: #b42318;
+                border-color: #f2c1bc;
+                background: #fff5f4;
+            }
+
             .meta-list {
                 display: grid;
                 grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -443,6 +520,14 @@
                                 </select>
                             </div>
                         </div>
+
+                        <div class="question-builder">
+                            <div class="question-header">
+                                <div class="question-title">설문 문항 구성</div>
+                                <button type="button" class="btn-inline" id="add-question-btn">문항 추가</button>
+                            </div>
+                            <div id="question-list"></div>
+                        </div>
                         <div class="meta-list" id="survey-meta">
                             <div class="meta-item">
                                 <strong>등록일</strong>
@@ -493,11 +578,14 @@
             const surveyMetaUpdatedAt = $('#survey-updated-at');
             const surveyMetaCreatedBy = $('#survey-created-by');
             const surveyMetaUpdatedBy = $('#survey-updated-by');
+            const questionList = $('#question-list');
+            const addQuestionButton = $('#add-question-btn');
 
             const CONTEXT_PATH = "/backend";
             const SURVEY_API = `${CONTEXT_PATH}/admin/ai-product/surveys`;
             let surveys = [];
             let editingSurveyId = null;
+            let modalMode = 'create';
 
             const formatDate = (value) => {
                 if (!value) return '-';
@@ -545,8 +633,12 @@
 
             const openModal = (mode, survey = null) => {
                 surveyModal.addClass('is-visible').attr('aria-hidden', 'false');
-                surveyForm.find('input, textarea, select').prop('disabled', mode === 'preview');
+                modalMode = mode;
+                const isPreview = mode === 'preview';
+                surveyForm.find('input, textarea, select').prop('disabled', isPreview);
                 surveySaveButton.toggle(mode !== 'preview');
+                addQuestionButton.toggleClass('btn-disabled', isPreview);
+                addQuestionButton.prop('disabled', isPreview);
 
                 if (mode === 'create') {
                     surveyModalTitle.text('설문 등록');
@@ -557,6 +649,8 @@
                     surveyMetaUpdatedAt.text(today);
                     surveyMetaCreatedBy.text('admin');
                     surveyMetaUpdatedBy.text('admin');
+                    questionList.empty();
+                    addQuestionCard();
                     editingSurveyId = null;
                     return;
                 }
@@ -573,6 +667,12 @@
                 surveyMetaUpdatedAt.text(formatDate(survey.updatedAt));
                 surveyMetaCreatedBy.text(survey.createdBy || 'admin');
                 surveyMetaUpdatedBy.text(survey.updatedBy || '-');
+                questionList.empty();
+                if (survey.questions && survey.questions.length) {
+                    survey.questions.forEach((question) => addQuestionCard(question));
+                } else {
+                    addQuestionCard();
+                }
                 editingSurveyId = survey.surveyId;
             };
 
@@ -596,10 +696,29 @@
                 }
             };
 
+            const fetchSurveyDetail = async (surveyId) => {
+                const res = await fetch(`${SURVEY_API}/${surveyId}`);
+                if (!res.ok) {
+                    const message = await res.text();
+                    throw new Error(message || '설문 상세를 불러오지 못했습니다.');
+                }
+                return res.json();
+            };
+
             const handleSaveSurvey = async () => {
                 const formData = Object.fromEntries(new FormData(surveyForm[0]).entries());
                 if (!formData.title) {
                     alert('설문 제목을 입력해주세요.');
+                    return;
+                }
+
+                const result = collectQuestionData();
+                if (!result.valid) {
+                    return;
+                }
+                const questions = result.questions;
+                if (questions.length === 0) {
+                    alert('설문 문항을 최소 1개 이상 등록해주세요.');
                     return;
                 }
 
@@ -608,7 +727,8 @@
                     description: formData.description,
                     isActive: formData.isActive,
                     updatedBy: 'admin',
-                    createdBy: 'admin'
+                    createdBy: 'admin',
+                    questions
                 };
 
                 try {
@@ -640,19 +760,248 @@
                 }
             });
 
-            surveyTableBody.on('click', '.btn-edit', function() {
-                const surveyId = Number($(this).data('id'));
-                const survey = findSurvey(surveyId);
-                openModal('edit', survey);
+            addQuestionButton.on('click', () => {
+                if (modalMode === 'preview') {
+                    return;
+                }
+                addQuestionCard();
             });
 
-            surveyTableBody.on('click', '.btn-preview', function() {
+            questionList.on('click', '.remove-question-btn', function() {
+                if (modalMode === 'preview') {
+                    return;
+                }
+                $(this).closest('.question-card').remove();
+                refreshQuestionNumbers();
+            });
+
+            questionList.on('change', '.question-type', function() {
+                const card = $(this).closest('.question-card');
+                toggleOptionSection(card);
+            });
+
+            questionList.on('click', '.add-option-btn', function() {
+                if (modalMode === 'preview') {
+                    return;
+                }
+                const card = $(this).closest('.question-card');
+                addOptionRow(card);
+            });
+
+            questionList.on('click', '.remove-option-btn', function() {
+                if (modalMode === 'preview') {
+                    return;
+                }
+                const row = $(this).closest('.option-row');
+                const card = row.closest('.question-card');
+                row.remove();
+                refreshOptionOrders(card);
+            });
+
+            surveyTableBody.on('click', '.btn-edit', async function() {
                 const surveyId = Number($(this).data('id'));
-                const survey = findSurvey(surveyId);
-                openModal('preview', survey);
+                try {
+                    const survey = await fetchSurveyDetail(surveyId);
+                    openModal('edit', survey);
+                } catch (error) {
+                    console.error(error);
+                    alert(error.message || '설문 상세를 불러오는 중 오류가 발생했습니다.');
+                }
+            });
+
+            surveyTableBody.on('click', '.btn-preview', async function() {
+                const surveyId = Number($(this).data('id'));
+                try {
+                    const survey = await fetchSurveyDetail(surveyId);
+                    openModal('preview', survey);
+                } catch (error) {
+                    console.error(error);
+                    alert(error.message || '설문 상세를 불러오는 중 오류가 발생했습니다.');
+                }
             });
 
             fetchSurveys();
+
+            function addQuestionCard(question = null) {
+                const questionIndex = questionList.children().length + 1;
+                const qType = question?.qType || 'SINGLE';
+                const required = question?.isRequired || 'Y';
+                const isActive = question?.isActive || 'Y';
+                const card = $(`
+                    <div class="question-card" data-question-index="${questionIndex}">
+                        <div class="question-header">
+                            <div class="question-title">문항 ${questionIndex}</div>
+                            <div class="question-actions">
+                                <button type="button" class="btn-inline danger remove-question-btn">문항 삭제</button>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label>문항 내용</label>
+                                <input type="text" class="question-text" placeholder="질문 내용을 입력하세요" value="${question?.qText || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>문항 키</label>
+                                <input type="text" class="question-key" placeholder="예) Q1_GOAL" value="${question?.qKey || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>문항 유형</label>
+                                <select class="question-type">
+                                    <option value="SINGLE">SINGLE</option>
+                                    <option value="MULTI">MULTI</option>
+                                    <option value="TEXT">TEXT</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>필수 여부</label>
+                                <select class="question-required">
+                                    <option value="Y">필수</option>
+                                    <option value="N">선택</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>최대 선택 수</label>
+                                <input type="number" class="question-max-select" min="1" value="${question?.maxSelect || ''}" placeholder="MULTI 전용">
+                            </div>
+                            <div class="form-group">
+                                <label>사용 여부</label>
+                                <select class="question-active">
+                                    <option value="Y">사용중</option>
+                                    <option value="N">미사용</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="question-footer">
+                            <div class="question-title">선택지 구성</div>
+                            <button type="button" class="btn-inline add-option-btn">선택지 추가</button>
+                        </div>
+                        <div class="option-list"></div>
+                    </div>
+                `);
+
+                card.find('.question-type').val(qType);
+                card.find('.question-required').val(required);
+                card.find('.question-active').val(isActive);
+
+                questionList.append(card);
+
+                if (question?.options && question.options.length) {
+                    question.options.forEach((option) => addOptionRow(card, option));
+                } else if (qType !== 'TEXT') {
+                    addOptionRow(card);
+                }
+
+                toggleOptionSection(card);
+                refreshQuestionNumbers();
+            }
+
+            function addOptionRow(card, option = null) {
+                const optionList = card.find('.option-list');
+                const optionIndex = optionList.children().length + 1;
+                const row = $(`
+                    <div class="option-row">
+                        <input type="text" class="option-code" placeholder="코드" value="${option?.optCode || ''}">
+                        <input type="text" class="option-text" placeholder="선택지 문구" value="${option?.optText || ''}">
+                        <input type="text" class="option-value" placeholder="의미값" value="${option?.optValue || ''}">
+                        <input type="number" class="option-order" min="1" value="${option?.optOrder || optionIndex}">
+                        <button type="button" class="btn-inline danger remove-option-btn">삭제</button>
+                    </div>
+                `);
+                optionList.append(row);
+                refreshOptionOrders(card);
+            }
+
+            function toggleOptionSection(card) {
+                const type = card.find('.question-type').val();
+                const optionSection = card.find('.option-list');
+                const footer = card.find('.question-footer');
+                const maxSelect = card.find('.question-max-select');
+                if (type === 'TEXT') {
+                    optionSection.empty();
+                    footer.hide();
+                    maxSelect.val('');
+                    maxSelect.prop('disabled', true);
+                } else {
+                    footer.show();
+                    maxSelect.prop('disabled', type !== 'MULTI');
+                    if (optionSection.children().length === 0) {
+                        addOptionRow(card);
+                    }
+                }
+                if (modalMode === 'preview') {
+                    card.find('input, select, button').prop('disabled', true);
+                }
+            }
+
+            function refreshQuestionNumbers() {
+                questionList.children('.question-card').each(function(index) {
+                    $(this).attr('data-question-index', index + 1);
+                    $(this).find('.question-title').first().text(`문항 ${index + 1}`);
+                });
+            }
+
+            function refreshOptionOrders(card) {
+                card.find('.option-row').each(function(index) {
+                    const orderInput = $(this).find('.option-order');
+                    if (!orderInput.val()) {
+                        orderInput.val(index + 1);
+                    }
+                });
+            }
+
+            function collectQuestionData() {
+                const questions = [];
+                let isValid = true;
+                questionList.children('.question-card').each(function(index) {
+                    const card = $(this);
+                    const qText = card.find('.question-text').val().trim();
+                    const qKey = card.find('.question-key').val().trim();
+                    const qType = card.find('.question-type').val();
+                    const isRequired = card.find('.question-required').val();
+                    const isActive = card.find('.question-active').val();
+                    const maxSelectValue = card.find('.question-max-select').val();
+                    if (!qText || !qKey) {
+                        alert('모든 문항의 질문 내용과 문항 키를 입력해주세요.');
+                        isValid = false;
+                        return false;
+                    }
+                    const question = {
+                        qNo: index + 1,
+                        qKey,
+                        qText,
+                        qType,
+                        isRequired,
+                        maxSelect: maxSelectValue ? Number(maxSelectValue) : null,
+                        isActive,
+                        options: []
+                    };
+
+                    if (qType !== 'TEXT') {
+                        card.find('.option-row').each(function(optionIndex) {
+                            const row = $(this);
+                            const optText = row.find('.option-text').val().trim();
+                            const optCode = row.find('.option-code').val().trim() || `OPT${optionIndex + 1}`;
+                            if (!optText) {
+                                return;
+                            }
+                            question.options.push({
+                                optCode,
+                                optText,
+                                optValue: row.find('.option-value').val().trim(),
+                                optOrder: Number(row.find('.option-order').val()) || optionIndex + 1,
+                                isActive: 'Y'
+                            });
+                        });
+                        if (question.options.length === 0) {
+                            alert('객관식 문항에는 최소 1개의 선택지를 등록해주세요.');
+                            isValid = false;
+                            return false;
+                        }
+                    }
+                    questions.push(question);
+                });
+                return { valid: isValid, questions };
+            }
         });
     </script>
 </th:block>
