@@ -124,18 +124,20 @@
             created_by,
             updated_by
         ) VALUES (
-            #{surveyId},
-            #{qNo},
-            #{qKey},
-            #{qText},
-            #{qType},
-            #{isRequired},
-            #{maxSelect},
-            #{isActive},
-            #{createdBy},
-            #{updatedBy}
-        )
+                     #{surveyId,   jdbcType=NUMERIC},
+                     #{qNo,        jdbcType=NUMERIC},
+                     #{qKey,       jdbcType=VARCHAR},
+                     #{qText,      jdbcType=VARCHAR},
+                     #{qType,      jdbcType=VARCHAR},
+                     #{isRequired, jdbcType=CHAR},
+                     #{maxSelect,  jdbcType=NUMERIC},
+                     #{isActive,   jdbcType=CHAR},
+                     #{createdBy,  jdbcType=VARCHAR},
+                     #{updatedBy,  jdbcType=VARCHAR}
+                 )
     </insert>
+
+
 
     <insert id="insertSurveyOption"
             parameterType="kr.co.api.backend.dto.admin.survey.SurveyOptionDTO"

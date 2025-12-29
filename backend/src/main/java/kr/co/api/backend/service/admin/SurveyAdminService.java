@@ -88,23 +88,62 @@ public class SurveyAdminService {
             String updatedBy,
             List<SurveyQuestionDTO> questions
     ) {
-        if (questions == null) {
+        if (questions == null || questions.isEmpty()) {
             return;
         }
+
+        int qNo = 1;
+
         for (SurveyQuestionDTO question : questions) {
-            question.setSurveyId(surveyId);
-            question.setCreatedBy(createdBy);
-            question.setUpdatedBy(updatedBy);
-            surveyAdminMapper.insertSurveyQuestion(question);
-            if (question.getOptions() == null) {
+
+            // 🔥 1. qText 없으면 저장 자체를 안 함 (ORA-01400 방지)
+            if (question.getQText() == null || question.getQText().isBlank()) {
                 continue;
             }
+
+            // 🔥 2. FK / 순번 세팅
+            question.setSurveyId(surveyId);
+            question.setQNo(qNo++);
+
+            // 🔥 3. 필수값 방어
+            if (question.getQKey() == null || question.getQKey().isBlank()) {
+                question.setQKey("Q" + question.getQNo());
+            }
+
+            if (question.getQType() == null || question.getQType().isBlank()) {
+                question.setQType("SINGLE");
+            }
+
+            if (question.getIsRequired() == null) {
+                question.setIsRequired("Y");
+            }
+
+            if (question.getIsActive() == null) {
+                question.setIsActive("Y");
+            }
+
+            // 🔥 4. audit 컬럼
+            question.setCreatedBy(createdBy);
+            question.setUpdatedBy(updatedBy);
+
+            // 🔥 5. 질문 INSERT
+            surveyAdminMapper.insertSurveyQuestion(question);
+
+            // 🔥 6. 옵션 없으면 스킵
+            if (question.getOptions() == null || question.getOptions().isEmpty()) {
+                continue;
+            }
+
+            int optOrder = 1;
             for (SurveyOptionDTO option : question.getOptions()) {
                 option.setQId(question.getQId());
+                option.setOptOrder(optOrder++);
                 option.setCreatedBy(createdBy);
                 option.setUpdatedBy(updatedBy);
+
                 surveyAdminMapper.insertSurveyOption(option);
             }
         }
     }
+
 }

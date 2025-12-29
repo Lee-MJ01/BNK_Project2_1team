@@ -26,14 +26,21 @@
         <!-- 헤더 -->
         <header th:replace="~{admin/admin_inc/admin_header :: admin_header}"></header>
 
-        <!-- 페이지 본문(content fragment) -->
+        <!-- 페이지 본문 -->
         <div class="admin-content" th:replace="${content}"></div>
-
-        <!-- 개별 페이지 스크립트(script fragment) -->
-        <th:block th:if="${scripts != null}" th:replace="${scripts}"></th:block>
 
     </main>
 </div>
+
+<!-- 🔥 공통 JS (반드시 페이지 스크립트보다 먼저) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap (안 쓰면 제거 가능) -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+<!-- 🔥 페이지별 스크립트 -->
+<th:block th:if="${scripts != null}" th:replace="${scripts}"></th:block>
 
 </body>
 </html>
