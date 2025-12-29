@@ -15,6 +15,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, org.springframework.security.core.AuthenticationException authException) throws IOException, ServletException {
         // 로그인 페이지로 redirect
-        response.sendRedirect("/flobank/member/login");
+        response.sendRedirect(request.getContextPath() + "/member/login");
     }
 }

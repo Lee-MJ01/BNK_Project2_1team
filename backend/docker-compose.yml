@@ -18,9 +18,13 @@ services:
         max-size: "10m"   # 로그 파일 하나당 최대 10MB
         max-file: "3"      # 최대 3개까지만 보관 (총 30MB 제한)
 
+    environment:
+      FIREBASE_SERVICE_ACCOUNT_PATH: /run/secrets/firebase-sa.json
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-sa.json
     # 파일 저장소 연결 (서버의 ./files 폴더를 컨테이너의 /app/uploads와 연결)
     volumes:
       - ./files:/app/uploads
+      - /opt/keys/firebase-sa.json:/run/secrets/firebase-sa.json:ro
 
   nginx:
     image: nginx:latest
