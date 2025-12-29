@@ -193,6 +193,8 @@ public class MobileDepositController {
             @RequestBody Map<String, Object> request,
             HttpServletRequest servletRequest
     ) {
+        log.info("[APPLY] request={}", request);
+
         CustInfoDTO user = resolveUser(servletRequest);
 
         String dpstId = asString(request.get("dpstId"));
@@ -251,6 +253,12 @@ public class MobileDepositController {
                 : startDate.plusMonths(1);
 
         DpstAcctHdrDTO header = new DpstAcctHdrDTO();
+        Integer autoRenewTerm = parseInt(request.get("autoRenewCycle"));
+        header.setDpstHdrAutoRenewTerm(
+                autoRenewTerm != null ? autoRenewTerm : 0
+        );
+
+
         header.setDpstHdrDpstId(dpstId);
         header.setDpstHdrPw(passwordEncoder.encode(asString(request.get("depositPassword"))));
         header.setDpstHdrCustCode(user.getCustCode());
@@ -274,8 +282,12 @@ public class MobileDepositController {
         header.setDpstHdrExpAcctNo(withdrawAccount);
         header.setDpstHdrLinkedAcctBal(withdrawAmount);
 
+        log.info("[APPLY] header insert data={}", header);
         depositMapper.insertDpstAcctHdr(header);
+        log.info("[APPLY] header insert success");
         DpstAcctHdrDTO inserted = depositMapper.selectInsertedAcct(user.getCustCode(), dpstId);
+        log.info("[APPLY] inserted acct={}", inserted);
+
 
         boolean hasSignature = request.get("signature") != null;
 

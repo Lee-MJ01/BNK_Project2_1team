@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:test_main/screens/app_colors.dart';
+import '../../voice/controller/voice_session_controller.dart';
+import '../../voice/core/input_field.dart';
+import '../../voice/core/voice_res_dto.dart';
+import '../../voice/core/voice_state.dart';
+import '../../voice/scope/voice_session_scope.dart';
 import 'step_3.dart';
 import 'package:test_main/models/deposit/application.dart';
 import 'package:intl/intl.dart';
@@ -85,6 +90,8 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
   final TextEditingController _autoRenewCountController = TextEditingController();
   final TextEditingController _addPayCountController = TextEditingController();
   final TextEditingController _partialWithdrawCountController = TextEditingController();
+  final TextEditingController _newAmountController = TextEditingController();
+
 
   DepositApplication get _app {
     if (widget.application != null) {
@@ -101,13 +108,17 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     return DepositApplication(dpstId: dpstId);
   }
 
+
   late DepositApplication application;
   bool _initialized = false;
+
+  late VoiceSessionController _voiceController;
+  bool _voiceListenerAttached = false;
+
 
   @override
   void initState() {
     super.initState();
-    _initFuture = _loadData();
   }
 
   @override
@@ -117,23 +128,282 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
     _autoRenewCountController.dispose();
     _addPayCountController.dispose();
     _partialWithdrawCountController.dispose();
+    _newAmountController.dispose();
+    if (_voiceListenerAttached) {
+      _voiceController.lastResponse.removeListener(_onVoiceResponse);
+    }
     super.dispose();
   }
+
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    if (_initialized) return;
-    _initialized = true;
+    // 기존 application 초기화
+    if (!_initialized) {
+      _initialized = true;
 
-    if (widget.application != null) {
-      application = widget.application!;
-    } else if (widget.dpstId != null) {
-      application = DepositApplication(dpstId: widget.dpstId!);
-    } else {
-      throw Exception('DepositStep2Screen requires application or dpstId');
+      if (widget.application != null) {
+        application = widget.application!;
+      } else if (widget.dpstId != null) {
+        application = DepositApplication(dpstId: widget.dpstId!);
+      } else {
+        throw Exception('DepositStep2Screen requires application or dpstId');
+      }
+
+      _initFuture = _loadData();
     }
+
+    // 🔹 VoiceSessionController 연결 (여기서만!)
+    final controller = VoiceSessionScope.of(context);
+
+    if (!_voiceListenerAttached) {
+      _voiceController = controller;
+      _voiceController.lastResponse.addListener(_onVoiceResponse);
+      _voiceListenerAttached = true;
+    }
+  }
+
+  /////////////////////
+  // 음성 가이드 플로우 //
+
+  final List<InputField> inputFlow = [
+    InputField.withdrawAccount,
+    InputField.withdrawPassword,
+    InputField.withdrawCurrency,
+
+    InputField.newCurrency,
+    InputField.newAmount,
+    InputField.newPeriod,
+
+    InputField.autoRenew,
+    InputField.autoTerminate,
+
+    InputField.depositPassword,
+    InputField.depositPasswordCheck,
+  ];
+
+  final Map<InputField, bool> inputConfirmed = {
+    InputField.withdrawAccount: false,
+    InputField.withdrawPassword: false,
+    InputField.withdrawCurrency: false,
+
+    InputField.newCurrency: false,
+    InputField.newAmount: false,
+    InputField.newPeriod: false,
+
+    InputField.autoRenew: false,
+    InputField.autoTerminate: false,
+
+    InputField.depositPassword: false,
+    InputField.depositPasswordCheck: false,
+  };
+
+
+  final Map<String, InputField> voiceFieldMap = {
+    'withdrawAccount': InputField.withdrawAccount,
+    'withdrawPassword': InputField.withdrawPassword,
+    'withdrawCurrency': InputField.withdrawCurrency,
+
+    'newCurrency': InputField.newCurrency,
+    'newAmount': InputField.newAmount,
+    'newPeriod': InputField.newPeriod,
+
+    'autoRenew': InputField.autoRenew,
+    'autoTerminate': InputField.autoTerminate,
+
+    'depositPassword': InputField.depositPassword,
+    'depositPasswordCheck': InputField.depositPasswordCheck,
+  };
+
+  int currentIndex = 0;
+  InputField get currentField => inputFlow[currentIndex];
+
+  bool isFilled(InputField field) {
+    return inputConfirmed[field] == true;
+  }
+
+  void moveToNextUnfilledField() {
+    while (currentIndex < inputFlow.length) {
+      final field = inputFlow[currentIndex];
+
+      // 지금 질문 대상 아님 → 스킵
+      if (!isApplicable(field)) {
+        currentIndex++;
+        continue;
+      }
+
+      // 이미 확정됨 → 스킵
+      if (isFilled(field)) {
+        currentIndex++;
+        continue;
+      }
+
+      // ✅ 질문해야 할 필드
+      break;
+    }
+  }
+
+  void applyVoiceValue(InputField field, String value) {
+    setState(() {
+      switch (field) {
+        case InputField.withdrawAccount:
+          withdrawType = value;   // ⭐ 핵심
+          if (value == 'krw') {
+            selectedFxAccount = null;
+            fxWithdrawCurrency = null;
+          } else {
+            selectedKrwAccount = null;
+          }
+          break;
+
+        case InputField.newCurrency:
+          newCurrency = value;
+          break;
+
+        case InputField.newAmount:
+          newAmount = value;
+          _newAmountController.text = value;
+          break;
+
+        case InputField.newPeriod:
+          newPeriod = value;
+          _periodExpanded = false;
+          break;
+
+        case InputField.withdrawCurrency:
+          fxWithdrawCurrency = value;
+          break;
+
+        case InputField.autoRenew:
+          autoRenew = value == 'true' ? 'apply' : 'no';
+          break;
+
+        default:
+          return;
+      }
+
+      inputConfirmed[field] = true;
+    });
+
+    final idx = inputFlow.indexOf(field);
+    if (idx >= currentIndex) {
+      currentIndex = idx + 1;
+    }
+
+    moveToNextUnfilledField();
+  }
+
+  bool isPasswordField(InputField field) {
+    return field == InputField.withdrawPassword ||
+        field == InputField.depositPassword ||
+        field == InputField.depositPasswordCheck;
+  }
+
+
+  String guideText(InputField field) {
+    switch (field) {
+      case InputField.withdrawAccount:
+        return "출금할 계좌를 선택해주세요";
+      case InputField.withdrawPassword:
+        return "출금 계좌 비밀번호를 입력해주세요";
+      case InputField.withdrawCurrency:
+        return "출금 통화를 선택해주세요";
+      case InputField.newCurrency:
+        return "신규 통화를 선택해주세요";
+      case InputField.newAmount:
+        return "신규 가입 금액을 말씀해주세요";
+      case InputField.newPeriod:
+        return "가입 기간을 말씀해주세요";
+      case InputField.autoRenew:
+        return "만기 자동연장을 신청하시겠습니까";
+      case InputField.autoTerminate:
+        return "만기 시 자동 해지 여부를 선택해주세요";
+      case InputField.depositPassword:
+        return "정기예금 비밀번호를 입력해주세요";
+      case InputField.depositPasswordCheck:
+        return "비밀번호를 다시 입력해주세요";
+    }
+  }
+
+  void _onVoiceResponse() {
+    final res = _voiceController.lastResponse.value;
+    if (res == null) return;
+
+    if (res.currentState != VoiceState.s4Input) return;
+
+    // 🔑 최초 진입 안내
+    if (res.noticeCode == 'INPUT_START') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+
+        final text = guideText(currentField);
+        await _voiceController.speakClientGuide(text);
+      });
+      return;
+    }
+
+    // 🔑 이후는 입력 처리
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _handleInputResponse(res);
+
+      final nextGuide = guideText(currentField);
+      _voiceController.speakClientGuide(nextGuide);
+    });
+  }
+
+  bool isListening = false;
+
+
+  void _handleInputResponse(VoiceResDTO res) {
+    final fieldKey = res.inputField;
+    final value = res.inputValue;
+
+    if (fieldKey == null || value == null) return;
+
+    final InputField? field = voiceFieldMap[fieldKey];
+    if (field == null) return;
+
+    // 비밀번호는 음성 무시
+    if (isPasswordField(field)) return;
+
+    applyVoiceValue(field, value);
+  }
+
+
+  // 음성 가이드 관련 함수들 //
+  /////////////////////////
+
+  bool isApplicable(InputField field) {
+    switch (field) {
+
+    // 🔹 원화 출금이면 출금 통화 선택 X
+      case InputField.withdrawCurrency:
+        return withdrawType == 'fx';
+
+      default:
+        return true;
+    }
+  }
+
+  void _onManualFieldCompleted(InputField field) {
+    // 이미 처리된 필드면 무시
+    if (inputConfirmed[field] == true) return;
+    inputConfirmed[field] = true;
+
+    final idx = inputFlow.indexOf(field);
+    if (idx >= currentIndex) {
+      currentIndex = idx + 1;
+    }
+
+    moveToNextUnfilledField();
+
+    final next = currentField;
+    final guide = guideText(next);
+
+    _voiceController.speakClientGuide(guide);
   }
 
 
@@ -415,10 +685,6 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                 style: TextStyle(color: AppColors.pointDustyNavy)),
           ],
         ),
-
-
-
-
         if (withdrawType == "krw") _krwAccountFields(),
         if (withdrawType == "fx") _fxAccountFields(product),
       ],
@@ -488,6 +754,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                 krwPassword = v;
                 isKrwPwValid = (v.length == 4);
               });
+
+              if (v.length == 4) {
+                _onManualFieldCompleted(InputField.withdrawPassword);
+              }
             },
             decoration: const InputDecoration(counterText: ""),
           ),
@@ -567,6 +837,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                 fxPassword = v;
                 isFxPwValid = (v.length == 4);
               });
+
+              if (v.length == 4) {
+                _onManualFieldCompleted(InputField.withdrawPassword);
+              }
             },
             decoration: const InputDecoration(counterText: ""),
           ),
@@ -665,7 +939,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                 newAmount = limit.min.toString();
               }
               if (withdrawType == 'krw' && newCurrency != 'KRW') {
-                withdrawType = 'fx';
+                withdrawType = 'krw';
               }
               _syncAppliedFxRate();
             });
@@ -707,6 +981,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
         SizedBox(
           width: 200,
           child: TextField(
+            controller: _newAmountController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
               hintText: "금액 입력 (예: 1000)",
@@ -963,6 +1238,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                     depositPw = v;
                     isPwMatched = (depositPw == depositPwCheck);
                   });
+
+                  if (v.length == 4) {
+                    _onManualFieldCompleted(InputField.depositPassword);
+                  }
                 },
               ),
             ),
@@ -985,6 +1264,10 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                     depositPwCheck = v;
                     isPwMatched = (depositPw == depositPwCheck);
                   });
+
+                  if (v.length == 4) {
+                    _onManualFieldCompleted(InputField.depositPasswordCheck);
+                  }
                 },
               ),
             ),
@@ -1254,7 +1537,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                     Navigator.pushNamed(
                       context,
                       DepositStep3Screen.routeName,
-                      arguments: widget.application,
+                      arguments: application,
                     );
                   }
                 }
@@ -1495,7 +1778,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
       ..autoTerminateAtMaturity = autoTerminateAtMaturity
 
-      ..appliedRate = appliedRate
+      ..appliedRate = appliedRate ?? 0
       ..appliedFxRate = appliedFxRate
 
       ..addPaymentEnabled = false
@@ -1508,6 +1791,12 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
       )
 
       ..depositPassword = depositPw;
+
+    if (withdrawType == 'krw') {
+      application
+        ..selectedFxAccount = null
+        ..fxWithdrawCurrency = null;
+    }
 
 
   }

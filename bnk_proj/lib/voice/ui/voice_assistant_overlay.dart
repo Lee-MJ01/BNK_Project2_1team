@@ -31,30 +31,6 @@ class VoiceAssistantOverlay extends StatefulWidget {
 
 class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay> {
 
-  void _closeOverlay() {
-    VoiceOverlayManager.hide();
-  }
-
-  void _openDepositView(String dpstId) {
-    
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final nav = Navigator.of(context, rootNavigator: true);
-
-      nav.push(
-        MaterialPageRoute(
-          builder: (_) => const DepositListPage(),
-        ),
-      );
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        nav.pushNamed(
-          DepositViewScreen.routeName,
-          arguments: DepositViewArgs(dpstId: dpstId),
-        );
-      });
-    });
-  }
 
   double _dragDy = 0;
 
@@ -264,18 +240,6 @@ class _VoiceAssistantOverlayState extends State<VoiceAssistantOverlay> {
       widget.controller.stopListening();
     }
   }
-
-
-
-  void _onDragEnd(DragEndDetails d) {
-    if (d.velocity.pixelsPerSecond.dy > 800) {
-      widget.onModeChanged(VoiceOverlayMode.minimized);
-    } else if (d.velocity.pixelsPerSecond.dy < -800) {
-      widget.onModeChanged(VoiceOverlayMode.expanded);
-    }
-  }
-
-
 
 
   String _stateText(VoiceUiState state) {

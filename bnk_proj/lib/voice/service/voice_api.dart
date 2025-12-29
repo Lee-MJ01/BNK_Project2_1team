@@ -20,7 +20,7 @@ class VoiceApi {
     final baseUrl3 = "http://10.82.27.61:8080/backend/api/mobile";
 
     final res = await http.post(
-      Uri.parse('$baseUrl3/voice/process'),
+      Uri.parse('$baseUrl2/voice/process'),
       headers: {
         'Content-Type': 'application/json',
         'X-SESSION-ID': sessionId,

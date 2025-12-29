@@ -47,7 +47,7 @@ class VoiceScriptResolver {
         return "가입을 위해 약관 동의가 필요해요.";
 
       case VoiceState.s4Input:
-        return "가입 금액과 기간을 말씀해 주세요.";
+        return "";
 
       case VoiceState.s4Confirm:
         return "입력하신 내용을 확인해 주세요.";

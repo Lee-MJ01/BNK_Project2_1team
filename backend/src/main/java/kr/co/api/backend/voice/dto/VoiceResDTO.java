@@ -15,6 +15,11 @@ public class VoiceResDTO {
     private String noticeCode;
     private String noticeMessage;
 
+    private String inputField;
+    private String inputValue;
+
     // (선택) 디버깅용
     private String productCode;
+
+
 }

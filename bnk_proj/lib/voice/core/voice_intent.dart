@@ -9,6 +9,8 @@ enum Intent {
   affirm,     // yes, 동의, 이해했어요
   deny,       // no, 거절
 
+  provideValue,
+
   // --- 진행 제어 ---
   proceed,    // 다음
   confirm,    // 최종 확정
@@ -36,6 +38,9 @@ enum Intent {
         return Intent.affirm;
       case 'DENY':
         return Intent.deny;
+
+      case 'PROVIDE_VALUE':
+        return Intent.provideValue;
 
       case 'PROCEED':
         return Intent.proceed;

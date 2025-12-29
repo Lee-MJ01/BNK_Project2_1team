@@ -301,6 +301,27 @@ class DepositStep3Screen extends StatelessWidget {
 
     if (!context.mounted) return;
 
+    debugPrint('''
+DepositApplication {
+  dpstId: ${application.dpstId}
+  customerCode: ${application.customerCode}
+  withdrawType: ${application.withdrawType}
+  selectedKrwAccount: ${application.selectedKrwAccount}
+  selectedFxAccount: ${application.selectedFxAccount}
+  fxWithdrawCurrency: ${application.fxWithdrawCurrency}
+  newCurrency: ${application.newCurrency}
+  newAmount: ${application.newAmount}
+  newPeriodMonths: ${application.newPeriodMonths}
+  appliedRate: ${application.appliedRate}
+  appliedFxRate: ${application.appliedFxRate}
+  depositPassword: ${application.depositPassword}
+}
+''');
+
+    if (application.appliedRate == null){
+      application.appliedRate = 0;
+    }
+
     Navigator.pushNamed(
       context,
       "/deposit-signature",
@@ -309,7 +330,7 @@ class DepositStep3Screen extends StatelessWidget {
   }
 
   String _resolveRateLabel(DepositApplication application) {
-    final rate = application.appliedRate;
+    final rate = application.appliedRate ?? 0;
     if (rate != null) {
       return "${rate.toStringAsFixed(2)}%";
     }

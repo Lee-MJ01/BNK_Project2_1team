@@ -9,6 +9,8 @@ public enum VoiceIntent {
     AFFIRM,
     DENY,
 
+    PROVIDE_VALUE,
+
     PROCEED,
     CONFIRM,
 

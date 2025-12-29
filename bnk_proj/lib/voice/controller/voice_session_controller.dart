@@ -37,6 +37,10 @@ class VoiceSessionController {
   bool _started = false; // ⭐ 최초 idle 진입 여부
 
   bool get isSessionActive => _sessionId != null && _started;
+  
+  // step2 (s4Input)용 콜백
+  ValueNotifier<VoiceResDTO?> lastResponse =
+  ValueNotifier(null);
 
 
   void attachOverlay() {
@@ -120,6 +124,12 @@ class VoiceSessionController {
     await _handleServerResponse(res);
   }
 
+  Future<void> speakClientGuide(String text) async {
+    uiState.value = VoiceUiState.speaking;
+    await _tts.speak(text);
+    uiState.value = VoiceUiState.idle;
+  }
+
 
   /// 4️⃣ 서버 응답 처리
   Future<void> _handleServerResponse(VoiceResDTO res) async {
@@ -129,6 +139,8 @@ class VoiceSessionController {
     if (nav != null) {
       navCommand.value = nav;
     }
+
+
 
 
     if (res.endReason != null) {
@@ -151,7 +163,10 @@ class VoiceSessionController {
     }
 
     uiState.value = VoiceUiState.idle;
+
+    lastResponse.value = res;
   }
+
 
   // 화면 이동 //
   VoiceNavCommand? _resolveNav(VoiceResDTO res) {
