@@ -41,6 +41,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   late Future<List<TermsDocument>>? _futureTerms;
   final DepositDraftService _draftService = DepositDraftService();
   bool _canResume = false;
+  Uri? _depositImageUri;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     _futureProduct = _service.fetchProductDetail(widget.dpstId);
     _futureTerms =  Future.value(<TermsDocument>[]);
     _checkDraftAvailability();
+    _loadDepositImage();
   }
 
   void _setTab(int idx) {
@@ -78,6 +80,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
       }
     });
 
+    _loadDepositImage();
     _checkDraftAvailability();
   }
 
@@ -95,6 +98,25 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     await Future.wait(futures);
   }
+
+
+  Future<void> _loadDepositImage() async {
+    try {
+      final TermsDocument? doc = await _termsService.fetchLatestDepositImage();
+
+      if (!mounted) return;
+
+      // 최신 이미지가 없다면 null로 두어 로컬 에셋/아이콘을 사용하도록 처리
+      setState(() {
+        _depositImageUri =
+        doc == null ? null : _buildTermsUri(doc);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {});
+    }
+  }
+
 
 
   Future<void> _checkDraftAvailability() async {
@@ -362,6 +384,35 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   }
 
 
+  Widget _buildDepositInfoImage() {
+    if (_depositImageUri != null) {
+      return Image.network(
+        _depositImageUri.toString(),
+        width: 90,
+        height: 90,
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _fallbackDepositIcon(),
+      );
+    }
+
+    return Image.asset(
+      "images/deposit.png",
+      width: 90,
+      height: 90,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => _fallbackDepositIcon(),
+    );
+  }
+
+  Widget _fallbackDepositIcon() {
+    return const Icon(
+      Icons.info_outline,
+      size: 22,
+      color: AppColors.pointDustyNavy,
+    );
+  }
+
+
 
 
   Widget _buildResumeBanner() {
@@ -611,17 +662,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
               // 아이콘 / 이미지
               Padding(
                 padding: const EdgeInsets.only(top: 2),
-                child: Image.asset(
-                  "images/deposit.png",
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.info_outline,
-                    size: 22,
-                    color: AppColors.pointDustyNavy,
-                  ),
-                ),
+                child: _buildDepositInfoImage(),
               ),
 
               const SizedBox(width: 10),

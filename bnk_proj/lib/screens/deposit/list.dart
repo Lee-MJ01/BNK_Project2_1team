@@ -8,6 +8,8 @@ import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/screens/deposit/step_3.dart';
 import 'package:test_main/services/deposit_draft_service.dart';
 import 'package:test_main/models/deposit/view.dart';
+import 'package:test_main/models/terms.dart';
+import 'package:test_main/services/terms_service.dart';
 
 class DepositListPage extends StatefulWidget {
   const DepositListPage({super.key});
@@ -19,24 +21,66 @@ class DepositListPage extends StatefulWidget {
 class _DepositListPageState extends State<DepositListPage> {
   final DepositService _service = DepositService();
   final DepositDraftService _draftService =  DepositDraftService();
+  final TermsService _termsService = TermsService();
   late Future<List<DepositProductList>> _futureProducts;
+  Uri? _depositImageUri;
 
   @override
   void initState() {
     super.initState();
     _futureProducts = _service.fetchProductList();
+    _loadDepositImage();
   }
 
   void _reload() {
     setState(() {
       _futureProducts = _service.fetchProductList();
     });
+    _loadDepositImage();
   }
 
   Future<void> _refreshProducts() async {
     _reload();
     await _futureProducts;
   }
+
+  Future<void> _loadDepositImage() async {
+    try {
+      final TermsDocument? doc = await _termsService.fetchLatestDepositImage();
+
+      if (!mounted) return;
+
+      // 서버에 이미지가 없으면 기본 아이콘을 쓰도록 URI를 비웁니다.
+      if (doc == null) {
+        setState(() {
+          _depositImageUri = null;
+        });
+        return;
+      }
+
+      final String rawPath =
+      doc.downloadUrl.isNotEmpty ? doc.downloadUrl : doc.filePath;
+
+      setState(() {
+        _depositImageUri = _resolveTermsUri(rawPath);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {});
+    }
+  }
+
+  Uri? _resolveTermsUri(String raw) {
+    if (raw.isEmpty) return null;
+
+    final Uri? parsed = Uri.tryParse(raw);
+    if (parsed != null && parsed.hasScheme) return parsed;
+
+    final Uri base = Uri.parse(TermsService.baseUrl);
+    final String relativePath = raw.startsWith('/') ? raw.substring(1) : raw;
+    return base.resolve(relativePath);
+  }
+
 
 
   Future<void> _handleJoin(DepositProductList productList) async {
@@ -343,16 +387,7 @@ class _DepositListPageState extends State<DepositListPage> {
                                         SizedBox(
                                           width: 60,
                                           height: 60,
-                                          child: Image.asset(
-                                            "images/deposit.png",
-                                            fit: BoxFit.contain,
-                                            errorBuilder: (_, __, ___) =>
-                                            const Icon(
-                                              Icons.savings,
-                                              size: 50,
-                                              color: AppColors.pointDustyNavy,
-                                            ),
-                                          ),
+                                          child: _buildDepositImage(),
                                         ),
                                       ],
                                     ),
@@ -373,4 +408,29 @@ class _DepositListPageState extends State<DepositListPage> {
       ),
     );
   }
+
+  Widget _buildDepositImage() {
+    if (_depositImageUri != null) {
+      return Image.network(
+        _depositImageUri.toString(),
+        fit: BoxFit.contain,
+        errorBuilder: (_, __, ___) => _fallbackDepositIcon(),
+      );
+    }
+
+    return Image.asset(
+      "images/deposit.png",
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => _fallbackDepositIcon(),
+    );
+  }
+
+  Widget _fallbackDepositIcon() {
+    return const Icon(
+      Icons.savings,
+      size: 50,
+      color: AppColors.pointDustyNavy,
+    );
+  }
+
 }

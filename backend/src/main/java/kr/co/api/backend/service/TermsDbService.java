@@ -1,8 +1,3 @@
-/*
- * 날짜 : 2025/11/20
- * 이름 : 김대현
- * 내용 : 디비 불러오기 수정
- * */
 
 package kr.co.api.backend.service;
 
@@ -29,6 +24,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Comparator;
+import java.util.Objects;
+
 
 @Service
 @RequiredArgsConstructor
@@ -309,6 +307,28 @@ public class TermsDbService {
         // 추가로 중복 제거할 필요 없이 그대로 반환
         return mapper.selectTermsByCate(termCate);
     }
+
+
+    public TermsHistDTO getLatestByCategory(int cate) {
+        List<TermsHistDTO> terms = mapper.selectTermsByCate(cate);
+        if (terms == null || terms.isEmpty()) {
+            return null;
+        }
+
+        // 최신 등록일 > 최신 버전 > PK 순으로 가장 나중 데이터를 선택
+        return terms.stream()
+                .filter(Objects::nonNull)
+                .max(
+                        Comparator
+                                .comparing(TermsHistDTO::getThistRegDy, Comparator.nullsLast(String::compareTo))
+                                .thenComparing(TermsHistDTO::getThistVersion, Comparator.nullsLast(Integer::compareTo))
+                                .thenComparing(TermsHistDTO::getThistNo, Comparator.nullsLast(Long::compareTo))
+                )
+                .orElse(null);
+    }
+
+
+
 
 
     public TermsHistDTO getTermsHist(Long histId) {

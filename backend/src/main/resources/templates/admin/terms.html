@@ -30,6 +30,7 @@
                         <option value="4">4.외환예금</option>
                         <option value="5">5.원화통장개설</option>
                         <option value="6">6.외화통장개설</option>
+                        <option value="7">7.이미지 등록</option>
                     </select>
                 </div>
             </div>
@@ -62,7 +63,7 @@
                        name="file"
                        id="modalFile"
                        class="terms-input"
-                       accept=".pdf,.doc,.docx">
+                       accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif">
             </div>
 
         </form>
@@ -127,7 +128,9 @@
                   (t.termCate == 3 ? '외화송금' :
                   (t.termCate == 4 ? '외환예금' :
                   (t.termCate == 5 ? '원화통장개설' :
-                  (t.termCate == 6 ? '외화통장개설' : '기타')))))}">
+                  (t.termCate == 6 ? '외화통장개설' :
+                  (t.termCate == 7 ? '이미지 등록' : '기타'))))))}">
+
                     </td>
 
                     <td th:text="${t.termOrder}"></td>

@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             4: "외환예금",
             5: "원화통장개설",
             6: "외화통장개설",
+            7: "이미지 등록",
         };
         return mapper[cate] || "기타";
     };

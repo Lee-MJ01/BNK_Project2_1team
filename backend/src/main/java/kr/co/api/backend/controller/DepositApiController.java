@@ -87,6 +87,23 @@ public class DepositApiController {
 
 
     /**
+     * 예금 관련 이미지(약관 카테고리 7)의 최신 파일을 조회
+     * - 앱에서는 리스트/상세 공통으로 이 엔드포인트만 호출해 노출용 이미지를 가져옵니다.
+     * - 이미지가 없을 경우 204(No Content)로 내려 앱에서 기본 아이콘을 사용하도록 합니다.
+     */
+    @GetMapping("/image")
+    public ResponseEntity<TermsResponse> getDepositImage() {
+        TermsHistDTO latestImage = termsDbService.getLatestByCategory(7);
+
+        if (latestImage == null || latestImage.getThistFile() == null || latestImage.getThistFile().isBlank()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+        return ResponseEntity.ok(TermsResponse.from(latestImage));
+    }
+
+
+    /**
      * 목록 조회 응답 DTO.
      */
     public record DepositListResponse(String dpstId, String dpstName, String dpstInfo) { }
