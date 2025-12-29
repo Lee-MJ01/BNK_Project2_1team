@@ -13,9 +13,11 @@ import 'package:test_main/services/api_service.dart';
 import 'package:test_main/screens/auth/pin_setup_screen.dart';
 import 'package:test_main/voice/controller/voice_session_controller.dart';
 import 'package:test_main/voice/core/voice_navigation_coordinator.dart';
+import 'package:test_main/voice/overlay/voice_overlay_manager.dart';
 import 'package:test_main/voice/scope/voice_session_scope.dart';
 import 'package:test_main/voice/service/voice_stt_service.dart';
 import 'package:test_main/voice/service/voice_tts_service.dart';
+import 'package:test_main/voice/ui/voice_assistant_overlay.dart';
 
 import 'screens/app_colors.dart';
 import 'screens/main/bank_homepage.dart';
@@ -169,6 +171,9 @@ Future<void> main() async {
   final voiceController = VoiceSessionController(
     stt: VoiceSttService(),
     tts: VoiceTtsService(),
+    onSessionEnded: () {
+      VoiceOverlayManager.hide();
+    }
   );
 
   runApp(
