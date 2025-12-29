@@ -1,11 +1,14 @@
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Intent;
 import 'package:flutter/services.dart';
 import 'package:test_main/models/deposit/application.dart';
 import 'package:test_main/services/deposit_draft_service.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/screens/app_colors.dart';
+import '../../voice/controller/voice_session_controller.dart';
+import '../../voice/scope/voice_session_scope.dart';
 import '../deposit/step_4.dart';
+import 'package:test_main/voice/core/voice_intent.dart';
 
 /* =========================================================
    전자서명 단계
@@ -68,6 +71,14 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
     _agreeAll = _allAgreed;
   }
 
+  late VoiceSessionController _voiceController;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _voiceController = VoiceSessionScope.of(context);
+  }
+
   void _onInputInfoChanged() {
     final filled = _nameController.text.trim().isNotEmpty &&
         _rrnController.text.trim().isNotEmpty &&
@@ -96,7 +107,6 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
     _phoneController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -449,7 +459,10 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
       // 전자서명과 계좌 생성이 끝났으면 이어가기 임시 테이블(TB_DPST_ACCT_DRAFT)도 정리한다.
       // 서버/DB 삭제 요청은 실패해도 가입 완료 이동은 막지 않도록 best-effort 로 수행한다.
       await _draftService.clearDraft(widget.application.dpstId);
-
+      _voiceController.sendClientIntent(
+        intent: Intent.success,
+        productCode: widget.application.dpstId,
+      );
       if (!mounted) return;
 
       Navigator.pushReplacementNamed(

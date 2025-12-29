@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Intent;
 import 'package:test_main/screens/app_colors.dart';
 import '../../voice/controller/voice_session_controller.dart';
 import '../../voice/core/input_field.dart';
@@ -13,6 +13,7 @@ import 'package:test_main/models/deposit/view.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/services/deposit_draft_service.dart';
 import 'package:test_main/services/exchange_api.dart';
+import 'package:test_main/voice/core/voice_intent.dart';
 
 
 class DepositStep2Screen extends StatefulWidget {
@@ -1538,6 +1539,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
                   if (_validateInputs()) {
                     await _applyRateForCurrentSelection();
                     _saveToApplication();
+                    _voiceController.sendClientIntent(intent: Intent.proceed, productCode: widget.dpstId);
                     await _draftService.saveDraft(
                       application,
                       step: 2,

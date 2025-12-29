@@ -53,10 +53,10 @@ class VoiceScriptResolver {
         return "입력하신 내용을 확인해 주세요.";
 
       case VoiceState.s4Signature:
-        return "전자서명을 진행할게요.";
+        return "전자서명 단계입니다. 화면에서 직접 서명을 진행해 주세요.";
 
       case VoiceState.s5End:
-        return "이용해 주셔서 감사합니다.";
+        return "예금 가입이 완료되었습니다! 이용해 주셔서 감사합니다.";
 
       default:
         return null;

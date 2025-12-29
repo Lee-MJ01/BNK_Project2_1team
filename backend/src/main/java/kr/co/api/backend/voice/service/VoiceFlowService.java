@@ -53,7 +53,9 @@ public class VoiceFlowService {
         // ✅ productCode는 "req.dpstId 우선, 없으면 세션"으로
         VoiceContext ctx = buildContext(sessionId, req);
 
-        if (currentState == VoiceState.S4_2_INPUT) {
+        if (currentState == VoiceState.S4_2_INPUT
+                && intent != VoiceIntent.PROCEED
+                && intent != VoiceIntent.REQ_BACK) {
             return handleInputState(sessionId, req, intent, ctx);
         }
 
