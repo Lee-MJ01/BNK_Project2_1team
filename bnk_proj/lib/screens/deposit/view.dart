@@ -47,10 +47,16 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   void initState() {
     super.initState();
     _futureProduct = _service.fetchProductDetail(widget.dpstId);
-    _futureTerms =  Future.value(<TermsDocument>[]);
+    // 약관 탭은 최초 진입 시점에만 요청하도록 null로 시작
+    _futureTerms = null;
     _checkDraftAvailability();
     _loadDepositImage();
   }
+
+  Future<List<TermsDocument>> _requestTerms() {
+    return _termsService.fetchTerms(status: 4).catchError((_) => <TermsDocument>[]);
+  }
+
 
   void _setTab(int idx) {
   setState(() {
@@ -58,9 +64,7 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
 
     // 🔥 약관 탭(2번)에 처음 진입할 때만 로딩
     if (idx == 2 && _futureTerms == null) {
-      _futureTerms = _termsService
-          .fetchTerms(status: 4)
-          .catchError((_) => <TermsDocument>[]);
+      _futureTerms = _requestTerms();
     }
   });
 }
@@ -72,11 +76,9 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
     setState(() {
       _futureProduct = _service.fetchProductDetail(widget.dpstId);
 
-      // 🔥 약관 탭을 이미 로딩한 적이 있을 때만 재요청
-      if (_futureTerms != null) {
-        _futureTerms = _termsService
-            .fetchTerms(status: 4)
-            .catchError((_) => <TermsDocument>[]);
+      // 🔥 약관 탭이 열려있거나 한번이라도 로딩된 경우 재요청
+      if (_currentTab == 2 || _futureTerms != null) {
+        _futureTerms = _requestTerms();
       }
     });
 
@@ -1585,6 +1587,10 @@ class _DepositViewScreenState extends State<DepositViewScreen> {
   // [탭 3] 상품약관
   // ============================================================
   Widget _buildTermsTab(model.DepositProduct product) {
+
+    // 탭 상태 복원 등으로 _futureTerms가 비어있는 상황을 대비해 안전하게 한번 더 요청
+    _futureTerms ??= _requestTerms();
+
 
     if (_futureTerms == null) {
       return const Center(child: Text('약관을 불러오는 중입니다.'));
