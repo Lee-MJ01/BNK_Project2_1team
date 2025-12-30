@@ -123,9 +123,8 @@ public class MobileDepositController {
     ) {
         CustInfoDTO user = resolveUser(servletRequest);
         log.info(
-                "[APPLY] request sanitized | custCode={}, payload={}",
-                user.getCustCode(),
-                sanitizeApplyRequest(request)
+                "[APPLY] request sanitized | custCode={}",
+                user.getCustCode()
         );
 
         String dpstId = asString(request.get("dpstId"));

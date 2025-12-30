@@ -14,7 +14,7 @@ class DepositDraftService {
 
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'auth_token';
-  static const _draftEndpoint = '${DepositService.mobileBaseUrl}/drafts';
+  static const _draftEndpoint = '${DepositService.serverUrl}/drafts';
 
   final http.Client _client = http.Client();
 
