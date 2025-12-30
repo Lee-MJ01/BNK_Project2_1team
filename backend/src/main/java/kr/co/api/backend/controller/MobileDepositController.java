@@ -109,6 +109,41 @@ public class MobileDepositController {
 
 
 
+    @GetMapping("/products/{dpstId}/rate")
+    public ResponseEntity<Map<String, Object>> getDepositRate(
+            @PathVariable String dpstId,
+            @RequestParam(required = false) String currency,
+            @RequestParam(required = false) Integer month,
+            HttpServletRequest request
+    ) {
+        resolveUser(request); // 인증만 확인
+
+        ProductDTO product = depositMapper.findProductById(dpstId);
+        if (product == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        String targetCurrency = asString(currency, product.getDpstCurrency());
+        Integer targetMonth = month != null ? month : product.getPeriodMinMonth();
+        if (targetMonth == null) {
+            targetMonth = 12;
+        }
+
+        InterestRateDTO rateInfo = depositMapper.getRecentInterest(targetCurrency);
+        BigDecimal rate = resolveRate(rateInfo, targetMonth);
+        if (rate == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("dpstId", dpstId);
+        payload.put("currency", targetCurrency);
+        payload.put("month", targetMonth);
+        payload.put("rate", rate);
+
+        return ResponseEntity.ok(payload);
+    }
+
     @PutMapping("/drafts/{dpstId}")
     @Transactional
     public ResponseEntity<Map<String, Object>> saveDepositDraft(
@@ -143,18 +178,27 @@ public class MobileDepositController {
                     draft.getDpstDraftNo()
             );
 
+            Integer requestedMonth = parseInt(request.get("month"));
+            Integer requestedAutoRenewTerm = parseInt(request.get("autoRenewTerm"));
+            BigDecimal requestedAmount = parseNullableBigDecimal(request.get("amount"));
+
+            Integer persistedStep = coalesceInt(requestedStep, draft.getDpstDraftStep(), 0);
+            Integer persistedMonth = coalesceInt(requestedMonth, draft.getDpstDraftMonth(), 0);
+            Integer persistedAutoRenewTerm = coalesceInt(requestedAutoRenewTerm, draft.getDpstDraftAutoRenewTerm(), 0);
+            BigDecimal persistedAmount = coalesceAmount(requestedAmount, draft.getDpstDraftAmount());
+
             draft.setDpstDraftDpstId(dpstId);
             draft.setDpstDraftCustCode(user.getCustCode());
-            draft.setDpstDraftPw(asString(request.get("depositPassword")));
-            draft.setDpstDraftMonth(parseInt(request.get("month")));
-            draft.setDpstDraftStep(requestedStep);
-            draft.setDpstDraftCurrency(asString(request.get("currency")));
-            draft.setDpstDraftLinkedAcctNo(asString(request.get("linkedAccountNo")));
-            draft.setDpstDraftAutoRenewYn(asBooleanFlag(request.get("autoRenewYn")));
-            draft.setDpstDraftAutoRenewTerm(parseInt(request.get("autoRenewTerm")));
-            draft.setDpstDraftAutoTermiYn(asBooleanFlag(request.get("autoTerminationYn")));
-            draft.setDpstDraftWdrwPw(asString(request.get("withdrawPassword")));
-            draft.setDpstDraftAmount(parseNullableBigDecimal(request.get("amount")));
+            draft.setDpstDraftPw(coalesceString(asString(request.get("depositPassword")), draft.getDpstDraftPw()));
+            draft.setDpstDraftMonth(persistedMonth);
+            draft.setDpstDraftStep(persistedStep);
+            draft.setDpstDraftCurrency(coalesceString(asString(request.get("currency")), draft.getDpstDraftCurrency()));
+            draft.setDpstDraftLinkedAcctNo(coalesceString(asString(request.get("linkedAccountNo")), draft.getDpstDraftLinkedAcctNo()));
+            draft.setDpstDraftAutoRenewYn(coalesceFlag(asBooleanFlag(request.get("autoRenewYn")), draft.getDpstDraftAutoRenewYn()));
+            draft.setDpstDraftAutoRenewTerm(persistedAutoRenewTerm);
+            draft.setDpstDraftAutoTermiYn(coalesceFlag(asBooleanFlag(request.get("autoTerminationYn")), draft.getDpstDraftAutoTermiYn()));
+            draft.setDpstDraftWdrwPw(coalesceString(asString(request.get("withdrawPassword")), draft.getDpstDraftWdrwPw()));
+            draft.setDpstDraftAmount(persistedAmount);
 
             logDraftState("[DepositDraft] Prepared draft for persistence", draft);
 
@@ -429,16 +473,16 @@ public class MobileDepositController {
         payload.put("draftNo", draft.getDpstDraftNo());
         payload.put("dpstId", draft.getDpstDraftDpstId());
         payload.put("customerCode", draft.getDpstDraftCustCode());
-        payload.put("currency", draft.getDpstDraftCurrency());
-        payload.put("month", draft.getDpstDraftMonth());
-        payload.put("step", draft.getDpstDraftStep());
-        payload.put("linkedAccountNo", draft.getDpstDraftLinkedAcctNo());
-        payload.put("autoRenewYn", draft.getDpstDraftAutoRenewYn());
-        payload.put("autoRenewTerm", draft.getDpstDraftAutoRenewTerm());
-        payload.put("autoTerminationYn", draft.getDpstDraftAutoTermiYn());
-        payload.put("withdrawPassword", draft.getDpstDraftWdrwPw());
-        payload.put("depositPassword", draft.getDpstDraftPw());
-        payload.put("amount", draft.getDpstDraftAmount());
+        payload.put("currency", nullIfBlank(draft.getDpstDraftCurrency()));
+        payload.put("month", nullIfZero(draft.getDpstDraftMonth()));
+        payload.put("step", nullIfZero(draft.getDpstDraftStep()));
+        payload.put("linkedAccountNo", nullIfBlank(draft.getDpstDraftLinkedAcctNo()));
+        payload.put("autoRenewYn", coalesceFlag(draft.getDpstDraftAutoRenewYn(), "N"));
+        payload.put("autoRenewTerm", nullIfZero(draft.getDpstDraftAutoRenewTerm()));
+        payload.put("autoTerminationYn", coalesceFlag(draft.getDpstDraftAutoTermiYn(), "N"));
+        payload.put("withdrawPassword", nullIfBlank(draft.getDpstDraftWdrwPw()));
+        payload.put("depositPassword", nullIfBlank(draft.getDpstDraftPw()));
+        payload.put("amount", nullIfZero(draft.getDpstDraftAmount()));
         payload.put("updatedAt", draft.getDpstDraftUpdatedDt() != null
                 ? draft.getDpstDraftUpdatedDt().toString()
                 : null);
@@ -576,6 +620,54 @@ public class MobileDepositController {
                 : "N";
     }
 
+    private String coalesceString(String incoming, String existing) {
+        if (incoming != null && !incoming.isBlank()) {
+            return incoming;
+        }
+        return existing != null ? existing : "";
+    }
+
+    private String coalesceFlag(String incoming, String existing) {
+        if (incoming != null && !incoming.isBlank()) {
+            return incoming;
+        }
+        return existing != null && !existing.isBlank() ? existing : "N";
+    }
+
+    private Integer coalesceInt(Integer incoming, Integer existing, int defaultValue) {
+        if (incoming != null) {
+            return incoming;
+        }
+        if (existing != null) {
+            return existing;
+        }
+        return defaultValue;
+    }
+
+    private BigDecimal coalesceAmount(BigDecimal incoming, BigDecimal existing) {
+        if (incoming != null) {
+            return incoming;
+        }
+        if (existing != null) {
+            return existing;
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private Integer nullIfZero(Integer value) {
+        if (value == null) return null;
+        return value == 0 ? null : value;
+    }
+
+    private BigDecimal nullIfZero(BigDecimal value) {
+        if (value == null) return null;
+        return value.compareTo(BigDecimal.ZERO) == 0 ? null : value;
+    }
+
+    private String nullIfBlank(String value) {
+        return (value == null || value.isBlank()) ? null : value;
+    }
+
     private void logDraftState(String label, DpstAcctDraftDTO draft) {
         if (draft == null) {
             log.warn("{} | draft is null", label);
@@ -583,11 +675,12 @@ public class MobileDepositController {
         }
 
         log.info(
-                "{} | draftNo={}, dpstId={}, custCode={}, step={}, currency={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}",
+                "{} | draftNo={}, dpstId={}, custCode={}, month={}, step={}, currency={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}",
                 label,
                 draft.getDpstDraftNo(),
                 draft.getDpstDraftDpstId(),
                 draft.getDpstDraftCustCode(),
+                draft.getDpstDraftMonth(),
                 draft.getDpstDraftStep(),
                 draft.getDpstDraftCurrency(),
                 draft.getDpstDraftLinkedAcctNo(),

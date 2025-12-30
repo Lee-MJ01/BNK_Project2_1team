@@ -73,14 +73,24 @@ class DepositService {
     required String currency,
     required int months,
   }) async {
-    final uri = Uri.parse('$baseUrl/products/$dpstId/rate').replace(
+    final token = await _storage.read(key: 'auth_token');
+    if (token == null) {
+      throw Exception('로그인이 필요합니다.');
+    }
+
+    final uri = Uri.parse('$mobileBaseUrl/products/$dpstId/rate').replace(
       queryParameters: {
         'currency': currency,
         'month': months.toString(),
       },
     );
 
-    final response = await _client.get(uri);
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
 
     if (response.statusCode != 200) {
       throw Exception('금리 조회 실패 (${response.statusCode})');
