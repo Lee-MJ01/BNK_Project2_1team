@@ -37,6 +37,7 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
 
   String? _selectedMethod;
   Uint8List? _certificateImage;
+  bool _inputInfoValid = false;
 
   final DepositDraftService _draftService =  DepositDraftService();
 
@@ -65,6 +66,35 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
 
   void _syncAgreeAll() {
     _agreeAll = _allAgreed;
+  }
+
+  void _onInputInfoChanged() {
+    final filled = _nameController.text.trim().isNotEmpty &&
+        _rrnController.text.trim().isNotEmpty &&
+        _phoneController.text.trim().isNotEmpty;
+
+    if (filled != _inputInfoValid) {
+      setState(() {
+        _inputInfoValid = filled;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_onInputInfoChanged);
+    _rrnController.addListener(_onInputInfoChanged);
+    _phoneController.addListener(_onInputInfoChanged);
+    _onInputInfoChanged();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _rrnController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override
@@ -162,20 +192,28 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const _SectionTitle("본인 확인"),
-        _InputField(_nameController, "이름", TextInputType.text),
         _InputField(
-          _rrnController,
-          "주민등록번호 앞 6자리",
-          TextInputType.number,
+          controller: _nameController,
+          hint: "이름",
+          keyboardType: TextInputType.text,
+          onChanged: (_) => _onInputInfoChanged(),
         ),
         _InputField(
-          _phoneController,
-          "휴대폰 번호",
-          TextInputType.phone,
+          controller: _rrnController,
+          hint: "주민등록번호 앞 6자리",
+          keyboardType: TextInputType.number,
+          onChanged: (_) => _onInputInfoChanged(),
+        ),
+        _InputField(
+          controller: _phoneController,
+          hint: "휴대폰 번호",
+          keyboardType: TextInputType.phone,
+          onChanged: (_) => _onInputInfoChanged(),
         ),
         const Spacer(),
         _PrimaryButton(
           text: "다음",
+          enabled: _inputInfoValid,
           onPressed: () => setState(() => _step = AuthStep.agreeTerms),
         ),
       ],
@@ -378,6 +416,7 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
         const Spacer(),
         _PrimaryButton(
           text: "가입 완료",
+          enabled: !_submitting,
           onPressed: _goToCompletion,
         ),
       ],
@@ -421,6 +460,14 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
           result: result,
         ),
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('가입 완료 처리 중 오류가 발생했습니다. 다시 시도해 주세요. ($e)'),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -613,8 +660,14 @@ class _InputField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final TextInputType keyboardType;
+  final ValueChanged<String>? onChanged;
 
-  const _InputField(this.controller, this.hint, this.keyboardType);
+  const _InputField({
+    required this.controller,
+    required this.hint,
+    required this.keyboardType,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -623,6 +676,7 @@ class _InputField extends StatelessWidget {
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hint,
           filled: true,

@@ -1789,7 +1789,7 @@ class _DepositStep2ScreenState extends State<DepositStep2Screen> {
 
       ..autoTerminateAtMaturity = autoTerminateAtMaturity
 
-      ..appliedRate = appliedRate ?? 0
+      ..appliedRate = appliedRate
       ..appliedFxRate = appliedFxRate
 
       ..addPaymentEnabled = false
@@ -1887,4 +1887,3 @@ class _Step2Data {
 
   const _Step2Data({required this.product, required this.context});
 }
-

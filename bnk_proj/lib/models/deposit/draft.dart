@@ -13,10 +13,13 @@ class DepositDraft {
   final String? linkedAccountNo;
   final String? withdrawPassword;
   final String? depositPassword;
+  final String? fxWithdrawCurrency;
   final int? amount;
   final bool autoRenewYn;
   final int? autoRenewTerm;
   final bool autoTerminationYn;
+  final double? appliedRate;
+  final double? appliedFxRate;
   final DateTime? updatedAt;
   final DepositApplication? application;
 
@@ -30,10 +33,13 @@ class DepositDraft {
     this.linkedAccountNo,
     this.withdrawPassword,
     this.depositPassword,
+    this.fxWithdrawCurrency,
     this.amount,
     this.autoRenewYn = false,
     this.autoRenewTerm,
     this.autoTerminationYn = false,
+    this.appliedRate,
+    this.appliedFxRate,
     this.updatedAt,
     this.application,
   });
@@ -48,10 +54,13 @@ class DepositDraft {
     String? linkedAccountNo,
     String? withdrawPassword,
     String? depositPassword,
+    String? fxWithdrawCurrency,
     int? amount,
     bool? autoRenewYn,
     int? autoRenewTerm,
     bool? autoTerminationYn,
+    double? appliedRate,
+    double? appliedFxRate,
     DateTime? updatedAt,
     DepositApplication? application,
   }) {
@@ -65,10 +74,13 @@ class DepositDraft {
       linkedAccountNo: linkedAccountNo ?? this.linkedAccountNo,
       withdrawPassword: withdrawPassword ?? this.withdrawPassword,
       depositPassword: depositPassword ?? this.depositPassword,
+      fxWithdrawCurrency: fxWithdrawCurrency ?? this.fxWithdrawCurrency,
       amount: amount ?? this.amount,
       autoRenewYn: autoRenewYn ?? this.autoRenewYn,
       autoRenewTerm: autoRenewTerm ?? this.autoRenewTerm,
       autoTerminationYn: autoTerminationYn ?? this.autoTerminationYn,
+      appliedRate: appliedRate ?? this.appliedRate,
+      appliedFxRate: appliedFxRate ?? this.appliedFxRate,
       updatedAt: updatedAt ?? this.updatedAt,
       application: application ?? this.application,
     );
@@ -85,10 +97,13 @@ class DepositDraft {
       'linkedAccountNo': linkedAccountNo,
       'withdrawPassword': withdrawPassword,
       'depositPassword': depositPassword,
+      'fxWithdrawCurrency': fxWithdrawCurrency,
       'amount': amount,
       'autoRenewYn': autoRenewYn,
       'autoRenewTerm': autoRenewTerm,
       'autoTerminationYn': autoTerminationYn,
+      'appliedRate': appliedRate,
+      'appliedFxRate': appliedFxRate,
       'updatedAt': updatedAt?.toIso8601String(),
       'application': application?.toJson(),
     };
@@ -105,12 +120,15 @@ class DepositDraft {
       linkedAccountNo: json['linkedAccountNo']?.toString(),
       withdrawPassword: json['withdrawPassword']?.toString(),
       depositPassword: json['depositPassword']?.toString(),
+      fxWithdrawCurrency: json['fxWithdrawCurrency']?.toString(),
       amount: _parseInt(json['amount']),
       autoRenewYn: json['autoRenewYn'] == true ||
           json['autoRenewYn']?.toString().toUpperCase() == 'Y',
       autoRenewTerm: _parseInt(json['autoRenewTerm']),
       autoTerminationYn: json['autoTerminationYn'] == true ||
           json['autoTerminationYn']?.toString().toUpperCase() == 'Y',
+      appliedRate: _parseDouble(json['appliedRate']),
+      appliedFxRate: _parseDouble(json['appliedFxRate']),
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
@@ -126,5 +144,10 @@ class DepositDraft {
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     return int.tryParse(value.toString());
+  }
+
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
   }
 }

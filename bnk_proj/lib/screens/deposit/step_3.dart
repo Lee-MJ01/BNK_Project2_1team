@@ -330,7 +330,7 @@ DepositApplication {
   }
 
   String _resolveRateLabel(DepositApplication application) {
-    final rate = application.appliedRate ?? 0;
+    final rate = application.appliedRate;
     if (rate != null) {
       return "${rate.toStringAsFixed(2)}%";
     }

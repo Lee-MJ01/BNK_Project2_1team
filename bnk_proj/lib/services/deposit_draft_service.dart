@@ -72,6 +72,7 @@ class DepositDraftService {
       depositPassword: application.depositPassword.isNotEmpty
           ? application.depositPassword
           : null,
+      fxWithdrawCurrency: application.fxWithdrawCurrency,
       amount: application.newAmount,
       autoRenewYn: application.autoRenew == 'apply',
       autoRenewTerm:
@@ -79,6 +80,8 @@ class DepositDraftService {
       autoTerminationYn: application.autoRenew == 'apply'
           ? application.autoTerminateAtMaturity
           : false,
+      appliedRate: application.appliedRate,
+      appliedFxRate: application.appliedFxRate,
       updatedAt: DateTime.now(),
       application: application,
     );
@@ -199,6 +202,9 @@ class DepositDraftService {
         'autoRenewYn': draft.autoRenewYn,
         'autoRenewTerm': draft.autoRenewTerm,
         'autoTerminationYn': draft.autoTerminationYn,
+        'fxWithdrawCurrency': draft.fxWithdrawCurrency,
+        'appliedRate': draft.appliedRate,
+        'appliedFxRate': draft.appliedFxRate,
       };
 
       _log('persistRemoteDraft: sending', data: {
@@ -256,6 +262,7 @@ class DepositDraftService {
           inferredWithdrawType == 'krw' ? draft.linkedAccountNo : null
       ..selectedFxAccount =
           inferredWithdrawType == 'fx' ? draft.linkedAccountNo : null
+      ..fxWithdrawCurrency = draft.fxWithdrawCurrency
       ..withdrawPassword = draft.withdrawPassword
       ..depositPassword = draft.depositPassword ?? ''
       ..newCurrency = draft.currency ?? ''
@@ -264,6 +271,8 @@ class DepositDraftService {
       ..autoRenew = draft.autoRenewYn ? 'apply' : 'no'
       ..autoRenewCycle = draft.autoRenewTerm
       ..autoTerminateAtMaturity = draft.autoTerminationYn
+      ..appliedRate = draft.appliedRate
+      ..appliedFxRate = draft.appliedFxRate
       ..agree1 = true
       ..agree2 = true
       ..agree3 = true
@@ -290,6 +299,9 @@ class DepositDraftService {
       'autoRenewYn': draft.autoRenewYn,
       'autoRenewTerm': draft.autoRenewTerm,
       'autoTerminationYn': draft.autoTerminationYn,
+      'fxWithdrawCurrency': draft.fxWithdrawCurrency,
+      'appliedRate': draft.appliedRate,
+      'appliedFxRate': draft.appliedFxRate,
       'updatedAt': draft.updatedAt?.toIso8601String(),
     };
   }
