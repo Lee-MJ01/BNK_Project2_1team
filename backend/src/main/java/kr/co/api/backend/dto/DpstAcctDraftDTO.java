@@ -21,13 +21,10 @@ public class DpstAcctDraftDTO {
     private Integer dpstDraftMonth;
     private Integer dpstDraftStep;
     private String dpstDraftCurrency;
-    private String dpstDraftFxWithdrawCcy;
     private String dpstDraftLinkedAcctNo;
     private String dpstDraftAutoRenewYn;
     private Integer dpstDraftAutoRenewTerm;
     private String dpstDraftAutoTermiYn;
     private LocalDateTime dpstDraftUpdatedDt;
     private BigDecimal dpstDraftAmount;
-    private BigDecimal dpstDraftAppliedRate;
-    private BigDecimal dpstDraftAppliedFxRate;
 }
