@@ -9,15 +9,12 @@
         <result property="dpstDraftMonth" column="DPST_DRAFT_MONTH"/>
         <result property="dpstDraftStep" column="DPST_DRAFT_STEP"/>
         <result property="dpstDraftCurrency" column="DPST_DRAFT_CURRENCY"/>
-        <result property="dpstDraftFxWithdrawCcy" column="DPST_DRAFT_FX_WDRW_CCY"/>
         <result property="dpstDraftLinkedAcctNo" column="DPST_DRAFT_LINKED_ACCT_NO"/>
         <result property="dpstDraftAutoRenewYn" column="DPST_DRAFT_AUTO_RENEW_YN"/>
         <result property="dpstDraftAutoRenewTerm" column="DPST_DRAFT_AUTO_RENEW_TERM"/>
         <result property="dpstDraftAutoTermiYn" column="DPST_DRAFT_AUTO_TERMI_YN"/>
         <result property="dpstDraftUpdatedDt" column="DPST_DRAFT_UPDATED_DT"/>
         <result property="dpstDraftAmount" column="DPST_DRAFT_AMOUNT"/>
-        <result property="dpstDraftAppliedRate" column="DPST_DRAFT_APPLIED_RATE"/>
-        <result property="dpstDraftAppliedFxRate" column="DPST_DRAFT_APPLIED_FX_RATE"/>
     </resultMap>
 
     <select id="findLatestDraft" resultMap="DepositDraftMap">
@@ -39,30 +36,24 @@
             DPST_DRAFT_MONTH,
             DPST_DRAFT_STEP,
             DPST_DRAFT_CURRENCY,
-            DPST_DRAFT_FX_WDRW_CCY,
             DPST_DRAFT_LINKED_ACCT_NO,
             DPST_DRAFT_AUTO_RENEW_YN,
             DPST_DRAFT_AUTO_RENEW_TERM,
             DPST_DRAFT_AUTO_TERMI_YN,
             DPST_DRAFT_UPDATED_DT,
-            DPST_DRAFT_AMOUNT,
-            DPST_DRAFT_APPLIED_RATE,
-            DPST_DRAFT_APPLIED_FX_RATE
+            DPST_DRAFT_AMOUNT
         ) VALUES (
             #{dpstDraftDpstId},
             #{dpstDraftCustCode},
             #{dpstDraftMonth},
             #{dpstDraftStep},
             #{dpstDraftCurrency},
-            #{dpstDraftFxWithdrawCcy},
             #{dpstDraftLinkedAcctNo},
             #{dpstDraftAutoRenewYn},
             #{dpstDraftAutoRenewTerm},
             #{dpstDraftAutoTermiYn},
             SYSDATE,
-            #{dpstDraftAmount},
-            #{dpstDraftAppliedRate},
-            #{dpstDraftAppliedFxRate}
+            #{dpstDraftAmount}
         )
     </insert>
 
@@ -72,18 +63,16 @@
             DPST_DRAFT_MONTH = #{dpstDraftMonth},
             DPST_DRAFT_STEP = #{dpstDraftStep},
             DPST_DRAFT_CURRENCY = #{dpstDraftCurrency},
-            DPST_DRAFT_FX_WDRW_CCY = #{dpstDraftFxWithdrawCcy},
             DPST_DRAFT_LINKED_ACCT_NO = #{dpstDraftLinkedAcctNo},
             DPST_DRAFT_AUTO_RENEW_YN = #{dpstDraftAutoRenewYn},
             DPST_DRAFT_AUTO_RENEW_TERM = #{dpstDraftAutoRenewTerm},
             DPST_DRAFT_AUTO_TERMI_YN = #{dpstDraftAutoTermiYn},
             DPST_DRAFT_UPDATED_DT = SYSDATE,
-            DPST_DRAFT_AMOUNT = #{dpstDraftAmount},
-            DPST_DRAFT_APPLIED_RATE = #{dpstDraftAppliedRate},
-            DPST_DRAFT_APPLIED_FX_RATE = #{dpstDraftAppliedFxRate}
-        WHERE DPST_DRAFT_NO = #{dpstDraftNo}
+            DPST_DRAFT_AMOUNT = #{dpstDraftAmount}
+        WHERE TRIM(DPST_DRAFT_DPST_ID) = TRIM(#{dpstDraftDpstId})
           AND TRIM(DPST_DRAFT_CUST_CODE) = TRIM(#{dpstDraftCustCode})
     </update>
+
 
     <delete id="deleteDraft">
         DELETE FROM TB_DPST_ACCT_DRAFT
