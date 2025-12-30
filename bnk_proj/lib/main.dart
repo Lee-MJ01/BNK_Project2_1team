@@ -120,7 +120,7 @@ Future<void> main() async {
 
   if (token != null && token.isNotEmpty) {
     await sendTokenToServer(
-      baseUrl: "http://34.64.124.33:8080",
+      baseUrl: "https://flobank.kro.kr/backend/api/mobile",
       token: token,
       platform: "ANDROID",
       deviceId: deviceId,
@@ -135,7 +135,7 @@ Future<void> main() async {
     debugPrint('FCM token refreshed: $newToken');
 
     await sendTokenToServer(
-      baseUrl: "http://34.64.124.33:8080",
+      baseUrl: "https://flobank.kro.kr/backend/api/mobile",
       token: newToken,
       platform: "ANDROID",
       deviceId: deviceId,
@@ -165,15 +165,15 @@ Future<void> main() async {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
     await showForegroundNotification(message);
   });
-  
+
   // 음성 머신 시작점임
   // VoiceSessionController는 여기서 한 번만 생성
   final voiceController = VoiceSessionController(
-    stt: VoiceSttService(),
-    tts: VoiceTtsService(),
-    onSessionEnded: () {
-      VoiceOverlayManager.hide();
-    }
+      stt: VoiceSttService(),
+      tts: VoiceTtsService(),
+      onSessionEnded: () {
+        VoiceOverlayManager.hide();
+      }
   );
 
   runApp(
@@ -203,7 +203,7 @@ Future<void> sendTokenToServer({
   };
 
   final res = await http.post(
-    Uri.parse('$baseUrl/api/device-tokens'),
+    Uri.parse('$baseUrl/device-tokens'),
     headers: {
       "Content-Type": "application/json",
       if (jwt != null && jwt.isNotEmpty) "Authorization": "Bearer $jwt",
@@ -318,7 +318,7 @@ class _MyAppState extends State<MyApp> {
           final args = ModalRoute.of(context)!.settings.arguments;
 
           if (args is DepositApplication) {
-          
+
             return DepositStep2Screen(application: args);
           }
 
