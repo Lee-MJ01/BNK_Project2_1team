@@ -30,23 +30,16 @@ class DepositDraftService {
 
       if (remoteDraft != null) {
         _log('loadDraft: remote draft loaded', data: _draftLog(remoteDraft));
-        final mergedApplication = remoteDraft.application ??
-            _hydrateApplication(remoteDraft, fallback: localDraft?.application);
 
-        final merged = remoteDraft.copyWith(application: mergedApplication);
+        final mergedDraft = _mergeDrafts(
+          primary: _fresherOf(remoteDraft, localDraft),
+          secondary: remoteDraft == localDraft ? null : localDraft,
+        );
 
-        if (localDraft?.updatedAt != null &&
-            merged.updatedAt != null &&
-            localDraft!.updatedAt!.isAfter(merged.updatedAt!)) {
-          _log('loadDraft: local draft is fresher, prefer local',
-              data: _draftLog(localDraft));
-          return localDraft;
-        }
-
-        await _persistLocalDraft(merged);
-        _log('loadDraft: merged remote draft stored locally',
-            data: _draftLog(merged));
-        return merged;
+        await _persistLocalDraft(mergedDraft);
+        _log('loadDraft: merged draft stored locally',
+            data: _draftLog(mergedDraft));
+        return mergedDraft;
       }
     }
 
@@ -58,11 +51,13 @@ class DepositDraftService {
     required int step,
     String? customerCode,
   }) async {
+    final currency = application.newCurrency.trim();
+    final fxWithdrawCurrency = application.fxWithdrawCurrency?.trim();
+
     final draft = DepositDraft(
       dpstId: application.dpstId,
       customerCode: customerCode ?? application.customerCode,
-      currency:
-          application.newCurrency.isNotEmpty ? application.newCurrency : null,
+      currency: currency.isNotEmpty ? currency.toUpperCase() : null,
       month: application.newPeriodMonths,
       step: step,
       linkedAccountNo: application.withdrawType == 'fx'
@@ -72,7 +67,10 @@ class DepositDraftService {
       depositPassword: application.depositPassword.isNotEmpty
           ? application.depositPassword
           : null,
-      fxWithdrawCurrency: application.fxWithdrawCurrency,
+      fxWithdrawCurrency:
+          fxWithdrawCurrency != null && fxWithdrawCurrency.isNotEmpty
+              ? fxWithdrawCurrency.toUpperCase()
+              : null,
       amount: application.newAmount,
       autoRenewYn: application.autoRenew == 'apply',
       autoRenewTerm:
@@ -196,8 +194,6 @@ class DepositDraftService {
         'month': draft.month,
         'step': draft.step,
         'linkedAccountNo': draft.linkedAccountNo,
-        'withdrawPassword': _mask(draft.withdrawPassword),
-        'depositPassword': _mask(draft.depositPassword),
         'amount': draft.amount,
         'autoRenewYn': draft.autoRenewYn,
         'autoRenewTerm': draft.autoRenewTerm,
@@ -220,11 +216,7 @@ class DepositDraftService {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          ...payload,
-          'withdrawPassword': draft.withdrawPassword,
-          'depositPassword': draft.depositPassword,
-        }),
+        body: jsonEncode(payload),
       );
 
       _log('persistRemoteDraft: response', data: {
@@ -243,12 +235,7 @@ class DepositDraftService {
 
 
 
-  DepositApplication _hydrateApplication(
-    DepositDraft draft, {
-    DepositApplication? fallback,
-  }) {
-    if (fallback != null) return fallback;
-
+  DepositApplication _hydrateApplication(DepositDraft draft) {
     final inferredWithdrawType = draft.currency != null &&
             draft.currency!.toUpperCase() != 'KRW' &&
             draft.linkedAccountNo != null
@@ -314,10 +301,121 @@ class DepositDraftService {
     );
   }
 
-  String? _mask(String? value) {
-    if (value == null || value.isEmpty) return value;
-    final visible = value.length == 1 ? 1 : 2;
-    final masked = '*' * (value.length - visible);
-    return '$masked${value.substring(value.length - visible)}';
+  DepositDraft _mergeDrafts({
+    required DepositDraft? primary,
+    DepositDraft? secondary,
+  }) {
+    final effectivePrimary = primary ?? secondary;
+    final effectiveSecondary =
+        primary == null || identical(primary, secondary) ? null : secondary;
+
+    if (effectivePrimary == null) {
+      throw ArgumentError('At least one draft must be non-null');
+    }
+
+    final mergedApplication = _mergeApplications(
+      effectivePrimary.application ?? _hydrateApplication(effectivePrimary),
+      effectiveSecondary?.application,
+    );
+
+    final mergedDraft = effectivePrimary.copyWith(
+      currency: effectivePrimary.currency ?? effectiveSecondary?.currency,
+      month: effectivePrimary.month ?? effectiveSecondary?.month,
+      linkedAccountNo:
+          effectivePrimary.linkedAccountNo ?? effectiveSecondary?.linkedAccountNo,
+      withdrawPassword: effectivePrimary.withdrawPassword ??
+          effectiveSecondary?.withdrawPassword,
+      depositPassword:
+          effectivePrimary.depositPassword ?? effectiveSecondary?.depositPassword,
+      fxWithdrawCurrency: effectivePrimary.fxWithdrawCurrency ??
+          effectiveSecondary?.fxWithdrawCurrency,
+      amount: effectivePrimary.amount ?? effectiveSecondary?.amount,
+      autoRenewYn:
+          effectivePrimary.autoRenewYn || (effectiveSecondary?.autoRenewYn ?? false),
+      autoRenewTerm:
+          effectivePrimary.autoRenewTerm ?? effectiveSecondary?.autoRenewTerm,
+      autoTerminationYn: effectivePrimary.autoTerminationYn ||
+          (effectiveSecondary?.autoTerminationYn ?? false),
+      appliedRate: effectivePrimary.appliedRate ??
+          effectiveSecondary?.appliedRate,
+      appliedFxRate: effectivePrimary.appliedFxRate ??
+          effectiveSecondary?.appliedFxRate,
+      application: mergedApplication,
+      updatedAt: effectivePrimary.updatedAt ?? effectiveSecondary?.updatedAt,
+    );
+
+    return mergedDraft;
+  }
+
+  DepositApplication _mergeApplications(
+    DepositApplication primary,
+    DepositApplication? secondary,
+  ) {
+    if (secondary == null) return primary;
+
+    primary
+      ..customerCode ??= secondary.customerCode
+      ..customerName ??= secondary.customerName
+      ..withdrawType =
+          primary.withdrawType.isNotEmpty ? primary.withdrawType : secondary.withdrawType
+      ..selectedKrwAccount ??= secondary.selectedKrwAccount
+      ..selectedFxAccount ??= secondary.selectedFxAccount
+      ..fxWithdrawCurrency ??= secondary.fxWithdrawCurrency
+      ..withdrawPassword ??= secondary.withdrawPassword
+      ..newCurrency =
+          primary.newCurrency.isNotEmpty ? primary.newCurrency : secondary.newCurrency
+      ..newAmount ??= secondary.newAmount
+      ..newPeriodMonths ??= secondary.newPeriodMonths
+      ..autoRenew = primary.autoRenew.isNotEmpty ? primary.autoRenew : secondary.autoRenew
+      ..autoRenewCycle ??= secondary.autoRenewCycle
+      ..autoRenewCount ??= secondary.autoRenewCount
+      ..autoTerminateAtMaturity =
+          primary.autoTerminateAtMaturity || secondary.autoTerminateAtMaturity
+      ..appliedRate ??= secondary.appliedRate
+      ..appliedFxRate ??= secondary.appliedFxRate
+      ..addPaymentEnabled =
+          primary.addPaymentEnabled || secondary.addPaymentEnabled
+      ..addPaymentCount ??= secondary.addPaymentCount
+      ..partialWithdrawEnabled =
+          primary.partialWithdrawEnabled || secondary.partialWithdrawEnabled
+      ..partialWithdrawCount ??= secondary.partialWithdrawCount
+      ..depositPassword =
+          primary.depositPassword.isNotEmpty ? primary.depositPassword : secondary.depositPassword
+      ..dpstHdrStartDy ??= secondary.dpstHdrStartDy
+      ..dpstHdrFinDy ??= secondary.dpstHdrFinDy
+      ..dpstHdrCurrencyExp ??= secondary.dpstHdrCurrencyExp
+      ..dpstHdrLinkedAcctNo ??= secondary.dpstHdrLinkedAcctNo
+      ..dpstHdrLinkedAcctType ??= secondary.dpstHdrLinkedAcctType
+      ..dpstHdrAutoRenewYn = primary.dpstHdrAutoRenewYn.isNotEmpty
+          ? primary.dpstHdrAutoRenewYn
+          : secondary.dpstHdrAutoRenewYn
+      ..dpstHdrAutoRenewCnt =
+          primary.dpstHdrAutoRenewCnt != 0 ? primary.dpstHdrAutoRenewCnt : secondary.dpstHdrAutoRenewCnt
+      ..dpstHdrAutoRenewTerm ??= secondary.dpstHdrAutoRenewTerm
+      ..dpstHdrInfoAgreeYn ??= secondary.dpstHdrInfoAgreeYn
+      ..dpstHdrInfoAgreeDt ??= secondary.dpstHdrInfoAgreeDt
+      ..dpstHdrContractDt ??= secondary.dpstHdrContractDt
+      ..dpstHdrExpAcctNo ??= secondary.dpstHdrExpAcctNo
+      ..dpstHdrAddPayCnt =
+          primary.dpstHdrAddPayCnt != 0 ? primary.dpstHdrAddPayCnt : secondary.dpstHdrAddPayCnt
+      ..dpstHdrPartWdrwCnt ??= secondary.dpstHdrPartWdrwCnt
+      ..dpstHdrLinkedAcctBal ??= secondary.dpstHdrLinkedAcctBal
+      ..dpstDtlType = primary.dpstDtlType != 0 ? primary.dpstDtlType : secondary.dpstDtlType
+      ..dpstDtlEsignYn ??= secondary.dpstDtlEsignYn
+      ..dpstDtlEsignDt ??= secondary.dpstDtlEsignDt
+      ..product ??= secondary.product;
+
+    return primary;
+  }
+
+  DepositDraft? _fresherOf(DepositDraft? a, DepositDraft? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+
+    if (a.updatedAt == null && b.updatedAt == null) return a;
+    if (a.updatedAt == null) return b;
+    if (b.updatedAt == null) return a;
+
+    return a.updatedAt!.isAfter(b.updatedAt!) ? a : b;
   }
 }

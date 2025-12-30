@@ -17,16 +17,17 @@ import java.time.LocalDateTime;
 public class DpstAcctDraftDTO {
     private Long dpstDraftNo;
     private String dpstDraftDpstId;
-    private String dpstDraftPw;
     private String dpstDraftCustCode;
     private Integer dpstDraftMonth;
     private Integer dpstDraftStep;
     private String dpstDraftCurrency;
+    private String dpstDraftFxWithdrawCcy;
     private String dpstDraftLinkedAcctNo;
     private String dpstDraftAutoRenewYn;
     private Integer dpstDraftAutoRenewTerm;
     private String dpstDraftAutoTermiYn;
     private LocalDateTime dpstDraftUpdatedDt;
-    private String dpstDraftWdrwPw;
     private BigDecimal dpstDraftAmount;
+    private BigDecimal dpstDraftAppliedRate;
+    private BigDecimal dpstDraftAppliedFxRate;
 }

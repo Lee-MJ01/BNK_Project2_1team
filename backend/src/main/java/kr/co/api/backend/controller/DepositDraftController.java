@@ -122,16 +122,17 @@ public class DepositDraftController {
 
         draft.setDpstDraftDpstId(dpstId);
         draft.setDpstDraftCustCode(custCode);
-        draft.setDpstDraftPw(coalesceString(request.getDepositPassword(), draft.getDpstDraftPw()));
         draft.setDpstDraftMonth(coalesceInt(request.getMonth(), draft.getDpstDraftMonth(), 0));
         draft.setDpstDraftStep(coalesceInt(request.getStep(), draft.getDpstDraftStep(), 0));
-        draft.setDpstDraftCurrency(coalesceString(request.getCurrency(), draft.getDpstDraftCurrency()));
+        draft.setDpstDraftCurrency(coalesceCurrency(request.getCurrency(), draft.getDpstDraftCurrency()));
+        draft.setDpstDraftFxWithdrawCcy(coalesceCurrency(request.getFxWithdrawCurrency(), draft.getDpstDraftFxWithdrawCcy()));
         draft.setDpstDraftLinkedAcctNo(coalesceString(request.getLinkedAccountNo(), draft.getDpstDraftLinkedAcctNo()));
         draft.setDpstDraftAutoRenewYn(coalesceFlag(request.getAutoRenewYn(), draft.getDpstDraftAutoRenewYn()));
         draft.setDpstDraftAutoRenewTerm(coalesceInt(request.getAutoRenewTerm(), draft.getDpstDraftAutoRenewTerm(), 0));
         draft.setDpstDraftAutoTermiYn(coalesceFlag(request.getAutoTerminationYn(), draft.getDpstDraftAutoTermiYn()));
-        draft.setDpstDraftWdrwPw(coalesceString(request.getWithdrawPassword(), draft.getDpstDraftWdrwPw()));
         draft.setDpstDraftAmount(coalesceAmount(request.getAmount(), draft.getDpstDraftAmount()));
+        draft.setDpstDraftAppliedRate(coalesceAmount(request.getAppliedRate(), draft.getDpstDraftAppliedRate()));
+        draft.setDpstDraftAppliedFxRate(coalesceAmount(request.getAppliedFxRate(), draft.getDpstDraftAppliedFxRate()));
         return draft;
     }
 
@@ -144,15 +145,16 @@ public class DepositDraftController {
         response.setDpstId(draft.getDpstDraftDpstId());
         response.setCustomerCode(draft.getDpstDraftCustCode());
         response.setCurrency(nullIfBlank(draft.getDpstDraftCurrency()));
+        response.setFxWithdrawCurrency(nullIfBlank(draft.getDpstDraftFxWithdrawCcy()));
         response.setMonth(nullIfZero(draft.getDpstDraftMonth()));
         response.setStep(nullIfZero(draft.getDpstDraftStep()));
         response.setLinkedAccountNo(nullIfBlank(draft.getDpstDraftLinkedAcctNo()));
         response.setAutoRenewYn(defaultFlag(draft.getDpstDraftAutoRenewYn()));
         response.setAutoRenewTerm(nullIfZero(draft.getDpstDraftAutoRenewTerm()));
         response.setAutoTerminationYn(defaultFlag(draft.getDpstDraftAutoTermiYn()));
-        response.setWithdrawPassword(nullIfBlank(draft.getDpstDraftWdrwPw()));
-        response.setDepositPassword(nullIfBlank(draft.getDpstDraftPw()));
         response.setAmount(nullIfZero(draft.getDpstDraftAmount()));
+        response.setAppliedRate(nullIfZero(draft.getDpstDraftAppliedRate()));
+        response.setAppliedFxRate(nullIfZero(draft.getDpstDraftAppliedFxRate()));
         response.setUpdatedAt(draft.getDpstDraftUpdatedDt());
         return response;
     }
@@ -184,6 +186,7 @@ public class DepositDraftController {
     private Map<String, Object> sanitizeDraftRequest(DpstAcctDraftRequestDTO request) {
         Map<String, Object> sanitized = new HashMap<>();
         sanitized.put("currency", request.getCurrency());
+        sanitized.put("fxWithdrawCurrency", request.getFxWithdrawCurrency());
         sanitized.put("month", request.getMonth());
         sanitized.put("step", request.getStep());
         sanitized.put("linkedAccountNo", request.getLinkedAccountNo());
@@ -191,8 +194,8 @@ public class DepositDraftController {
         sanitized.put("autoRenewTerm", request.getAutoRenewTerm());
         sanitized.put("autoTerminationYn", request.getAutoTerminationYn());
         sanitized.put("amount", request.getAmount());
-        sanitized.put("withdrawPassword", maskSensitive(request.getWithdrawPassword()));
-        sanitized.put("depositPassword", maskSensitive(request.getDepositPassword()));
+        sanitized.put("appliedRate", request.getAppliedRate());
+        sanitized.put("appliedFxRate", request.getAppliedFxRate());
         return sanitized;
     }
 
@@ -203,7 +206,7 @@ public class DepositDraftController {
         }
 
         log.info(
-                "{} | draftNo={}, dpstId={}, custCode={}, month={}, step={}, currency={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}",
+                "{} | draftNo={}, dpstId={}, custCode={}, month={}, step={}, currency={}, fxWithdrawCcy={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}, appliedRate={}, appliedFxRate={}",
                 label,
                 draft.getDpstDraftNo(),
                 draft.getDpstDraftDpstId(),
@@ -211,11 +214,14 @@ public class DepositDraftController {
                 draft.getDpstDraftMonth(),
                 draft.getDpstDraftStep(),
                 draft.getDpstDraftCurrency(),
+                draft.getDpstDraftFxWithdrawCcy(),
                 draft.getDpstDraftLinkedAcctNo(),
                 draft.getDpstDraftAutoRenewYn(),
                 draft.getDpstDraftAutoRenewTerm(),
                 draft.getDpstDraftAutoTermiYn(),
-                draft.getDpstDraftAmount()
+                draft.getDpstDraftAmount(),
+                draft.getDpstDraftAppliedRate(),
+                draft.getDpstDraftAppliedFxRate()
         );
     }
 
@@ -224,6 +230,16 @@ public class DepositDraftController {
             return incoming;
         }
         return existing != null ? existing : "";
+    }
+
+    private String coalesceCurrency(String incoming, String existing) {
+        if (incoming != null && !incoming.isBlank()) {
+            return incoming.trim().toUpperCase();
+        }
+        if (existing != null && !existing.isBlank()) {
+            return existing;
+        }
+        return "";
     }
 
     private String coalesceFlag(Boolean incoming, String existing) {
@@ -272,14 +288,5 @@ public class DepositDraftController {
 
     private String defaultFlag(String value) {
         return (value == null || value.isBlank()) ? "N" : value;
-    }
-
-    private String maskSensitive(String value) {
-        if (value == null || value.isBlank()) {
-            return value;
-        }
-        int visible = Math.min(1, value.length());
-        String maskedSection = "*".repeat(Math.max(4, value.length() - visible));
-        return maskedSection + value.substring(value.length() - visible);
     }
 }

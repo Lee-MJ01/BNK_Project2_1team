@@ -13,14 +13,15 @@ public class DpstAcctDraftResponseDTO {
     private String dpstId;
     private String customerCode;
     private String currency;
+    private String fxWithdrawCurrency;
     private Integer month;
     private Integer step;
     private String linkedAccountNo;
     private String autoRenewYn;
     private Integer autoRenewTerm;
     private String autoTerminationYn;
-    private String withdrawPassword;
-    private String depositPassword;
     private BigDecimal amount;
+    private BigDecimal appliedRate;
+    private BigDecimal appliedFxRate;
     private LocalDateTime updatedAt;
 }
