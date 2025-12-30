@@ -125,14 +125,11 @@ public class DepositDraftController {
         draft.setDpstDraftMonth(coalesceInt(request.getMonth(), draft.getDpstDraftMonth(), 0));
         draft.setDpstDraftStep(coalesceInt(request.getStep(), draft.getDpstDraftStep(), 0));
         draft.setDpstDraftCurrency(coalesceCurrency(request.getCurrency(), draft.getDpstDraftCurrency()));
-        draft.setDpstDraftFxWithdrawCcy(coalesceCurrency(request.getFxWithdrawCurrency(), draft.getDpstDraftFxWithdrawCcy()));
         draft.setDpstDraftLinkedAcctNo(coalesceString(request.getLinkedAccountNo(), draft.getDpstDraftLinkedAcctNo()));
         draft.setDpstDraftAutoRenewYn(coalesceFlag(request.getAutoRenewYn(), draft.getDpstDraftAutoRenewYn()));
         draft.setDpstDraftAutoRenewTerm(coalesceInt(request.getAutoRenewTerm(), draft.getDpstDraftAutoRenewTerm(), 0));
         draft.setDpstDraftAutoTermiYn(coalesceFlag(request.getAutoTerminationYn(), draft.getDpstDraftAutoTermiYn()));
         draft.setDpstDraftAmount(coalesceAmount(request.getAmount(), draft.getDpstDraftAmount()));
-        draft.setDpstDraftAppliedRate(coalesceAmount(request.getAppliedRate(), draft.getDpstDraftAppliedRate()));
-        draft.setDpstDraftAppliedFxRate(coalesceAmount(request.getAppliedFxRate(), draft.getDpstDraftAppliedFxRate()));
         return draft;
     }
 
@@ -145,7 +142,6 @@ public class DepositDraftController {
         response.setDpstId(draft.getDpstDraftDpstId());
         response.setCustomerCode(draft.getDpstDraftCustCode());
         response.setCurrency(nullIfBlank(draft.getDpstDraftCurrency()));
-        response.setFxWithdrawCurrency(nullIfBlank(draft.getDpstDraftFxWithdrawCcy()));
         response.setMonth(nullIfZero(draft.getDpstDraftMonth()));
         response.setStep(nullIfZero(draft.getDpstDraftStep()));
         response.setLinkedAccountNo(nullIfBlank(draft.getDpstDraftLinkedAcctNo()));
@@ -153,8 +149,6 @@ public class DepositDraftController {
         response.setAutoRenewTerm(nullIfZero(draft.getDpstDraftAutoRenewTerm()));
         response.setAutoTerminationYn(defaultFlag(draft.getDpstDraftAutoTermiYn()));
         response.setAmount(nullIfZero(draft.getDpstDraftAmount()));
-        response.setAppliedRate(nullIfZero(draft.getDpstDraftAppliedRate()));
-        response.setAppliedFxRate(nullIfZero(draft.getDpstDraftAppliedFxRate()));
         response.setUpdatedAt(draft.getDpstDraftUpdatedDt());
         return response;
     }
@@ -186,7 +180,6 @@ public class DepositDraftController {
     private Map<String, Object> sanitizeDraftRequest(DpstAcctDraftRequestDTO request) {
         Map<String, Object> sanitized = new HashMap<>();
         sanitized.put("currency", request.getCurrency());
-        sanitized.put("fxWithdrawCurrency", request.getFxWithdrawCurrency());
         sanitized.put("month", request.getMonth());
         sanitized.put("step", request.getStep());
         sanitized.put("linkedAccountNo", request.getLinkedAccountNo());
@@ -194,8 +187,6 @@ public class DepositDraftController {
         sanitized.put("autoRenewTerm", request.getAutoRenewTerm());
         sanitized.put("autoTerminationYn", request.getAutoTerminationYn());
         sanitized.put("amount", request.getAmount());
-        sanitized.put("appliedRate", request.getAppliedRate());
-        sanitized.put("appliedFxRate", request.getAppliedFxRate());
         return sanitized;
     }
 
@@ -206,7 +197,7 @@ public class DepositDraftController {
         }
 
         log.info(
-                "{} | draftNo={}, dpstId={}, custCode={}, month={}, step={}, currency={}, fxWithdrawCcy={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}, appliedRate={}, appliedFxRate={}",
+                "{} | draftNo={}, dpstId={}, custCode={}, month={}, step={}, currency={}, linkedAcct={}, autoRenewYn={}, autoRenewTerm={}, autoTermiYn={}, amount={}",
                 label,
                 draft.getDpstDraftNo(),
                 draft.getDpstDraftDpstId(),
@@ -214,14 +205,11 @@ public class DepositDraftController {
                 draft.getDpstDraftMonth(),
                 draft.getDpstDraftStep(),
                 draft.getDpstDraftCurrency(),
-                draft.getDpstDraftFxWithdrawCcy(),
                 draft.getDpstDraftLinkedAcctNo(),
                 draft.getDpstDraftAutoRenewYn(),
                 draft.getDpstDraftAutoRenewTerm(),
                 draft.getDpstDraftAutoTermiYn(),
-                draft.getDpstDraftAmount(),
-                draft.getDpstDraftAppliedRate(),
-                draft.getDpstDraftAppliedFxRate()
+                draft.getDpstDraftAmount()
         );
     }
 
