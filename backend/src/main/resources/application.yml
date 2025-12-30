@@ -98,5 +98,11 @@ ai-server:
 ai-server-qna:
   url: http://34.64.84.82:8000/api/qna/auto_process
 
-firebase:
-  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+#firebase:
+# service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+
+
+logging:
+  level:
+    kr.co.api.backend.mapper.DepositMapper: DEBUG
+    org.mybatis: DEBUG

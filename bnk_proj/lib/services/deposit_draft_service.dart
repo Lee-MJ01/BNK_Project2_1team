@@ -96,7 +96,14 @@ class DepositDraftService {
     await _storage.delete(key: _key(dpstId));
 
     final token = await _storage.read(key: _tokenKey);
-    if (token == null) return;
+
+    developer.log("==== DRAFT TOKEN ====", name: 'DepositDraftService');
+    developer.log("TOKEN VALUE = $token", name: 'DepositDraftService');
+
+    if (token == null) {
+      developer.log("TOKEN IS NULL -> 서버 저장 안 보냄", name: 'DepositDraftService');
+      return;
+    }
 
     try {
       await _client.delete(
@@ -193,7 +200,14 @@ class DepositDraftService {
         'autoRenewTerm': draft.autoRenewTerm,
         'autoTerminationYn': draft.autoTerminationYn,
       };
-      _log('persistRemoteDraft: sending', data: payload);
+
+      _log('persistRemoteDraft: sending', data: {
+        'url': '$_draftEndpoint/${draft.dpstId}',
+        'method': 'PUT',
+        'tokenExists': token != null,
+        'payload': payload,
+      });
+
       final response = await _client.put(
         Uri.parse('$_draftEndpoint/${draft.dpstId}'),
         headers: {
@@ -207,8 +221,10 @@ class DepositDraftService {
         }),
       );
 
-      _log('persistRemoteDraft: response',
-          data: {'status': response.statusCode});
+      _log('persistRemoteDraft: response', data: {
+        'status': response.statusCode,
+        'body': response.body,
+      });
     } catch (e) {
       _log(
         'persistRemoteDraft: failed',
@@ -217,6 +233,9 @@ class DepositDraftService {
       // 서버 저장 실패 시 로컬 저장된 초안만 유지합니다.
     }
   }
+
+
+
 
   DepositApplication _hydrateApplication(
     DepositDraft draft, {

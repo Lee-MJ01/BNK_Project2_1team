@@ -157,6 +157,7 @@
             DPST_DRAFT_WDRW_PW = #{dpstDraftWdrwPw},
             DPST_DRAFT_AMOUNT = #{dpstDraftAmount}
         WHERE DPST_DRAFT_NO = #{dpstDraftNo}
+        AND TRIM(DPST_DRAFT_CUST_CODE) = TRIM(#{dpstDraftCustCode})
     </update>
 
     <delete id="deleteDepositDraft">

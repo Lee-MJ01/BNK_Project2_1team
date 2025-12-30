@@ -107,6 +107,8 @@ public class MobileDepositController {
         return ResponseEntity.ok(toDraftPayload(draft));
     }
 
+
+
     @PutMapping("/drafts/{dpstId}")
     @Transactional
     public ResponseEntity<Map<String, Object>> saveDepositDraft(
@@ -114,89 +116,68 @@ public class MobileDepositController {
             @RequestBody Map<String, Object> request,
             HttpServletRequest servletRequest
     ) {
-        CustInfoDTO user = resolveUser(servletRequest);
+        try {
+            log.info("==== [DepositDraft] PUT /drafts 호출됨 ====");
+            log.info("RAW REQUEST BODY = {}", request);
 
-        DpstAcctDraftDTO draft = Optional.ofNullable(
-                depositMapper.findDepositDraft(dpstId, user.getCustCode())
-        ).orElseGet(DpstAcctDraftDTO::new);
+            CustInfoDTO user = resolveUser(servletRequest);
 
-        Integer requestedStep = parseInt(request.get("step"));
-        log.info(
-                "[DepositDraft] Received save request | dpstId={}, custCode={}, payload={}",
-                dpstId,
-                user.getCustCode(),
-                sanitizeDraftRequest(request)
-        );
-        log.info(
-                "[DepositDraft] Saving draft | dpstId={}, custCode={}, incomingStep={}, existingDraftNo={}",
-                dpstId,
-                user.getCustCode(),
-                requestedStep,
-                draft.getDpstDraftNo()
-        );
+            DpstAcctDraftDTO draft = Optional.ofNullable(
+                    depositMapper.findDepositDraft(dpstId, user.getCustCode())
+            ).orElseGet(DpstAcctDraftDTO::new);
 
-        draft.setDpstDraftDpstId(dpstId);
-        draft.setDpstDraftCustCode(user.getCustCode());
-        draft.setDpstDraftPw(asString(request.get("depositPassword")));
-        draft.setDpstDraftMonth(parseInt(request.get("month")));
-        draft.setDpstDraftStep(requestedStep);
-        draft.setDpstDraftCurrency(asString(request.get("currency")));
-        draft.setDpstDraftLinkedAcctNo(asString(request.get("linkedAccountNo")));
-        draft.setDpstDraftAutoRenewYn(asBooleanFlag(request.get("autoRenewYn")));
-        draft.setDpstDraftAutoRenewTerm(parseInt(request.get("autoRenewTerm")));
-        draft.setDpstDraftAutoTermiYn(asBooleanFlag(request.get("autoTerminationYn")));
-        draft.setDpstDraftWdrwPw(asString(request.get("withdrawPassword")));
-        draft.setDpstDraftAmount(parseNullableBigDecimal(request.get("amount")));
+            Integer requestedStep = parseInt(request.get("step"));
 
-        logDraftState("[DepositDraft] Prepared draft for persistence", draft);
-
-        if (draft.getDpstDraftNo() == null) {
-            int inserted = depositMapper.insertDepositDraft(draft);
             log.info(
-                    "[DepositDraft] Insert attempt | dpstId={}, custCode={}, insertedRows={}",
+                    "[DepositDraft] Received save request | dpstId={}, custCode={}, payload={}",
                     dpstId,
                     user.getCustCode(),
-                    inserted
-            );
-            if (inserted == 0) {
-                log.warn(
-                        "[DepositDraft] Insert affected 0 rows | dpstId={}, custCode={}, payload={}",
-                        dpstId,
-                        user.getCustCode(),
-                        sanitizeDraftRequest(request)
-                );
-            }
-            log.info(
-                    "[DepositDraft] Inserted new draft | dpstId={}, custCode={}",
-                    dpstId,
-                    user.getCustCode()
+                    sanitizeDraftRequest(request)
             );
 
-        } else {
-            int updated = depositMapper.updateDepositDraft(draft);
             log.info(
-                    "[DepositDraft] Updated draft | draftNo={}, dpstId={}, custCode={}, updatedRows={}",
-                    draft.getDpstDraftNo(),
+                    "[DepositDraft] Saving draft | dpstId={}, custCode={}, incomingStep={}, existingDraftNo={}",
                     dpstId,
                     user.getCustCode(),
-                    updated
+                    requestedStep,
+                    draft.getDpstDraftNo()
             );
-            if (updated == 0) {
-                log.warn(
-                        "[DepositDraft] Update affected 0 rows | draftNo={}, dpstId={}, custCode={}, payload={}",
-                        draft.getDpstDraftNo(),
-                        dpstId,
-                        user.getCustCode(),
-                        sanitizeDraftRequest(request)
-                );
+
+            draft.setDpstDraftDpstId(dpstId);
+            draft.setDpstDraftCustCode(user.getCustCode());
+            draft.setDpstDraftPw(asString(request.get("depositPassword")));
+            draft.setDpstDraftMonth(parseInt(request.get("month")));
+            draft.setDpstDraftStep(requestedStep);
+            draft.setDpstDraftCurrency(asString(request.get("currency")));
+            draft.setDpstDraftLinkedAcctNo(asString(request.get("linkedAccountNo")));
+            draft.setDpstDraftAutoRenewYn(asBooleanFlag(request.get("autoRenewYn")));
+            draft.setDpstDraftAutoRenewTerm(parseInt(request.get("autoRenewTerm")));
+            draft.setDpstDraftAutoTermiYn(asBooleanFlag(request.get("autoTerminationYn")));
+            draft.setDpstDraftWdrwPw(asString(request.get("withdrawPassword")));
+            draft.setDpstDraftAmount(parseNullableBigDecimal(request.get("amount")));
+
+            logDraftState("[DepositDraft] Prepared draft for persistence", draft);
+
+            if (draft.getDpstDraftNo() == null) {
+                int inserted = depositMapper.insertDepositDraft(draft);
+                log.info("[DepositDraft] Insert attempt | insertedRows={}", inserted);
+            } else {
+                int updated = depositMapper.updateDepositDraft(draft);
+                log.info("[DepositDraft] Update attempt | updatedRows={}", updated);
             }
+
+            DpstAcctDraftDTO saved = depositMapper.findDepositDraft(dpstId, user.getCustCode());
+            logDraftState("[DepositDraft] Persisted draft", saved);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(toDraftPayload(saved));
+
+        } catch (Exception e) {
+            log.error("[DepositDraft] ERROR OCCURRED", e);
+            throw e;
         }
-
-        DpstAcctDraftDTO saved = depositMapper.findDepositDraft(dpstId, user.getCustCode());
-        logDraftState("[DepositDraft] Persisted draft", saved);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDraftPayload(saved));
     }
+
+
 
     /**
      * 전자서명 완료 후 이어가기 임시 저장본을 완전히 제거한다.
