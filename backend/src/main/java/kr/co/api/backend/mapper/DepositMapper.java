@@ -49,7 +49,7 @@ public interface DepositMapper {
 
     DpstAcctDraftDTO findDepositDraft(@Param("dpstId") String dpstId, @Param("custCode") String custCode);
 
-    void insertDepositDraft(DpstAcctDraftDTO draft);
+    int insertDepositDraft(DpstAcctDraftDTO draft);
 
     int updateDepositDraft(DpstAcctDraftDTO draft);
 

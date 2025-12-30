@@ -87,6 +87,12 @@ public class MobileDepositController {
     ) {
         CustInfoDTO user = resolveUser(request);
 
+        log.info(
+                "[DepositDraft] Incoming draft fetch | dpstId={}, custCode={}",
+                dpstId,
+                user.getCustCode()
+        );
+
         log.info("[DepositDraft] Fetching draft | dpstId={}, custCode={}", dpstId, user.getCustCode());
 
         DpstAcctDraftDTO draft = depositMapper.findDepositDraft(dpstId, user.getCustCode());
@@ -116,6 +122,12 @@ public class MobileDepositController {
 
         Integer requestedStep = parseInt(request.get("step"));
         log.info(
+                "[DepositDraft] Received save request | dpstId={}, custCode={}, payload={}",
+                dpstId,
+                user.getCustCode(),
+                sanitizeDraftRequest(request)
+        );
+        log.info(
                 "[DepositDraft] Saving draft | dpstId={}, custCode={}, incomingStep={}, existingDraftNo={}",
                 dpstId,
                 user.getCustCode(),
@@ -139,7 +151,21 @@ public class MobileDepositController {
         logDraftState("[DepositDraft] Prepared draft for persistence", draft);
 
         if (draft.getDpstDraftNo() == null) {
-            depositMapper.insertDepositDraft(draft);
+            int inserted = depositMapper.insertDepositDraft(draft);
+            log.info(
+                    "[DepositDraft] Insert attempt | dpstId={}, custCode={}, insertedRows={}",
+                    dpstId,
+                    user.getCustCode(),
+                    inserted
+            );
+            if (inserted == 0) {
+                log.warn(
+                        "[DepositDraft] Insert affected 0 rows | dpstId={}, custCode={}, payload={}",
+                        dpstId,
+                        user.getCustCode(),
+                        sanitizeDraftRequest(request)
+                );
+            }
             log.info(
                     "[DepositDraft] Inserted new draft | dpstId={}, custCode={}",
                     dpstId,
@@ -155,6 +181,15 @@ public class MobileDepositController {
                     user.getCustCode(),
                     updated
             );
+            if (updated == 0) {
+                log.warn(
+                        "[DepositDraft] Update affected 0 rows | draftNo={}, dpstId={}, custCode={}, payload={}",
+                        draft.getDpstDraftNo(),
+                        dpstId,
+                        user.getCustCode(),
+                        sanitizeDraftRequest(request)
+                );
+            }
         }
 
         DpstAcctDraftDTO saved = depositMapper.findDepositDraft(dpstId, user.getCustCode());
@@ -193,9 +228,12 @@ public class MobileDepositController {
             @RequestBody Map<String, Object> request,
             HttpServletRequest servletRequest
     ) {
-        log.info("[APPLY] request={}", request);
-
         CustInfoDTO user = resolveUser(servletRequest);
+        log.info(
+                "[APPLY] request sanitized | custCode={}, payload={}",
+                user.getCustCode(),
+                sanitizeApplyRequest(request)
+        );
 
         String dpstId = asString(request.get("dpstId"));
         if (dpstId.isBlank()) {
@@ -577,6 +615,37 @@ public class MobileDepositController {
                 draft.getDpstDraftAutoTermiYn(),
                 draft.getDpstDraftAmount()
         );
+    }
+
+    private Map<String, Object> sanitizeDraftRequest(Map<String, Object> request) {
+        Map<String, Object> sanitized = new HashMap<>();
+        sanitized.put("currency", request.get("currency"));
+        sanitized.put("month", request.get("month"));
+        sanitized.put("step", request.get("step"));
+        sanitized.put("linkedAccountNo", request.get("linkedAccountNo"));
+        sanitized.put("autoRenewYn", request.get("autoRenewYn"));
+        sanitized.put("autoRenewTerm", request.get("autoRenewTerm"));
+        sanitized.put("autoTerminationYn", request.get("autoTerminationYn"));
+        sanitized.put("amount", request.get("amount"));
+        sanitized.put("withdrawPassword", maskSensitive(asString(request.get("withdrawPassword"))));
+        sanitized.put("depositPassword", maskSensitive(asString(request.get("depositPassword"))));
+        return sanitized;
+    }
+
+    private Map<String, Object> sanitizeApplyRequest(Map<String, Object> request) {
+        Map<String, Object> sanitized = new HashMap<>(request);
+        sanitized.put("withdrawPassword", maskSensitive(asString(request.get("withdrawPassword"))));
+        sanitized.put("depositPassword", maskSensitive(asString(request.get("depositPassword"))));
+        return sanitized;
+    }
+
+    private String maskSensitive(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        int visible = Math.min(1, value.length());
+        String maskedSection = "*".repeat(Math.max(4, value.length() - visible));
+        return maskedSection + value.substring(value.length() - visible);
     }
 
 }

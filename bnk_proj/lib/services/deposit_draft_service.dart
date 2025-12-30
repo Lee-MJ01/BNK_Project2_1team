@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,7 @@ import 'deposit_service.dart';
 
 /// 외화예금 가입 진행 상황을 임시 저장/조회하는 로컬+원격 서비스
 class DepositDraftService {
-   DepositDraftService();
+  DepositDraftService();
 
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'auth_token';
@@ -20,6 +21,7 @@ class DepositDraftService {
   String _key(String dpstId) => 'deposit_draft_$dpstId';
 
   Future<DepositDraft?> loadDraft(String dpstId) async {
+    _log('loadDraft: start', data: {'dpstId': dpstId});
     final localDraft = await _loadLocalDraft(dpstId);
     final token = await _storage.read(key: _tokenKey);
 
@@ -27,6 +29,7 @@ class DepositDraftService {
       final remoteDraft = await _loadRemoteDraft(dpstId, token);
 
       if (remoteDraft != null) {
+        _log('loadDraft: remote draft loaded', data: _draftLog(remoteDraft));
         final mergedApplication = remoteDraft.application ??
             _hydrateApplication(remoteDraft, fallback: localDraft?.application);
 
@@ -35,10 +38,14 @@ class DepositDraftService {
         if (localDraft?.updatedAt != null &&
             merged.updatedAt != null &&
             localDraft!.updatedAt!.isAfter(merged.updatedAt!)) {
+          _log('loadDraft: local draft is fresher, prefer local',
+              data: _draftLog(localDraft));
           return localDraft;
         }
 
         await _persistLocalDraft(merged);
+        _log('loadDraft: merged remote draft stored locally',
+            data: _draftLog(merged));
         return merged;
       }
     }
@@ -54,17 +61,17 @@ class DepositDraftService {
     final draft = DepositDraft(
       dpstId: application.dpstId,
       customerCode: customerCode ?? application.customerCode,
-      currency: application.newCurrency.isNotEmpty
-          ? application.newCurrency
-          : null,
+      currency:
+          application.newCurrency.isNotEmpty ? application.newCurrency : null,
       month: application.newPeriodMonths,
       step: step,
       linkedAccountNo: application.withdrawType == 'fx'
           ? application.selectedFxAccount
           : application.selectedKrwAccount,
       withdrawPassword: application.withdrawPassword,
-      depositPassword:
-          application.depositPassword.isNotEmpty ? application.depositPassword : null,
+      depositPassword: application.depositPassword.isNotEmpty
+          ? application.depositPassword
+          : null,
       amount: application.newAmount,
       autoRenewYn: application.autoRenew == 'apply',
       autoRenewTerm:
@@ -76,6 +83,7 @@ class DepositDraftService {
       application: application,
     );
 
+    _log('saveDraft: composed draft', data: _draftLog(draft));
     await _persistLocalDraft(draft);
     await _persistRemoteDraft(draft);
 
@@ -103,13 +111,18 @@ class DepositDraftService {
   }
 
   Future<DepositDraft?> _loadLocalDraft(String dpstId) async {
+    _log('loadLocalDraft: reading', data: {'dpstId': dpstId});
     final raw = await _storage.read(key: _key(dpstId));
     if (raw == null) return null;
 
     try {
       final map = jsonDecode(raw) as Map<String, dynamic>;
-      return DepositDraft.fromJson(map);
-    } catch (_) {
+      final draft = DepositDraft.fromJson(map);
+      _log('loadLocalDraft: decoded', data: _draftLog(draft));
+      return draft;
+    } catch (error) {
+      _log('loadLocalDraft: failed to decode local draft',
+          data: {'dpstId': dpstId, 'error': error.toString()});
       return null;
     }
   }
@@ -119,10 +132,12 @@ class DepositDraftService {
       key: _key(draft.dpstId),
       value: jsonEncode(draft.toJson()),
     );
+    _log('persistLocalDraft: saved', data: _draftLog(draft));
   }
 
   Future<DepositDraft?> _loadRemoteDraft(String dpstId, String token) async {
     try {
+      _log('loadRemoteDraft: requesting', data: {'dpstId': dpstId});
       final response = await _client.get(
         Uri.parse('$_draftEndpoint/$dpstId'),
         headers: {
@@ -135,56 +150,75 @@ class DepositDraftService {
             as Map<String, dynamic>;
 
         var draft = DepositDraft.fromJson(map);
+        _log('loadRemoteDraft: response parsed',
+            data: _draftLog(draft)..addAll({'status': response.statusCode}));
 
         if (draft.application == null) {
           draft = draft.copyWith(application: _hydrateApplication(draft));
         }
 
         return draft;
+      } else {
+        _log(
+          'loadRemoteDraft: non-200 response',
+          data: {'dpstId': dpstId, 'status': response.statusCode},
+        );
       }
-    } catch (_) {
+    } catch (error) {
+      _log(
+        'loadRemoteDraft: request failed',
+        data: {'dpstId': dpstId, 'error': error.toString()},
+      );
       // DB 연결 또는 네트워크 오류는 이어가기 기능을 막지 않습니다.
     }
 
     return null;
   }
 
+  Future<void> _persistRemoteDraft(DepositDraft draft) async {
+    final token = await _storage.read(key: _tokenKey);
+    if (token == null) return;
 
-   Future<void> _persistRemoteDraft(DepositDraft draft) async {
-     final token = await _storage.read(key: _tokenKey);
-     if (token == null) return;
+    try {
+      final payload = {
+        'customerCode': draft.customerCode,
+        'currency': draft.currency,
+        'month': draft.month,
+        'step': draft.step,
+        'linkedAccountNo': draft.linkedAccountNo,
+        'withdrawPassword': _mask(draft.withdrawPassword),
+        'depositPassword': _mask(draft.depositPassword),
+        'amount': draft.amount,
+        'autoRenewYn': draft.autoRenewYn,
+        'autoRenewTerm': draft.autoRenewTerm,
+        'autoTerminationYn': draft.autoTerminationYn,
+      };
+      _log('persistRemoteDraft: sending', data: payload);
+      final response = await _client.put(
+        Uri.parse('$_draftEndpoint/${draft.dpstId}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          ...payload,
+          'withdrawPassword': draft.withdrawPassword,
+          'depositPassword': draft.depositPassword,
+        }),
+      );
 
-     try {
-       final response = await _client.put(
-         Uri.parse('$_draftEndpoint/${draft.dpstId}'),
-         headers: {
-           'Authorization': 'Bearer $token',
-           'Content-Type': 'application/json',
-         },
-         body: jsonEncode({
-           'customerCode': draft.customerCode,
-           'currency': draft.currency,
-           'month': draft.month,
-           'step': draft.step,
-           'linkedAccountNo': draft.linkedAccountNo,
-           'withdrawPassword': draft.withdrawPassword,
-           'depositPassword': draft.depositPassword,
-           'amount': draft.amount,
-           'autoRenewYn': draft.autoRenewYn,
-           'autoRenewTerm': draft.autoRenewTerm,
-           'autoTerminationYn': draft.autoTerminationYn,
-         }),
-       );
+      _log('persistRemoteDraft: response',
+          data: {'status': response.statusCode});
+    } catch (e) {
+      _log(
+        'persistRemoteDraft: failed',
+        data: {'dpstId': draft.dpstId, 'error': e.toString()},
+      );
+      // 서버 저장 실패 시 로컬 저장된 초안만 유지합니다.
+    }
+  }
 
-
-     } catch (e) {
-       // 서버 저장 실패 시 로컬 저장된 초안만 유지합니다.
-
-     }
-   }
-
-
-   DepositApplication _hydrateApplication(
+  DepositApplication _hydrateApplication(
     DepositDraft draft, {
     DepositApplication? fallback,
   }) {
@@ -223,5 +257,36 @@ class DepositDraftService {
       ..finalAgree = true;
 
     return application;
+  }
+
+  Map<String, dynamic> _draftLog(DepositDraft draft) {
+    return {
+      'dpstId': draft.dpstId,
+      'draftNo': draft.draftNo,
+      'customerCode': draft.customerCode,
+      'step': draft.step,
+      'currency': draft.currency,
+      'linkedAccountNo': draft.linkedAccountNo,
+      'amount': draft.amount,
+      'autoRenewYn': draft.autoRenewYn,
+      'autoRenewTerm': draft.autoRenewTerm,
+      'autoTerminationYn': draft.autoTerminationYn,
+      'updatedAt': draft.updatedAt?.toIso8601String(),
+    };
+  }
+
+  void _log(String message, {Map<String, dynamic>? data}) {
+    final serialized = data != null ? jsonEncode(data) : null;
+    developer.log(
+      serialized != null ? '$message | $serialized' : message,
+      name: 'DepositDraftService',
+    );
+  }
+
+  String? _mask(String? value) {
+    if (value == null || value.isEmpty) return value;
+    final visible = value.length == 1 ? 1 : 2;
+    final masked = '*' * (value.length - visible);
+    return '$masked${value.substring(value.length - visible)}';
   }
 }
