@@ -24,7 +24,7 @@ spring:
   #  profiles:
   #    active: dev
   elasticsearch:
-    uris: http://34.64.225.88:9200
+    uris: http://34.64.251.211:9200
     username: elastic
     password: bnk1234!
 
@@ -45,13 +45,13 @@ spring:
             trust: smtp.gmail.com
   data:
     redis:
-      host: 34.64.225.88
+      host: 34.64.251.211
       port: 6379
 
 
 flobank:
   ap:
-    host: 34.64.225.88
+    host: 34.64.251.211
     port: 9090
   aes:
     secret: ${AES_SECRET}

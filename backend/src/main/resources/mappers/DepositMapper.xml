@@ -373,7 +373,7 @@
         #{tranRecName},
         #{tranRecBkCode},
         #{tranEsignYn},
-        TO_TIMESTAMP(#{tranEsignDt}, 'YYYY-MM-DD HH24:MI:SS.FF3'),
+        SYSDATE,
         SYSDATE,
         #{tranCurrency}
         )

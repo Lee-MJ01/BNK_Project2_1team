@@ -91,6 +91,7 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -441,7 +442,7 @@ class _DepositSignatureScreenState extends State<DepositSignatureScreen> {
 
     setState(() {
       _certificateImage = data.buffer.asUint8List();
-      widget.application.signatureImage = _certificateImage;
+      widget.application.signatureImage = null;
       widget.application.signatureMethod = _selectedMethod;
       widget.application.signedAt = DateTime.now();
       _step = AuthStep.completed;
