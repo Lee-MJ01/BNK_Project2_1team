@@ -13,7 +13,7 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
   final TextEditingController _ctrl = TextEditingController();
   List<dynamic> results = [];
 
-  static const String jusoKey = 'devU01TX0FVVEgyMDI1MTIxNTE5NDEzNjExNjU3MjI=';
+  static const String jusoKey = 'devU01TX0FVVEgyMDI2MDEwMjEyMjc0ODExNzM4Mjc=';
 
   Future<void> search(String query) async {
     final filtered = filterKeyword(query);
@@ -33,6 +33,8 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
 
     final resultsObj = body['results'];
     final common = resultsObj['common'];
+    debugPrint('COMMON => $common');
+    debugPrint('BODY => $body');
 
     if (common['errorCode'] != '0') {
       setState(() {
@@ -53,7 +55,10 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('주소 검색')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: const Text('주소 검색')),
       body: Column(
         children: [
           Padding(

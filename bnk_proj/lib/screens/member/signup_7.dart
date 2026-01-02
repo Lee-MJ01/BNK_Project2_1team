@@ -88,7 +88,9 @@ class _AgreementPageState extends State<AgreementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text("약관 동의"),
       ),
 

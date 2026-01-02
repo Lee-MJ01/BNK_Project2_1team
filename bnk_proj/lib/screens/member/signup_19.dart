@@ -360,6 +360,7 @@ class _ExtraInfoPageState extends State<ExtraInfoPage> {
     String temp = selected;
 
     await showModalBottomSheet(
+      backgroundColor: Colors.white,
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(

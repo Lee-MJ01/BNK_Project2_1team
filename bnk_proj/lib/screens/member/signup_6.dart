@@ -13,9 +13,11 @@ class SignUp6Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: BackButton(),
         title: const Text("회원가입"),
+        backgroundColor: Colors.white,
         actions: [
           TextButton(
             onPressed: () {},
@@ -45,7 +47,7 @@ class SignUp6Page extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.mainPaleBlue.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.black12),
                   ),

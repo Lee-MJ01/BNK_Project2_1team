@@ -362,7 +362,7 @@ class _AgreementSheetState extends State<AgreementSheet> {
                     const SizedBox(height: 26),
 
                     // [선택] 섹션
-                    const Text("KB스타클럽멤버십 서비스 약관 등 동의사항 [선택]",
+                    const Text("플로뱅크 멤버십 서비스 약관 등 동의사항 [선택]",
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),

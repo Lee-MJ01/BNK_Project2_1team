@@ -24,7 +24,9 @@ class _SignUp8PageState extends State<SignUp8Page> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: const BackButton(),
         title: const Text("회원가입"),
         actions: [
