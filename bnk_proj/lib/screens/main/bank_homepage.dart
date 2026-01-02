@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:test_main/screens/deposit/list.dart';
 import 'package:test_main/screens/main/search.dart';
@@ -30,6 +31,10 @@ import '../exchange/forex_insight.dart';
 import 'alarm.dart';
 import 'package:test_main/screens/main/live_camera.dart';
 import '../chat/chat.dart';
+
+
+const _voiceTermsAgreedKey = "voice_terms_agreed";
+const FlutterSecureStorage _voiceTermsStorage = FlutterSecureStorage();
 
 class RateDTO {
   final String rhistCurrency;
@@ -125,7 +130,8 @@ class _BankHomePageState extends State<BankHomePage> {
   }
 
 
-  void _openVoiceOverlay() {
+  Future<void> _openVoiceOverlay() async {
+    await _voiceController.resetSession();
     _voiceController.attachOverlay(); // 최초 1회만 START
 
     VoiceOverlayManager.show(
@@ -841,15 +847,15 @@ class ServiceHighlight {
   final dynamic icon;
   final String title;
   final String description;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
 }
 
-List<ServiceHighlight> buildAiAndFxServices(BuildContext context, VoidCallback onOpenVoice) => [
+List<ServiceHighlight> buildAiAndFxServices(BuildContext context, Future<void> Function() onOpenVoice) => [
   ServiceHighlight(
     icon: Icons.photo_camera_front_outlined,
     title: 'AI 카메라 환율 변환',
     description: '영수증·가격표를 촬영해 즉시 원화 금액을 받아보세요.',
-    onTap: () {
+    onTap: () async {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -866,7 +872,7 @@ List<ServiceHighlight> buildAiAndFxServices(BuildContext context, VoidCallback o
       final agreed = await _ensureVoiceTermsAgreed(context);
       if (!agreed) return;
 
-      onOpenVoice();
+      await onOpenVoice();
     },
 
   ),
@@ -896,7 +902,7 @@ List<ServiceHighlight> buildAiAndFxServices(BuildContext context, VoidCallback o
   ),
 ];
 
-void _noop() {}
+Future<void> _noop() async {}
 
 Widget _QuickMenu(String title, dynamic iconOrImage, {VoidCallback? onTap}) {
   return GestureDetector(
@@ -932,10 +938,10 @@ Widget _QuickMenu(String title, dynamic iconOrImage, {VoidCallback? onTap}) {
 }
 
 Future<bool> _ensureVoiceTermsAgreed(BuildContext context) async {
-  // TODO: 실제로는 SharedPreferences / SecureStorage
-  bool alreadyAgreed = false;
 
-  if (alreadyAgreed) return true;
+  final alreadyAgreed = await _voiceTermsStorage.read(key: _voiceTermsAgreedKey);
+
+  if (alreadyAgreed == 'true') return true;
 
   final result = await showModalBottomSheet<bool>(
     context: context,
@@ -944,7 +950,12 @@ Future<bool> _ensureVoiceTermsAgreed(BuildContext context) async {
     builder: (_) => const VoiceTermsSheet(),
   );
 
-  return result == true;
+  if (result == true) {
+    await _voiceTermsStorage.write(key: _voiceTermsAgreedKey, value: 'true');
+    return true;
+  }
+
+  return false;
 }
 
 

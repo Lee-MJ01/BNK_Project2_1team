@@ -15,6 +15,8 @@ enum Intent {
   proceed,    // 다음
   confirm,    // 최종 확정
 
+  reset,
+
   // --- 흐름 제어 ---
   reqBack,
   reqCancel,
@@ -46,6 +48,9 @@ enum Intent {
         return Intent.proceed;
       case 'CONFIRM':
         return Intent.confirm;
+
+      case 'RESET':
+        return Intent.reset;
 
       case 'REQ_BACK':
         return Intent.reqBack;

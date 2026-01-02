@@ -73,6 +73,14 @@ class VoiceSessionController {
     uiState.value = VoiceUiState.idle;
   }
 
+  Future<void> resetSession() async {
+    _cleanup();
+
+    _sessionId ??= _generateSessionId();
+
+    await sendClientIntent(intent: Intent.reset);
+  }
+
   Future<void> endSession() async {
     _cleanup();
     onSessionEnded?.call();
@@ -121,6 +129,13 @@ class VoiceSessionController {
 
   Future<void> _handleServerResponse(VoiceResDTO res) async {
     _state = res.currentState;
+
+    if (res.intent == Intent.reset) {
+      uiState.value = VoiceUiState.idle;
+      navCommand.value = null;
+      lastResponse.value = res;
+      return;
+    }
 
     final nav = _resolveNav(res);
     if (nav != null) {
@@ -256,8 +271,19 @@ class VoiceSessionController {
   }
 
 
-  void _cleanup() {
+  void _cleanup({bool dropSessionId = false}) {
     _stt.stop();
+
+    if (dropSessionId) {
+      _sessionId = null;
+    }
+    _state = VoiceState.s0Idle;
+    _started = false;
+
+    uiState.value = VoiceUiState.idle;
+    navCommand.value = null;
+    lastResponse.value = null;
+    volume.value = 0.0;
   }
 
 }

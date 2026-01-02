@@ -37,6 +37,14 @@ public class VoiceFlowService {
                 : intentService.classify(req);
         log.info("🎯 [VOICE] resolvedIntent={}", intent);
 
+        /// 음성 가이드 리셋 ///
+        if (intent == VoiceIntent.RESET) {
+            voiceSessionService.clear(sessionId);
+            voiceSessionService.updateState(sessionId, VoiceState.S0_IDLE);
+            return buildResponse(intent, VoiceState.S0_IDLE, null,
+                    "RESET", null, null);
+        }
+
         if (currentState.ordinal() <= VoiceState.S2_PROD_EXPLAIN.ordinal()
                 && req.getText() != null
                 && req.getDpstId() == null) {

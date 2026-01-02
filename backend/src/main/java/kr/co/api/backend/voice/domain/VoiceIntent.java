@@ -14,6 +14,8 @@ public enum VoiceIntent {
     PROCEED,
     CONFIRM,
 
+    RESET,
+
     REQ_BACK,
     REQ_CANCEL,
 

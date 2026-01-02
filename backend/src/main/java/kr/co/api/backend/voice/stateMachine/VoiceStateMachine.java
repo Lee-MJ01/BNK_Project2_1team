@@ -13,6 +13,9 @@ public class VoiceStateMachine {
             VoiceIntent intent,
             VoiceContext ctx
     ) {
+        if (intent == VoiceIntent.RESET) {
+            return VoiceState.S0_IDLE;
+        }
 
         return switch (current) {
 
