@@ -13,49 +13,37 @@ import '../ui/voice_nav_command.dart';
 import '../ui/voice_ui_state.dart';
 
 class VoiceSessionController {
+
+
   VoiceState _state = VoiceState.s0Idle;
+  String? _sessionId;
+  bool _started = false; // idle 최초 진입 여부
+
+  bool get isSessionActive => _sessionId != null && _started;
+
   final VoidCallback? onSessionEnded;
-  Future<void> endSession() async {
-    _cleanup();
-    onSessionEnded?.call();
-  }
 
-  // 🔹 UI 상태
-  final ValueNotifier<VoiceUiState> uiState =
-  ValueNotifier(VoiceUiState.idle);
 
-  // 🔹 음성 볼륨 (파형용)
-  final ValueNotifier<double> volume =
-  ValueNotifier(0.0);
 
-  final ValueNotifier<VoiceNavCommand?> navCommand =
-  ValueNotifier(null);
+  /// UI 관련 ///
 
+  final ValueNotifier<VoiceUiState> uiState = ValueNotifier(VoiceUiState.idle);
+  final ValueNotifier<double> volume = ValueNotifier(0.0); // 음성 볼륨 (파형용)
+  final ValueNotifier<VoiceNavCommand?> navCommand = ValueNotifier(null);
+  ValueNotifier<VoiceResDTO?> lastResponse = ValueNotifier(null); // step2 (s4Input)용 콜백
+
+
+
+  /// tts, stt 가져오기 ///
+  
   final VoiceSttService _stt;
   final VoiceTtsService _tts;
+
   final _uuid = Uuid();
+
   String _generateSessionId() {
     return _uuid.v4();
   }
-  String? _sessionId;
-
-  bool _started = false; // ⭐ 최초 idle 진입 여부
-
-  bool get isSessionActive => _sessionId != null && _started;
-  
-  // step2 (s4Input)용 콜백
-  ValueNotifier<VoiceResDTO?> lastResponse =
-  ValueNotifier(null);
-
-
-  void attachOverlay() {
-    debugPrint("### attachOverlay called started=$_started sessionId=$_sessionId state=$_state");
-    if (_started) return;
-
-    _started = true;
-    _startInternal();
-  }
-
 
   VoiceSessionController({
     required VoiceSttService stt,
@@ -64,6 +52,17 @@ class VoiceSessionController {
   })  : _stt = stt,
         _tts = tts;
 
+
+
+  /// 세션 관련 ///
+  
+  void attachOverlay() {
+    debugPrint("### attachOverlay called started=$_started sessionId=$_sessionId state=$_state");
+    if (_started) return;
+
+    _started = true;
+    _startInternal();
+  }
 
   Future<void> _startInternal() async {
     if (_sessionId != null) return;
@@ -74,40 +73,26 @@ class VoiceSessionController {
     uiState.value = VoiceUiState.idle;
   }
 
-
-
-
-  void startListening() {
-    uiState.value = VoiceUiState.listening;
-
-    _stt.startListening(
-      onResult: (text) async {
-        uiState.value = VoiceUiState.thinking;
-        await _sendToServer(text);
-      },
-      onSoundLevel: (v) {
-        volume.value = v;
-      },
-    );
-  }
-
-  void stopListening() {
-    _stt.stop();
-    uiState.value = VoiceUiState.idle;
+  Future<void> endSession() async {
+    _cleanup();
+    onSessionEnded?.call();
   }
 
 
 
-  /// 3️⃣ 서버에 전달
+
+
+  /// 클라이언트 ==> 서버 ///
+
   Future<void> _sendToServer(String text) async {
     final res = await VoiceApi.process(
       sessionId: _sessionId!,
       text: text,
     );
-
     await _handleServerResponse(res);
   }
 
+  // text 없이 intent만 보냄
   Future<void> sendClientIntent({
     required Intent intent,
     String? productCode,
@@ -122,7 +107,7 @@ class VoiceSessionController {
 
     final res = await VoiceApi.process(
       sessionId: _sessionId!,
-      text: "", // 🔑 핵심: text 없이 intent만 보냄
+      text: "",
       intent: intent,
       productCode: productCode,
     );
@@ -130,14 +115,10 @@ class VoiceSessionController {
     await _handleServerResponse(res);
   }
 
-  Future<void> speakClientGuide(String text) async {
-    uiState.value = VoiceUiState.speaking;
-    await _tts.speak(text);
-    uiState.value = VoiceUiState.idle;
-  }
 
 
-  /// 4️⃣ 서버 응답 처리
+  /// 서버 ==> 클라이언트 ///
+
   Future<void> _handleServerResponse(VoiceResDTO res) async {
     _state = res.currentState;
 
@@ -170,7 +151,8 @@ class VoiceSessionController {
   }
 
 
-  // 화면 이동 //
+  /// 화면 이동 ///
+
   VoiceNavCommand? _resolveNav(VoiceResDTO res) {
     switch (res.currentState) {
       case VoiceState.s2ProductExplain:
@@ -205,6 +187,33 @@ class VoiceSessionController {
   }
 
 
+  
+  /// tts, stt 컨트롤 ///
+
+  void startListening() {
+    uiState.value = VoiceUiState.listening;
+
+    _stt.startListening(
+      onResult: (text) async {
+        uiState.value = VoiceUiState.thinking;
+        await _sendToServer(text);
+      },
+      onSoundLevel: (v) {
+        volume.value = v;
+      },
+    );
+  }
+
+  void stopListening() {
+    _stt.stop();
+    uiState.value = VoiceUiState.idle;
+  }
+
+  Future<void> speakClientGuide(String text) async {
+    uiState.value = VoiceUiState.speaking;
+    await _tts.speak(text);
+    uiState.value = VoiceUiState.idle;
+  }
 
   Future<void> _playScript({bool initial = false}) async {
     final script = VoiceScriptResolver.resolve(

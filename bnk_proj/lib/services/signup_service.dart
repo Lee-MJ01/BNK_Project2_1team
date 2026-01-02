@@ -12,6 +12,9 @@ class SignupService {
 
   static const String baseUrl2 = "http://10.0.2.2:8080/backend";
 
+  static const String serverUrl = "https://flobank.kro.kr:8080/backend";
+  static const String serverAuthUrl = 'https://flobank.kro.kr/backend/api/mobile';
+
   Future<void> submitSignup(
       CustInfo custInfo,
       CustAcct custAcct,
@@ -26,7 +29,7 @@ class SignupService {
     try {
       final response = await _client
           .post(
-        Uri.parse('$baseUrl/member/api/register'),
+        Uri.parse('$serverUrl/member/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       )
@@ -58,7 +61,7 @@ class SignupService {
     try {
       final response = await _client
           .post(
-        Uri.parse('$baseUrl2/member/api/register'),
+        Uri.parse('$serverUrl/member/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       )
@@ -77,14 +80,18 @@ class SignupService {
   }
 
   static Future<Map<String, dynamic>> sendAuthCodeToMemberHp(String phone) async {
-    final url = Uri.parse('$authUrl/member/auth/send-code-hp');
+    final url = Uri.parse('$serverAuthUrl/member/auth/send-code-hp');
 
     try {
+      print('📡 sendAuthCode start');
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"phone": phone}),
       );
+
+      print('📡 statusCode: ${response.statusCode}');
+      print('📡 body: ${response.body}');
 
       if (response.statusCode == 200) {
         return jsonDecode(utf8.decode(response.bodyBytes));
@@ -113,7 +120,7 @@ class SignupService {
 
   /// [추가] 인증번호 검증 요청
   static Future<bool> verifyAuthCodeHp(String phone, String code) async {
-    final url = Uri.parse('$authUrl/member/auth/verify-code-hp');
+    final url = Uri.parse('$serverAuthUrl/member/auth/verify-code-hp');
 
     try {
       final response = await http.post(
