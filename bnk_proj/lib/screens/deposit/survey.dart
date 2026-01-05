@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:test_main/models/survey.dart';
 import 'package:test_main/screens/app_colors.dart';
-import 'survey_result.dart';
+import 'package:test_main/services/deposit_service.dart';
+import 'package:test_main/services/survey_service.dart';
 
 class DepositSurveyScreen extends StatefulWidget {
   static const routeName = "/deposit-survey";
@@ -12,7 +14,30 @@ class DepositSurveyScreen extends StatefulWidget {
 }
 
 class _DepositSurveyScreenState extends State<DepositSurveyScreen> {
-  int? q1, q2, q3, q4;
+  static const int surveyId = 43;
+  static const int resultQId = 10;
+
+  final SurveyService _surveyService = SurveyService();
+  final DepositService _depositService = DepositService();
+  final Map<int, dynamic> _answers = {};
+  final Map<int, TextEditingController> _textControllers = {};
+
+  late Future<SurveyDetail> _surveyFuture;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _surveyFuture = _surveyService.fetchSurveyDetail(surveyId);
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,73 +50,52 @@ class _DepositSurveyScreenState extends State<DepositSurveyScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
+      body: FutureBuilder<SurveyDetail>(
+        future: _surveyFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _header(),
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                '설문을 불러오지 못했습니다.\n${snapshot.error}',
+                textAlign: TextAlign.center,
+              ),
+            );
+          }
 
-            const SizedBox(height: 25),
-            _questionCard(
-              title: "1. 투자 목적이 무엇인가요?",
-              options: [
-                "단기 돈 관리 (1개월 내 운용)",
-                "안정적으로 유지하면서 적당한 수익",
-                "고수익을 위해 리스크 감수 가능",
+          if (!snapshot.hasData) {
+            return const Center(child: Text('설문 데이터가 없습니다.'));
+          }
+
+          final detail = snapshot.data!;
+          final questions = detail.questions
+              .where((q) => q.qId != resultQId && q.qKey != 'Q_RESULT_TYPE')
+              .toList();
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _header(detail),
+                const SizedBox(height: 25),
+                ...questions.map((question) => Padding(
+                      padding: const EdgeInsets.only(bottom: 25),
+                      child: _buildQuestionCard(question),
+                    )),
+                const SizedBox(height: 10),
+                _submitButton(questions),
               ],
-              groupValue: q1,
-              onChanged: (val) => setState(() => q1 = val),
             ),
-
-            const SizedBox(height: 25),
-            _questionCard(
-              title: "2. 환율 변동에 대한 태도는?",
-              options: [
-                "손실 위험은 거의 원하지 않음",
-                "어느 정도 변동은 괜찮음",
-                "수익 위해 변동성도 감수 가능",
-              ],
-              groupValue: q2,
-              onChanged: (val) => setState(() => q2 = val),
-            ),
-
-            const SizedBox(height: 25),
-            _questionCard(
-              title: "3. 납입 방식 선호는?",
-              options: [
-                "일시납(한 번에 예치)",
-                "정기적립(매달 일정 금액)",
-                "자유적립(원할 때마다)",
-              ],
-              groupValue: q3,
-              onChanged: (val) => setState(() => q3 = val),
-            ),
-
-            const SizedBox(height: 25),
-            _questionCard(
-              title: "4. 선호 예치 기간은?",
-              options: [
-                "1~3개월 (단기)",
-                "6~12개월 (중기)",
-                "12개월 이상 (장기)",
-              ],
-              groupValue: q4,
-              onChanged: (val) => setState(() => q4 = val),
-            ),
-
-            const SizedBox(height: 35),
-            _submit(context),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  // -------------------------------
-  // Intro Box UI
-  // -------------------------------
-  Widget _header() {
+  Widget _header(SurveyDetail detail) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -106,35 +110,36 @@ class _DepositSurveyScreenState extends State<DepositSurveyScreen> {
           )
         ],
       ),
-      child: const Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Text(
-              "4개의 질문으로 고객님의 예금 성향을 분석하고\n"
-                  "가장 적합한 외화 예금 상품을 추천해드립니다!",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                fontWeight: FontWeight.w700,
-                color: AppColors.pointDustyNavy,
-              ),
+          Text(
+            detail.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.pointDustyNavy,
             ),
           ),
+          if (detail.description != null && detail.description!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              detail.description!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: AppColors.pointDustyNavy.withOpacity(0.8),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  // -------------------------------
-  // Question Card UI
-  // -------------------------------
-  Widget _questionCard({
-    required String title,
-    required List<String> options,
-    required int? groupValue,
-    required Function(int?) onChanged,
-  }) {
+  Widget _buildQuestionCard(SurveyQuestion question) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -152,84 +157,274 @@ class _DepositSurveyScreenState extends State<DepositSurveyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.pointDustyNavy,
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          ...List.generate(options.length, (i) {
-            return RadioListTile(
-              title: Text(
-                options[i],
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.pointDustyNavy,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  '${question.qNo}. ${question.qText}',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.pointDustyNavy,
+                  ),
                 ),
               ),
-              value: i,
-              groupValue: groupValue,
-              activeColor: AppColors.pointDustyNavy,
-              onChanged: onChanged,
-              dense: true,
-            );
-          }),
+              if (question.isRequired == 'Y')
+                const Padding(
+                  padding: EdgeInsets.only(left: 6),
+                  child: Text(
+                    '*',
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (question.qType == 'SINGLE') _buildSingleOptions(question),
+          if (question.qType == 'MULTI') _buildMultiOptions(question),
+          if (question.qType == 'TEXT') _buildTextField(question),
         ],
       ),
     );
   }
 
-  // -------------------------------
-  // Submit Button
-  // -------------------------------
-  Widget _submit(BuildContext context) {
-    final isFilled = q1 != null && q2 != null && q3 != null && q4 != null;
+  Widget _buildSingleOptions(SurveyQuestion question) {
+    final selected = _answers[question.qId] as int?;
+    return Column(
+      children: question.options.map((option) {
+        return RadioListTile<int>(
+          title: Text(
+            option.optText,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.pointDustyNavy,
+            ),
+          ),
+          value: option.optId,
+          groupValue: selected,
+          activeColor: AppColors.pointDustyNavy,
+          onChanged: (value) {
+            setState(() {
+              _answers[question.qId] = value;
+            });
+          },
+          dense: true,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMultiOptions(SurveyQuestion question) {
+    final selected =
+        (_answers[question.qId] as Set<int>?) ?? <int>{};
+    final maxSelect = question.maxSelect;
+
+    return Column(
+      children: question.options.map((option) {
+        final isChecked = selected.contains(option.optId);
+        return CheckboxListTile(
+          title: Text(
+            option.optText,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.pointDustyNavy,
+            ),
+          ),
+          value: isChecked,
+          activeColor: AppColors.pointDustyNavy,
+          onChanged: (value) {
+            if (value == null) return;
+            final updated = Set<int>.from(selected);
+            if (value) {
+              if (maxSelect != null && updated.length >= maxSelect) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('최대 $maxSelect개까지 선택할 수 있습니다.'),
+                  ),
+                );
+                return;
+              }
+              updated.add(option.optId);
+            } else {
+              updated.remove(option.optId);
+            }
+            setState(() {
+              _answers[question.qId] = updated;
+            });
+          },
+          dense: true,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTextField(SurveyQuestion question) {
+    final controller = _textControllers.putIfAbsent(
+      question.qId,
+      () => TextEditingController(),
+    );
+
+    return TextField(
+      controller: controller,
+      maxLines: 3,
+      decoration: InputDecoration(
+        hintText: '답변을 입력해 주세요',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.pointDustyNavy),
+        ),
+      ),
+    );
+  }
+
+  Widget _submitButton(List<SurveyQuestion> questions) {
+    final isFilled = _validateAnswers(questions, showMessage: false);
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: !isFilled
+        onPressed: !isFilled || _isSubmitting
             ? null
-            : () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SurveyResultScreen(
-                resultType: _calculateType(),
-              ),
-            ),
-          );
-        },
+            : () => _submitSurvey(questions),
         style: ElevatedButton.styleFrom(
           backgroundColor:
-          isFilled ? AppColors.pointDustyNavy : Colors.grey.shade400,
+              isFilled ? AppColors.pointDustyNavy : Colors.grey.shade400,
           padding: const EdgeInsets.symmetric(vertical: 15),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        child: const Text(
-          "결과 보기",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Text(
+                '저장하기',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }
 
-  String _calculateType() {
-    int score = (q1 ?? 0) + (q2 ?? 0) + (q3 ?? 0) + (q4 ?? 0);
+  bool _validateAnswers(List<SurveyQuestion> questions,
+      {required bool showMessage}) {
+    for (final question in questions) {
+      if (question.isRequired != 'Y') continue;
+      if (question.qType == 'SINGLE') {
+        if (_answers[question.qId] == null) {
+          if (showMessage) _showValidationMessage();
+          return false;
+        }
+      } else if (question.qType == 'MULTI') {
+        final selected = (_answers[question.qId] as Set<int>?) ?? <int>{};
+        if (selected.isEmpty) {
+          if (showMessage) _showValidationMessage();
+          return false;
+        }
+      } else if (question.qType == 'TEXT') {
+        final controller = _textControllers[question.qId];
+        if (controller == null || controller.text.trim().isEmpty) {
+          if (showMessage) _showValidationMessage();
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
-    if (score <= 3) return "안정형";
-    if (score <= 7) return "균형형";
-    return "적극투자형";
+  void _showValidationMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('필수 질문을 모두 응답해 주세요.')),
+    );
+  }
+
+  Future<void> _submitSurvey(List<SurveyQuestion> questions) async {
+    if (!_validateAnswers(questions, showMessage: true)) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final contextData = await _depositService.fetchContext();
+      final custCode = contextData.customerCode;
+      if (custCode == null || custCode.isEmpty) {
+        throw Exception('고객 정보를 찾을 수 없습니다.');
+      }
+
+      final answers = <Map<String, dynamic>>[];
+      for (final question in questions) {
+        if (question.qType == 'TEXT') {
+          final text = _textControllers[question.qId]?.text.trim();
+          if (text != null && text.isNotEmpty) {
+            answers.add({
+              'qId': question.qId,
+              'optIds': null,
+              'answerText': text,
+            });
+          }
+        } else if (question.qType == 'SINGLE') {
+          final selected = _answers[question.qId] as int?;
+          if (selected != null) {
+            answers.add({
+              'qId': question.qId,
+              'optIds': [selected],
+              'answerText': null,
+            });
+          }
+        } else if (question.qType == 'MULTI') {
+          final selected = (_answers[question.qId] as Set<int>?) ?? <int>{};
+          if (selected.isNotEmpty) {
+            answers.add({
+              'qId': question.qId,
+              'optIds': selected.toList(),
+              'answerText': null,
+            });
+          }
+        }
+      }
+
+      await _surveyService.submitSurveyResponse(
+        surveyId: surveyId,
+        custCode: custCode,
+        answers: answers,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('저장 완료')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 실패: $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

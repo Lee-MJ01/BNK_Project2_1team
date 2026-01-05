@@ -1,0 +1,110 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.api.backend.mapper.SurveyMapper">
+
+    <select id="selectSurveyById"
+            resultType="kr.co.api.backend.dto.survey.SurveyDetailResponseDTO">
+        SELECT
+            s.survey_id AS surveyId,
+            s.title AS title,
+            s.description AS description
+        FROM TB_SURVEY s
+        WHERE s.survey_id = #{surveyId}
+    </select>
+
+    <select id="selectSurveyQuestions"
+            resultType="kr.co.api.backend.dto.survey.SurveyQuestionResponseDTO">
+        SELECT
+            q.q_id AS qId,
+            q.q_no AS qNo,
+            q.q_key AS qKey,
+            q.q_text AS qText,
+            q.q_type AS qType,
+            q.is_required AS isRequired,
+            q.max_select AS maxSelect
+        FROM TB_SURVEY_Q q
+        WHERE q.survey_id = #{surveyId}
+        ORDER BY q.q_no ASC
+    </select>
+
+    <select id="selectQuestionOptions"
+            resultType="kr.co.api.backend.dto.survey.SurveyOptionResponseDTO">
+        SELECT
+            o.opt_id AS optId,
+            o.opt_code AS optCode,
+            o.opt_text AS optText,
+            o.opt_value AS optValue,
+            o.opt_order AS optOrder
+        FROM TB_SURVEY_OPT o
+        WHERE o.q_id = #{qId}
+        ORDER BY o.opt_order ASC
+    </select>
+
+    <select id="selectResponseId" resultType="long">
+        SELECT r.resp_id AS respId
+        FROM TB_SURVEY_RESP_HDR r
+        WHERE r.survey_id = #{surveyId}
+          AND r.cust_code = #{custCode}
+    </select>
+
+    <insert id="insertResponseHeader"
+            parameterType="kr.co.api.backend.dto.survey.SurveyResponseHeaderDTO"
+            useGeneratedKeys="true"
+            keyProperty="respId"
+            keyColumn="resp_id">
+        INSERT INTO TB_SURVEY_RESP_HDR (
+            survey_id,
+            cust_code,
+            status
+        ) VALUES (
+            #{surveyId},
+            #{custCode},
+            #{status}
+        )
+    </insert>
+
+    <update id="updateResponseHeaderStatus">
+        UPDATE TB_SURVEY_RESP_HDR
+        SET status = #{status}
+        WHERE resp_id = #{respId}
+    </update>
+
+    <delete id="deleteResponseDetails">
+        DELETE FROM TB_SURVEY_RESP_DTL
+        WHERE resp_id = #{respId}
+    </delete>
+
+    <insert id="insertResponseDetails">
+        INSERT ALL
+        <foreach collection="details" item="detail">
+            INTO TB_SURVEY_RESP_DTL (
+                resp_id,
+                q_id,
+                opt_id,
+                answer_text
+            ) VALUES (
+                #{detail.respId},
+                #{detail.qId},
+                #{detail.optId},
+                #{detail.answerText}
+            )
+        </foreach>
+        SELECT 1 FROM DUAL
+    </insert>
+
+    <select id="selectOptionValues"
+            resultType="kr.co.api.backend.dto.survey.SurveyOptionValueDTO">
+        SELECT
+            o.opt_id AS optId,
+            o.q_id AS qId,
+            o.opt_value AS optValue
+        FROM TB_SURVEY_OPT o
+        WHERE o.opt_id IN
+        <foreach collection="optIds" item="optId" open="(" separator="," close=")">
+            #{optId}
+        </foreach>
+    </select>
+
+</mapper>
