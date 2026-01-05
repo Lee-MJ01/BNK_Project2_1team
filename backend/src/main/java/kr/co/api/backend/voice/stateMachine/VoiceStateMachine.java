@@ -81,7 +81,7 @@ public class VoiceStateMachine {
                     };
 
             case S4_4_SIGNATURE ->
-                // 클릭 성공 이벤트로 종료 (classifier 안 탐: req.intent=SUCCESS로 보내면 됨)
+                // (클릭 이벤트라 classifier 안 탐: sendIntent로 클라이언트에서 직접 Intent 보냄)
                     (intent == VoiceIntent.SUCCESS)
                             ? VoiceState.S5_END
                             : current;

@@ -7,6 +7,7 @@ import '../models/chatbot_msg.dart';
 
 class ChatbotService {
   final String baseUrl = 'http://34.64.124.33:8080/backend';
+  final String serverUrl = 'https://flobank.kro.kr/backend';
   final String base2Url = "http://192.168.0.209:8080/backend";
 
   ChatbotService();
@@ -15,7 +16,7 @@ class ChatbotService {
     try {
       final res = await http
           .post(
-        Uri.parse('$baseUrl/api/mypage/chatbot'),
+        Uri.parse('$serverUrl/api/mypage/chatbot'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'question': question}),
       )

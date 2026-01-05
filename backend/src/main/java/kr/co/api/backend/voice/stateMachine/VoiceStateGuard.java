@@ -36,12 +36,12 @@ public class VoiceStateGuard {
             );
         }
 
-        // 1) 전역 취소
+        // 전역 취소
         if (intent == VoiceIntent.REQ_CANCEL) {
             return new GuardDecision(true, VoiceState.S5_END, EndReason.CANCELED, "CANCELED", null);
         }
 
-        // 2) UNKNOWN 재시도: 3회 이하면 상태 유지 + 다시 말해달라, 4회째는 ERROR 종료
+        // UNKNOWN INTENT 재시도: 3회 이하면 "다시 말해주세요" 4회째는 ERROR 종료
         if (intent == VoiceIntent.UNKNOWN) {
             int cnt = sessionService.incUnknownCount(sessionId);
             if (cnt >= 4) {
@@ -49,12 +49,11 @@ public class VoiceStateGuard {
             }
             return new GuardDecision(true, state, null, "RETRY_UNKNOWN", "다시 말씀해주세요.");
         } else {
-            // UNKNOWN이 아닌 정상 입력이면 카운트 리셋
+            // 정상 입력 들어오면 카운트 리셋
             sessionService.resetUnknownCount(sessionId);
         }
 
-        // 3) productCode 불변 규칙: S3 이상부터는 변경 금지
-        // - req.dpstId가 들어왔는데 세션 product와 다르면 ERROR 종료
+        // productCode : S3 이상부터는 변경 금지
         String sessionProd = sessionService.getProductCode(sessionId);
         if (state.ordinal() >= VoiceState.S3_JOIN_CONFIRM.ordinal()) {
             if (req.getDpstId() != null && sessionProd != null && !req.getDpstId().equals(sessionProd)) {

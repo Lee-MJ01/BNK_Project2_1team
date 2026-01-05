@@ -30,12 +30,10 @@ public class VoiceFlowService {
     public VoiceResDTO handle(String sessionId, VoiceReqDTO req) {
 
         VoiceState currentState = voiceSessionService.getState(sessionId);
-        log.info("🎯 [VOICE] currentState={}", currentState);
-        // ✅ 클릭 이벤트는 classifier를 타지 않게 (약관/전자서명 버튼 등)
+        // 클릭 이벤트는 classifier을 지나지 않음 (약관/전자서명 버튼 등)
         VoiceIntent intent = (req.getIntent() != null)
                 ? req.getIntent()
                 : intentService.classify(req);
-        log.info("🎯 [VOICE] resolvedIntent={}", intent);
 
         /// 음성 가이드 리셋 ///
         if (intent == VoiceIntent.RESET) {
@@ -77,14 +75,12 @@ public class VoiceFlowService {
 
         GuardDecision gd = stateGuard.decide(sessionId, currentState, intent, ctx, req);
         if (gd.isBlocked()) {
-            return buildResponse(intent, gd.getNextState(), gd.getEndReason(),
-                    gd.getNoticeCode(), gd.getNoticeMessage(),
-                    voiceSessionService.getProductCode(sessionId));
+            return buildResponse(intent, gd.getNextState(), gd.getEndReason(), gd.getNoticeCode(), gd.getNoticeMessage(), voiceSessionService.getProductCode(sessionId));
         }
 
         VoiceState nextState = stateMachine.transition(currentState, intent, ctx);
 
-        // ✅ 종료(COMPLETED)는 서버에서 붙여서 내려줌
+        // 종료 트리거는 서버에서 보냄
         EndReason endReason = null;
         if (nextState == VoiceState.S5_END) {
             endReason = EndReason.COMPLETED;
