@@ -18,7 +18,7 @@ class RecommendScreen extends StatefulWidget {
 }
 
 class _RecommendScreenState extends State<RecommendScreen> {
-  static const int surveyId = DepositSurveyScreen.surveyId;
+  static const int surveyId = 43;
 
   final DepositService _depositService = DepositService();
   final SurveyService _surveyService = SurveyService();
@@ -46,10 +46,10 @@ class _RecommendScreenState extends State<RecommendScreen> {
 
   Future<void> _handleQuickJoin(
     SurveyRecommendation recommendation,
-    DepositContext context,
+    DepositContext depositContext,
   ) async {
     try {
-      final custCode = context.customerCode;
+      final custCode = depositContext.customerCode;
       if (custCode == null || custCode.isEmpty) {
         throw Exception('고객 정보를 찾을 수 없습니다.');
       }
@@ -66,12 +66,14 @@ class _RecommendScreenState extends State<RecommendScreen> {
         ..withdrawType = prefill.withdrawType ?? 'krw';
 
       if (application.withdrawType == 'krw' &&
-          context.krwAccounts.isNotEmpty) {
+          depositContext.krwAccounts.isNotEmpty) {
         if (prefill.preferredKrwAccountType == 'other' &&
-            context.krwAccounts.length > 1) {
-          application.selectedKrwAccount = context.krwAccounts[1].accountNo;
+            depositContext.krwAccounts.length > 1) {
+          application.selectedKrwAccount =
+              depositContext.krwAccounts[1].accountNo;
         } else {
-          application.selectedKrwAccount = context.krwAccounts.first.accountNo;
+          application.selectedKrwAccount =
+              depositContext.krwAccounts.first.accountNo;
         }
       }
 
