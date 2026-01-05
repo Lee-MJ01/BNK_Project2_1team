@@ -94,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/", "/member/**", "/css/**", "/js/**", "/images/**",
                                 "/uploads/**", "/api/register","/api/risk/**",
-                                "/api/surveys/**"
+                                "/api/surveys/**", "/backend/api/surveys/**"
                         ).permitAll()
                         .requestMatchers("/admin/**").permitAll() // 개발용
                         .anyRequest().authenticated()
