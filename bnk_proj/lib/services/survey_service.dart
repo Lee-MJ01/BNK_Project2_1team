@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/survey.dart';
 
 class SurveyService {
-  static const String baseUrl = "https://flobank.kro.kr/backend/api";
+  static const String baseUrl = "https://flobank.kro.kr/backend/api/mobile";
   final http.Client _client = http.Client();
 
   Future<SurveyDetail> fetchSurveyDetail(int surveyId) async {
