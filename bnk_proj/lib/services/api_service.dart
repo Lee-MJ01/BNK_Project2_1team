@@ -13,7 +13,7 @@ class ApiService {
   static const String base2Url2 = "http://192.168.0.14:8080/backend/api/mobile";
 
   // 현재 테스트 환경에 맞춰 선택하세요
-  static const String currentUrl = _prodUrl;
+  static const String currentUrl = baseUrl;
 
   static const _storage = FlutterSecureStorage();
   static Future<Map<String, String>> getAuthHeaders() async {

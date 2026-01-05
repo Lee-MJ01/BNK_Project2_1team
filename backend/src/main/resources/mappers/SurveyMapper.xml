@@ -82,13 +82,11 @@
         INSERT ALL
         <foreach collection="details" item="detail">
             INTO TB_SURVEY_RESP_DTL (
-            resp_dtl_id,
             resp_id,
             q_id,
             opt_id,
             answer_text
             ) VALUES (
-            SEQ_SURVEY_RESP_DTL.NEXTVAL,   <!-- ✅ 직접 시퀀스 호출 -->
             #{detail.respId, jdbcType=NUMERIC},
             #{detail.qId, jdbcType=NUMERIC},
             #{detail.optId, jdbcType=NUMERIC},
@@ -97,6 +95,7 @@
         </foreach>
         SELECT 1 FROM DUAL
     </insert>
+
 
 
     <select id="selectOptionValues"
