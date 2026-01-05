@@ -35,9 +35,10 @@ public class SecurityConfig {
     public SecurityFilterChain mobileFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .securityMatcher("/api/mobile/**")
+                .securityMatcher("/api/mobile/**", "/backend/api/mobile/**")
                 .csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -50,7 +51,8 @@ public class SecurityConfig {
                                 "/api/mobile/member/auth/verify-code",// 인증번호 검증
                                 "/api/mobile/member/register-device", // 기기 등록 허용
                                 "/api/mobile/member/login-pin",       // PIN 로그인
-                                "/api/mobile/surveys/**"              // 설문 조회/저장
+                                "/api/mobile/surveys/**",             // 설문 조회/저장
+                                "/backend/api/mobile/surveys/**"      // 설문 조회/저장 (backend prefix)
                         ).permitAll()
 
                         // 🔓 환율 조회 API는 로그인 없이 허용
