@@ -1,11 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:test_main/screens/deposit/survey.dart';
+import 'package:test_main/models/deposit/application.dart';
+import 'package:test_main/models/deposit/context.dart';
+import 'package:test_main/models/survey_recommendation.dart';
 import 'package:test_main/screens/app_colors.dart';
+import 'package:test_main/screens/deposit/step_1.dart';
+import 'package:test_main/services/deposit_service.dart';
+import 'package:test_main/services/survey_service.dart';
+import 'package:test_main/screens/deposit/survey.dart';
 
-class RecommendScreen extends StatelessWidget {
+class RecommendScreen extends StatefulWidget {
   static const routeName = "/recommend";
 
   const RecommendScreen({super.key});
+
+  @override
+  State<RecommendScreen> createState() => _RecommendScreenState();
+}
+
+class _RecommendScreenState extends State<RecommendScreen> {
+  static const int surveyId = 43;
+
+  final DepositService _depositService = DepositService();
+  final SurveyService _surveyService = SurveyService();
+
+  late Future<_RecommendData> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadData();
+  }
+
+  Future<_RecommendData> _loadData() async {
+    final context = await _depositService.fetchContext();
+    final custCode = context.customerCode;
+    if (custCode == null || custCode.isEmpty) {
+      throw Exception('고객 정보를 찾을 수 없습니다.');
+    }
+    final recs = await _surveyService.fetchRecommendations(
+      surveyId: surveyId,
+      custCode: custCode,
+    );
+    return _RecommendData(context: context, recommendations: recs);
+  }
+
+  Future<void> _handleQuickJoin(
+    SurveyRecommendation recommendation,
+    DepositContext depositContext,
+  ) async {
+    try {
+      final custCode = depositContext.customerCode;
+      if (custCode == null || custCode.isEmpty) {
+        throw Exception('고객 정보를 찾을 수 없습니다.');
+      }
+
+      final prefill = await _surveyService.fetchPrefill(
+        surveyId: surveyId,
+        custCode: custCode,
+      );
+
+      final application = DepositApplication(dpstId: recommendation.dpstId)
+        ..newCurrency = prefill.preferredCurrency ?? ''
+        ..newAmount = prefill.preferredAmount
+        ..newPeriodMonths = prefill.preferredPeriodMonths
+        ..withdrawType = prefill.withdrawType ?? 'krw';
+
+      if (application.withdrawType == 'krw' &&
+          depositContext.krwAccounts.isNotEmpty) {
+        if (prefill.preferredKrwAccountType == 'other' &&
+            depositContext.krwAccounts.length > 1) {
+          application.selectedKrwAccount =
+              depositContext.krwAccounts[1].accountNo;
+        } else {
+          application.selectedKrwAccount =
+              depositContext.krwAccounts.first.accountNo;
+        }
+      }
+
+      if (!mounted) return;
+      Navigator.pushNamed(
+        context,
+        DepositStep1Screen.routeName,
+        arguments: DepositStep1Args(
+          dpstId: recommendation.dpstId,
+          prefill: application,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('빠른 가입 준비 실패: $error')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,70 +106,74 @@ class RecommendScreen extends StatelessWidget {
         ),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionTitle(" 내 투자 성향 기반 추천"),
-            _productCard(
-              name: "BNK 모아드림 외화적금",
-              desc: "장기 적립에 유리한 계단식 금리 구조.\n안정형·균형형 고객에게 적합.",
-              rate: "연 3.30%",
-              tag: "안정형 추천",
-            ),
-            const SizedBox(height: 20),
+      body: FutureBuilder<_RecommendData>(
+        future: _future,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            _sectionTitle("최신 금리 기반 추천"),
-            _productCard(
-              name: "BNK 외화정기예금 (USD)",
-              desc: "최근 금리 인상 반영.\n단기~중기 예치에 적합.",
-              rate: "연 3.45%",
-              tag: "금리 상승 상품",
-            ),
-            const SizedBox(height: 20),
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('추천 데이터를 불러오지 못했습니다: ${snapshot.error}'),
+            );
+          }
 
-            _sectionTitle("환율 트렌드 기반 추천"),
-            _productCard(
-              name: "BNK 글로벌 환테크 예금 (JPY)",
-              desc: "엔저 구간 접근으로 매수 타이밍 유리.\n수익성 기반 AI 추천.",
-              rate: "연 2.10%",
-              tag: "환율 기반 추천",
-            ),
-            const SizedBox(height: 30),
+          final data = snapshot.data;
+          if (data == null) {
+            return const Center(child: Text('추천 데이터를 찾을 수 없습니다.'));
+          }
 
-            // ------------------------------------
-            // 하단 버튼 - 성향 테스트 이동
-            // ------------------------------------
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    DepositSurveyScreen.routeName,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.pointDustyNavy,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionTitle("내 성향 기반 추천 Top3"),
+                if (data.recommendations.isEmpty)
+                  const Text('추천 결과가 없습니다. 잠시 후 다시 시도해주세요.'),
+                ...data.recommendations.map(
+                  (recommendation) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _productCard(
+                      recommendation: recommendation,
+                      onQuickJoin: () =>
+                          _handleQuickJoin(recommendation, data.context),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  "외화예금 성향 테스트 시작하기",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        DepositSurveyScreen.routeName,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.pointDustyNavy,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "외화예금 성향 테스트 다시하기",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -108,10 +199,8 @@ class RecommendScreen extends StatelessWidget {
   // Product Card UI
   // -----------------------------------------------------
   Widget _productCard({
-    required String name,
-    required String desc,
-    required String rate,
-    required String tag,
+    required SurveyRecommendation recommendation,
+    required VoidCallback onQuickJoin,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -131,7 +220,7 @@ class RecommendScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  recommendation.dpstName,
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
@@ -141,7 +230,9 @@ class RecommendScreen extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(
-                  desc,
+                  recommendation.dpstInfo.isNotEmpty
+                      ? recommendation.dpstInfo
+                      : recommendation.dpstDescript,
                   style: const TextStyle(
                     fontSize: 14,
                     height: 1.4,
@@ -157,7 +248,7 @@ class RecommendScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    tag,
+                    '추천 ${recommendation.rankNo}순위',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.pointDustyNavy,
@@ -165,21 +256,44 @@ class RecommendScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 36,
+                  child: ElevatedButton(
+                    onPressed: onQuickJoin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.pointDustyNavy,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      "빠른 가입",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
 
-          // 오른쪽 금리 표시
+          const SizedBox(width: 12),
           Column(
             children: [
-              const Text("금리", style: TextStyle(fontSize: 13)),
+              const Text("통화", style: TextStyle(fontSize: 13)),
               Text(
-                rate,
+                recommendation.dpstCurrency,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: AppColors.pointDustyNavy,
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -187,4 +301,14 @@ class RecommendScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _RecommendData {
+  final DepositContext context;
+  final List<SurveyRecommendation> recommendations;
+
+  const _RecommendData({
+    required this.context,
+    required this.recommendations,
+  });
 }

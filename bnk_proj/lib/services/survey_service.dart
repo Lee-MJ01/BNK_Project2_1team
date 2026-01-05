@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/survey.dart';
+import '../models/survey_recommendation.dart';
 import 'api_service.dart';
 
 class SurveyService {
@@ -90,5 +91,65 @@ class SurveyService {
 
     // 혹시 다른 형태면 래핑해서 반환
     return {'raw': decoded};
+  }
+
+  Future<List<SurveyRecommendation>> fetchRecommendations({
+    required int surveyId,
+    required String custCode,
+  }) async {
+    final url = '$baseUrl/surveys/$surveyId/recommendations?custCode=$custCode';
+    final response = await _client.get(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('추천 조회 실패 (${response.statusCode})');
+    }
+
+    final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return data
+        .map((e) => SurveyRecommendation.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<SurveyRecommendation>> refreshRecommendations({
+    required int surveyId,
+    required String custCode,
+  }) async {
+    final url =
+        '$baseUrl/surveys/$surveyId/recommendations/refresh?custCode=$custCode';
+    final response = await _client.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('추천 갱신 실패 (${response.statusCode})');
+    }
+
+    final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return data
+        .map((e) => SurveyRecommendation.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SurveyPrefill> fetchPrefill({
+    required int surveyId,
+    required String custCode,
+  }) async {
+    final url = '$baseUrl/surveys/$surveyId/prefill?custCode=$custCode';
+    final response = await _client.get(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('prefill 조회 실패 (${response.statusCode})');
+    }
+
+    final Map<String, dynamic> data =
+        jsonDecode(utf8.decode(response.bodyBytes));
+    return SurveyPrefill.fromJson(data);
   }
 }

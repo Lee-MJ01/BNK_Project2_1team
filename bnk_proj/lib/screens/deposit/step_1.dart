@@ -16,10 +16,12 @@ import 'package:test_main/voice/core/voice_intent.dart';
 class DepositStep1Args {
   final String dpstId;
   final DepositProduct? product;
+  final DepositApplication? prefill;
 
   const DepositStep1Args({
     required this.dpstId,
     this.product,
+    this.prefill,
   });
 }
 
@@ -28,11 +30,13 @@ class DepositStep1Screen extends StatefulWidget {
 
   final String dpstId;
   final DepositProduct? product;
+  final DepositApplication? prefill;
 
   const DepositStep1Screen({
     super.key,
     required this.dpstId,
     this.product,
+    this.prefill,
   });
 
 
@@ -793,9 +797,10 @@ class _DepositStep1ScreenState extends State<DepositStep1Screen> {
           ),
           onPressed: canNext
               ? () async {
-                  final application = DepositApplication(dpstId: widget.dpstId)
-                    ..product = widget.product
-                    ..agree1 = _getTermAgree(0)
+                  final application =
+                      (widget.prefill ?? DepositApplication(dpstId: widget.dpstId))
+                        ..product = widget.product
+                        ..agree1 = _getTermAgree(0)
                     ..agree2 = _getTermAgree(1)
                     ..agree3 = _getTermAgree(2)
                     ..info1 = info1

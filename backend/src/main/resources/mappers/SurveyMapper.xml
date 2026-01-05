@@ -111,4 +111,98 @@
         </foreach>
     </select>
 
+    <select id="selectLatestResponseId" resultType="long">
+        SELECT resp_id AS respId
+        FROM TB_SURVEY_RESP_HDR
+        WHERE survey_id = #{surveyId}
+          AND cust_code = #{custCode}
+        ORDER BY resp_id DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <select id="selectResponseAnswers"
+            resultType="kr.co.api.backend.dto.survey.SurveyResponseAnswerDTO">
+        SELECT
+        d.q_id AS qId,
+        d.opt_id AS optId,
+        o.opt_value AS optValue
+        FROM TB_SURVEY_RESP_DTL d
+        LEFT JOIN TB_SURVEY_OPT o
+        ON d.opt_id = o.opt_id
+        WHERE d.resp_id = #{respId}
+        ORDER BY d.q_id ASC
+    </select>
+
+    <delete id="deleteRecommendations">
+        DELETE FROM TB_CUST_RECO_TOP3
+        WHERE cust_code = #{custCode}
+          AND survey_id = #{surveyId}
+    </delete>
+
+    <insert id="insertRecommendations">
+        INSERT INTO TB_CUST_RECO_TOP3 (
+        cust_code,
+        survey_id,
+        rank_no,
+        product_id
+        )
+        <foreach collection="recs" item="rec" separator="UNION ALL">
+            SELECT
+            #{rec.custCode, jdbcType=VARCHAR},
+            #{rec.surveyId, jdbcType=NUMERIC},
+            #{rec.rankNo, jdbcType=NUMERIC},
+            #{rec.productId, jdbcType=VARCHAR}
+            FROM DUAL
+        </foreach>
+    </insert>
+
+
+    <select id="selectRecommendations"
+            resultType="kr.co.api.backend.dto.survey.SurveyRecommendationDTO">
+        SELECT
+        r.product_id AS dpstId,
+        p.dpst_name AS dpstName,
+        p.dpst_info AS dpstInfo,
+        p.dpst_descript AS dpstDescript,
+        p.dpst_currency AS dpstCurrency,
+        r.rank_no AS rankNo
+        FROM TB_CUST_RECO_TOP3 r
+        LEFT JOIN TB_DPST_PROD_INFO p
+        ON r.product_id = p.dpst_id
+        WHERE r.cust_code = #{custCode}
+          AND r.survey_id = #{surveyId}
+        ORDER BY r.rank_no ASC
+    </select>
+
+    <select id="selectActiveProductIds" resultType="string">
+        SELECT dpst_id
+        FROM TB_DPST_PROD_INFO
+        WHERE dpst_status = 3
+        ORDER BY dpst_reg_dt DESC
+    </select>
+
+    <select id="selectProductSummaries"
+            resultType="kr.co.api.backend.dto.survey.SurveyProductDTO">
+        SELECT
+        I.DPST_ID AS dpstId,
+        I.DPST_NAME AS dpstName,
+        I.DPST_INFO AS dpstInfo,
+        I.DPST_DESCRIPT AS dpstDescript,
+        I.DPST_CURRENCY AS dpstCurrency,
+        I.DPST_TYPE AS dpstType,
+        I.DPST_PERIOD_TYPE AS dpstPeriodType,
+        I.DPST_PART_WDRW_YN AS dpstPartWdrwYn,
+        I.DPST_ADD_PAY_YN AS dpstAddPayYn,
+        I.DPST_AUTO_RENEW_YN AS dpstAutoRenewYn,
+        P.PERIOD_MIN_MONTH AS periodMinMonth,
+        P.PERIOD_MAX_MONTH AS periodMaxMonth,
+        P.PERIOD_FIXED_MONTH AS periodFixedMonth
+        FROM TB_DPST_PROD_INFO I
+        LEFT JOIN TB_DPST_PROD_PERIOD P ON TRIM(I.DPST_ID) = TRIM(P.PERIOD_DPST_ID)
+        WHERE I.DPST_ID IN
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId, jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
 </mapper>
