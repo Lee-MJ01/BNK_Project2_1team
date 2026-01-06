@@ -152,4 +152,30 @@ class SurveyService {
         jsonDecode(utf8.decode(response.bodyBytes));
     return SurveyPrefill.fromJson(data);
   }
+
+  /// ✅ AI rerank 요청 (백엔드의 rerankRecommendationsV2 호출)
+  Future<List<SurveyRecommendation>> rerankRecommendations({
+    required int surveyId,
+    required String custCode,
+  }) async {
+    final url = '$baseUrl/surveys/$surveyId/recommendations/rerank?custCode=$custCode';
+
+    print('🤖 AI RERANK POST URL = $url');
+
+    final response = await _client.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode != 200) {
+      print('❌ AI RERANK RESPONSE BODY = ${utf8.decode(response.bodyBytes)}');
+      throw Exception('AI rerank 요청 실패 (${response.statusCode})');
+    }
+
+    final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+    return data
+        .map((e) => SurveyRecommendation.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
 }

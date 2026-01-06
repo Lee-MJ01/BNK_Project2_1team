@@ -48,7 +48,7 @@ public class MobileSurveyController {
             @PathVariable Long surveyId,
             @RequestParam String custCode
     ) {
-        return ResponseEntity.ok(surveyService.refreshRecommendations(surveyId, custCode));
+        return ResponseEntity.ok(surveyService.refreshRecommendationsFast(surveyId, custCode));
     }
 
     @GetMapping("/{surveyId}/prefill")
@@ -74,5 +74,15 @@ public class MobileSurveyController {
 
         return ResponseEntity.ok(body);
     }
+
+    @PostMapping("/{surveyId}/recommendations/rerank")
+    public ResponseEntity<List<SurveyRecommendationDTO>> rerankRecommendations(
+            @PathVariable Long surveyId,
+            @RequestParam String custCode
+    ) {
+        List<SurveyRecommendationDTO> result = surveyService.rerankRecommendationsV2(surveyId, custCode);
+        return ResponseEntity.ok(result);
+    }
+
 
 }

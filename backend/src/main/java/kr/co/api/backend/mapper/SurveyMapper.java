@@ -14,6 +14,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface SurveyMapper {
@@ -29,6 +30,9 @@ public interface SurveyMapper {
     int insertResponseHeader(SurveyResponseHeaderDTO dto);
 
     int updateResponseHeaderStatus(@Param("respId") Long respId, @Param("status") String status);
+
+    List<Map<String, Object>> selectSimilarUsersTopProducts(@Param("surveyId") Long surveyId,
+                                                            @Param("custCode") String custCode);
 
     int deleteResponseDetails(@Param("respId") Long respId);
 

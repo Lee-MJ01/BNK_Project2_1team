@@ -25,29 +25,83 @@ class _RecommendScreenState extends State<RecommendScreen> {
 
   late Future<_RecommendData> _future;
 
+  // ✅ AI rerank 상태 표시용(선택)
+  bool _isReranking = false;
+  bool _rerankTriggeredOnce = false; // 중복 트리거 방지
+
   @override
   void initState() {
     super.initState();
-    _future = _loadData();
+    _future = _loadFastData();
+
+    // ✅ 화면이 한 번 그려진 뒤 백그라운드 rerank 트리거
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _triggerRerankInBackground();
+    });
   }
 
-  Future<_RecommendData> _loadData() async {
+  /// 1) FAST 추천(GET)만 가져와서 즉시 화면 표시
+  Future<_RecommendData> _loadFastData() async {
     final context = await _depositService.fetchContext();
     final custCode = context.customerCode;
     if (custCode == null || custCode.isEmpty) {
       throw Exception('고객 정보를 찾을 수 없습니다.');
     }
+
     final recs = await _surveyService.fetchRecommendations(
       surveyId: surveyId,
       custCode: custCode,
     );
+
     return _RecommendData(context: context, recommendations: recs);
   }
 
+  /// 2) 백그라운드로 AI rerank(POST) 실행 → 끝나면 다시 GET해서 UI 갱신
+  Future<void> _triggerRerankInBackground() async {
+    if (_rerankTriggeredOnce) return;
+    _rerankTriggeredOnce = true;
+
+    try {
+      setState(() {
+        _isReranking = true;
+      });
+
+      final context = await _depositService.fetchContext();
+      final custCode = context.customerCode;
+      if (custCode == null || custCode.isEmpty) {
+        throw Exception('고객 정보를 찾을 수 없습니다.');
+      }
+
+      // ✅ AI rerank 트리거(POST)
+      await _surveyService.rerankRecommendations(
+        surveyId: surveyId,
+        custCode: custCode,
+      );
+
+      // ✅ rerank 반영된 추천 다시 GET → Future 교체로 FutureBuilder 새로 그림
+      if (!mounted) return;
+      setState(() {
+        _future = _loadFastData();
+      });
+    } catch (error) {
+      if (!mounted) return;
+      // 실패해도 fast 추천은 이미 표시됐으니 UX는 살아있게 둠
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('AI 추천 갱신 실패(FAST 유지): $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isReranking = false;
+        });
+      }
+    }
+  }
+
   Future<void> _handleQuickJoin(
-    SurveyRecommendation recommendation,
-    DepositContext depositContext,
-  ) async {
+      SurveyRecommendation recommendation,
+      DepositContext depositContext,
+      ) async {
     try {
       final custCode = depositContext.customerCode;
       if (custCode == null || custCode.isEmpty) {
@@ -62,9 +116,9 @@ class _RecommendScreenState extends State<RecommendScreen> {
       final preferredCurrency = prefill.preferredCurrency?.trim();
       final recommendedCurrency = recommendation.dpstCurrency.trim();
       final resolvedCurrency = (preferredCurrency != null &&
-              preferredCurrency.isNotEmpty &&
-              preferredCurrency.toUpperCase() ==
-                  recommendedCurrency.toUpperCase())
+          preferredCurrency.isNotEmpty &&
+          preferredCurrency.toUpperCase() ==
+              recommendedCurrency.toUpperCase())
           ? preferredCurrency
           : recommendedCurrency;
 
@@ -114,7 +168,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-
       body: FutureBuilder<_RecommendData>(
         future: _future,
         builder: (context, snapshot) {
@@ -138,11 +191,35 @@ class _RecommendScreenState extends State<RecommendScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ✅ AI 업데이트 중 표시(선택)
+                if (_isReranking)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: const [
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'AI 추천 업데이트 중…',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.pointDustyNavy,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 _sectionTitle("내 성향 기반 추천 Top3"),
                 if (data.recommendations.isEmpty)
                   const Text('추천 결과가 없습니다. 잠시 후 다시 시도해주세요.'),
                 ...data.recommendations.map(
-                  (recommendation) => Padding(
+                      (recommendation) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: _productCard(
                       recommendation: recommendation,
@@ -187,9 +264,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
     );
   }
 
-  // -----------------------------------------------------
-  // Section Title
-  // -----------------------------------------------------
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -204,9 +278,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
     );
   }
 
-  // -----------------------------------------------------
-  // Product Card UI
-  // -----------------------------------------------------
   Widget _productCard({
     required SurveyRecommendation recommendation,
     required VoidCallback onQuickJoin,
@@ -223,7 +294,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
       ),
       child: Row(
         children: [
-          // 왼쪽 텍스트들
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +307,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-
                 Text(
                   recommendation.dpstInfo.isNotEmpty
                       ? recommendation.dpstInfo
@@ -249,7 +318,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -290,7 +358,6 @@ class _RecommendScreenState extends State<RecommendScreen> {
               ],
             ),
           ),
-
           const SizedBox(width: 12),
           Column(
             children: [

@@ -126,3 +126,6 @@ logging:
   level:
     kr.co.api.backend.mapper.DepositMapper: DEBUG
     org.mybatis: DEBUG
+
+ai-server-reco:
+  url: http://34.64.84.82:8000

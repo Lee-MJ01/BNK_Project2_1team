@@ -29,6 +29,40 @@
         ORDER BY q.q_no ASC
     </select>
 
+    <select id="selectSimilarUsersTopProducts" resultType="map">
+      <![CDATA[
+            WITH my_type AS (
+                SELECT /*+ INLINE */
+                    d.opt_id AS type_opt_id
+                FROM tb_survey_resp_hdr h
+                         JOIN tb_survey_resp_dtl d ON d.resp_id = h.resp_id
+                WHERE h.survey_id = #{surveyId}
+                  AND TRIM(h.cust_code) = #{custCode}
+                  AND d.q_id = 10
+                ORDER BY h.created_at DESC
+                    FETCH FIRST 1 ROWS ONLY
+            ),
+                 similar_users AS (
+                     SELECT DISTINCT TRIM(h.cust_code) AS cust_code
+                     FROM tb_survey_resp_hdr h
+                              JOIN tb_survey_resp_dtl d ON d.resp_id = h.resp_id
+                              JOIN my_type mt ON mt.type_opt_id = d.opt_id
+                     WHERE h.survey_id = #{surveyId}
+                       AND d.q_id = 10
+                       AND TRIM(h.cust_code) <> #{custCode}
+                 )
+            SELECT
+                a.dpst_hdr_dpst_id AS productId,
+                COUNT(*) AS cnt
+            FROM tb_dpst_acct_hdr a
+                     JOIN similar_users su ON su.cust_code = TRIM(a.dpst_hdr_cust_code)
+            GROUP BY a.dpst_hdr_dpst_id
+            ORDER BY COUNT(*) DESC
+                FETCH FIRST 3 ROWS ONLY
+            ]]>
+    </select>
+
+
     <select id="selectQuestionOptions"
             resultType="kr.co.api.backend.dto.survey.SurveyOptionResponseDTO">
         SELECT
