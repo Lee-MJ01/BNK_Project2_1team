@@ -150,6 +150,94 @@ public class SurveyService {
                 surveyId, request.getCustCode(), respId, details.size());
     }
 
+    @Transactional
+    public List<SurveyRecommendationDTO> getRecommendations(Long surveyId, String custCode) {
+        validateCustCode(custCode);
+        List<SurveyRecommendationDTO> existing = surveyMapper.selectRecommendations(custCode, surveyId);
+        if (existing != null && !existing.isEmpty()) {
+            return existing;
+        }
+        return refreshRecommendations(surveyId, custCode);
+    }
+
+    @Transactional
+    public List<SurveyRecommendationDTO> refreshRecommendations(Long surveyId, String custCode) {
+        validateCustCode(custCode);
+        List<String> productIds = surveyMapper.selectActiveProductIds();
+        if (productIds == null || productIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Long respId = surveyMapper.selectLatestResponseId(surveyId, custCode);
+        List<SurveyResponseAnswerDTO> answers =
+                respId == null ? Collections.emptyList() : surveyMapper.selectResponseAnswers(respId);
+
+        List<SurveyProductDTO> products = surveyMapper.selectProductSummaries(productIds);
+        List<String> top3 = buildTop3Products(answers, products);
+
+        if (top3.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        surveyMapper.deleteRecommendations(custCode, surveyId);
+
+        List<SurveyRecommendationInsertDTO> inserts = new ArrayList<>();
+        for (int i = 0; i < top3.size(); i++) {
+            SurveyRecommendationInsertDTO dto = new SurveyRecommendationInsertDTO();
+            dto.setCustCode(custCode);
+            dto.setSurveyId(surveyId);
+            dto.setRankNo(i + 1);
+            dto.setProductId(top3.get(i));
+            inserts.add(dto);
+        }
+        surveyMapper.insertRecommendations(inserts);
+
+        return surveyMapper.selectRecommendations(custCode, surveyId);
+    }
+
+    public SurveyPrefillResponseDTO buildPrefill(Long surveyId, String custCode) {
+        validateCustCode(custCode);
+        SurveyPrefillResponseDTO response = new SurveyPrefillResponseDTO();
+        response.setWithdrawType("krw");
+        response.setPreferredKrwAccountType("main");
+
+        Long respId = surveyMapper.selectLatestResponseId(surveyId, custCode);
+        if (respId == null) {
+            return response;
+        }
+
+        List<SurveyResponseAnswerDTO> answers = surveyMapper.selectResponseAnswers(respId);
+        Map<Long, List<String>> valuesByQId = new HashMap<>();
+        for (SurveyResponseAnswerDTO answer : answers) {
+            if (answer.getQId() == null) continue;
+            if (answer.getOptValue() == null) continue;
+            valuesByQId.computeIfAbsent(answer.getQId(), k -> new ArrayList<>()).add(answer.getOptValue());
+        }
+
+        List<String> currencies = valuesByQId.getOrDefault(4L, Collections.emptyList());
+        if (!currencies.isEmpty()) {
+            response.setPreferredCurrency(currencies.get(0));
+        }
+
+        List<String> periodValues = valuesByQId.getOrDefault(6L, Collections.emptyList());
+        if (!periodValues.isEmpty()) {
+            response.setPreferredPeriodMonths(parseInt(periodValues.get(0)));
+        }
+
+        List<String> amountValues = valuesByQId.getOrDefault(5L, Collections.emptyList());
+        if (!amountValues.isEmpty()) {
+            response.setPreferredAmount(mapAmount(amountValues.get(0)));
+        }
+
+        List<String> accountValues = valuesByQId.getOrDefault(9L, Collections.emptyList());
+        if (!accountValues.isEmpty()) {
+            response.setPreferredKrwAccountType(
+                    "ACC_OTHER_KRW".equals(accountValues.get(0)) ? "other" : "main");
+        }
+
+        return response;
+    }
+
     private Long deriveTypeOptId(List<SurveyAnswerRequestDTO> answers) {
         List<Long> optIds = answers.stream()
                 .filter(Objects::nonNull)
@@ -186,5 +274,192 @@ public class SurveyService {
 
     private boolean containsValue(Map<Long, List<String>> valuesByQId, Long qId, String target) {
         return valuesByQId.getOrDefault(qId, Collections.emptyList()).contains(target);
+    }
+
+    private List<String> buildTop3Products(List<SurveyResponseAnswerDTO> answers, List<SurveyProductDTO> products) {
+        Map<Long, List<String>> valuesByQId = new HashMap<>();
+        for (SurveyResponseAnswerDTO answer : answers) {
+            if (answer == null || answer.getQId() == null || answer.getOptValue() == null) continue;
+            valuesByQId.computeIfAbsent(answer.getQId(), k -> new ArrayList<>()).add(answer.getOptValue());
+        }
+
+        String type = resolveSurveyType(valuesByQId);
+        List<String> interestCurrencies = valuesByQId.getOrDefault(4L, Collections.emptyList());
+        Integer desiredPeriod = parseInt(firstValue(valuesByQId, 6L));
+
+        Map<String, Integer> scores = new HashMap<>();
+        for (SurveyProductDTO product : products) {
+            if (product == null || product.getDpstId() == null) continue;
+            int score = baseScore(type, product);
+            score += currencyScore(interestCurrencies, product);
+            score += periodScore(desiredPeriod, product);
+            scores.put(product.getDpstId(), score);
+        }
+
+        List<String> sorted = scores.entrySet().stream()
+                .sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        if (sorted.isEmpty()) {
+            return fallbackRandom(products);
+        }
+
+        List<String> top = sorted.stream().limit(3).collect(Collectors.toList());
+        if (top.size() < 3) {
+            List<String> fallback = fallbackRandom(products);
+            for (String id : fallback) {
+                if (top.size() >= 3) break;
+                if (!top.contains(id)) top.add(id);
+            }
+        }
+        return top;
+    }
+
+    private List<String> fallbackRandom(List<SurveyProductDTO> products) {
+        List<String> ids = products.stream()
+                .map(SurveyProductDTO::getDpstId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+        if (ids.isEmpty()) return Collections.emptyList();
+        Collections.shuffle(ids);
+        return ids.stream().limit(3).collect(Collectors.toList());
+    }
+
+    private String resolveSurveyType(Map<Long, List<String>> valuesByQId) {
+        String hidden = firstValue(valuesByQId, RESULT_Q_ID);
+        if (hidden != null && hidden.startsWith("TYPE_")) {
+            return hidden;
+        }
+
+        if (containsValue(valuesByQId, 3L, "LIQ_NEED")) return "TYPE_LIQUID";
+        if (containsValue(valuesByQId, 1L, "GOAL_STABLE")) return "TYPE_STABLE";
+        if (containsValue(valuesByQId, 1L, "GOAL_FX")) return "TYPE_FX";
+        if (containsValue(valuesByQId, 1L, "GOAL_OVERSEAS")) return "TYPE_OVERSEAS";
+        if (containsValue(valuesByQId, 1L, "GOAL_EVENT")) return "TYPE_EVENT";
+        if (containsValue(valuesByQId, 2L, "PRIOR_LIQ")) return "TYPE_LIQUID";
+        if (containsValue(valuesByQId, 2L, "PRIOR_RATE")) return "TYPE_STABLE";
+        if (containsValue(valuesByQId, 2L, "PRIOR_FX")) return "TYPE_FX";
+        if (containsValue(valuesByQId, 2L, "PRIOR_EVENT")) return "TYPE_EVENT";
+
+        return "TYPE_STABLE";
+    }
+
+    private int baseScore(String type, SurveyProductDTO product) {
+        int score = 0;
+        String name = normalize(product.getDpstName());
+        String desc = normalize(product.getDpstDescript());
+        String info = normalize(product.getDpstInfo());
+
+        if ("TYPE_LIQUID".equals(type)) {
+            if ("Y".equalsIgnoreCase(product.getDpstPartWdrwYn())) score += 3;
+            if (periodMin(product) != null && periodMin(product) <= 3) score += 2;
+            if (product.getDpstType() != null && product.getDpstType() == 2) score += 1;
+        } else if ("TYPE_STABLE".equals(type)) {
+            if (product.getDpstType() != null && product.getDpstType() == 1) score += 3;
+            if (periodMin(product) != null && periodMin(product) >= 6) score += 2;
+            if ("Y".equalsIgnoreCase(product.getDpstAutoRenewYn())) score += 1;
+        } else if ("TYPE_FX".equals(type)) {
+            if ("Y".equalsIgnoreCase(product.getDpstAddPayYn())) score += 2;
+            if (product.getDpstType() != null && product.getDpstType() == 2) score += 2;
+            if (currencyCount(product) >= 4) score += 1;
+        } else if ("TYPE_OVERSEAS".equals(type)) {
+            if (containsAnyCurrency(product, List.of("USD", "JPY"))) score += 2;
+            if (name.contains("해외") || desc.contains("해외") || info.contains("해외")) score += 2;
+            if (name.contains("유학") || desc.contains("유학") || info.contains("유학")) score += 1;
+        } else if ("TYPE_EVENT".equals(type)) {
+            if (name.contains("이벤트") || desc.contains("이벤트")) score += 3;
+            if (name.contains("특별") || desc.contains("특별")) score += 2;
+            if (name.contains("슈카") || desc.contains("슈카")) score += 2;
+        }
+
+        return score;
+    }
+
+    private int currencyScore(List<String> interestCurrencies, SurveyProductDTO product) {
+        if (interestCurrencies == null || interestCurrencies.isEmpty()) return 0;
+        List<String> productCurrencies = splitCurrencies(product.getDpstCurrency());
+        for (String currency : interestCurrencies) {
+            if (productCurrencies.contains(currency)) {
+                return 2;
+            }
+        }
+        return 0;
+    }
+
+    private int periodScore(Integer desiredPeriod, SurveyProductDTO product) {
+        if (desiredPeriod == null) return 0;
+        Integer fixed = product.getPeriodFixedMonth();
+        if (fixed != null && fixed.equals(desiredPeriod)) {
+            return 2;
+        }
+        Integer min = product.getPeriodMinMonth();
+        Integer max = product.getPeriodMaxMonth();
+        if (min != null && max != null && desiredPeriod >= min && desiredPeriod <= max) {
+            return 2;
+        }
+        return 0;
+    }
+
+    private Integer periodMin(SurveyProductDTO product) {
+        Integer min = product.getPeriodMinMonth();
+        if (min != null) return min;
+        return product.getPeriodFixedMonth();
+    }
+
+    private int currencyCount(SurveyProductDTO product) {
+        return splitCurrencies(product.getDpstCurrency()).size();
+    }
+
+    private boolean containsAnyCurrency(SurveyProductDTO product, List<String> currencies) {
+        List<String> productCurrencies = splitCurrencies(product.getDpstCurrency());
+        for (String currency : currencies) {
+            if (productCurrencies.contains(currency)) return true;
+        }
+        return false;
+    }
+
+    private List<String> splitCurrencies(String raw) {
+        if (raw == null || raw.isBlank()) return Collections.emptyList();
+        return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.replace(" ", "");
+    }
+
+    private String firstValue(Map<Long, List<String>> valuesByQId, Long qId) {
+        List<String> values = valuesByQId.getOrDefault(qId, Collections.emptyList());
+        return values.isEmpty() ? null : values.get(0);
+    }
+
+    private Integer parseInt(String value) {
+        if (value == null) return null;
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private Integer mapAmount(String amountKey) {
+        if (amountKey == null) return null;
+        return switch (amountKey) {
+            case "AMT_LT_1M" -> 500_000;
+            case "AMT_1_5M" -> 3_000_000;
+            case "AMT_5_10M" -> 7_500_000;
+            case "AMT_GT_10M" -> 12_000_000;
+            default -> null;
+        };
+    }
+
+    private void validateCustCode(String custCode) {
+        if (custCode == null || custCode.isBlank()) {
+            throw new IllegalArgumentException("custCode is required");
+        }
     }
 }

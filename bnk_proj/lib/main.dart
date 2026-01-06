@@ -303,6 +303,7 @@ class _MyAppState extends State<MyApp> {
             return DepositStep1Screen(
               dpstId: args.dpstId,
               product: args.product,
+              prefill: args.prefill,
             );
           }
 
@@ -756,5 +757,4 @@ class NoticeDetailScreen extends StatelessWidget {
     );
   }
 }
-
 
