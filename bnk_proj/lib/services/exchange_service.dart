@@ -12,7 +12,6 @@ class ExchangeService {
     final headers = await ApiService.getAuthHeaders();
 
     final response = await http.get(url, headers: headers);
-    print('ssssssssssssssssssssssssssss');
     print(url);
     print(headers);
 
@@ -79,10 +78,10 @@ class ExchangeService {
 
   // 환전 시, 약관 동의 확인
   static Future<bool> checkTermsAgreed() async {
-    final url = Uri.parse("${ApiService.baseUrl}/exchange/check-terms");
+    final url = Uri.parse("${ApiService.currentUrl}/exchange/check-terms");
     try {
       final response = await http.get(url, headers: await ApiService.getAuthHeaders());
-      print("서버 응답 상태코드: ${response.statusCode}"); // 👈 여기를 확인하세요
+      print("서버 응답 상태코드: ${response.statusCode}");
       print("서버 응답 본문: ${response.body}");
 
       // 만약 서버 에러가 나면 false를 반환하여 일단 동의창을 띄우게 하거나 에러 처리를 해야 합니다.
@@ -95,7 +94,7 @@ class ExchangeService {
 
   // 약관 동의 내역 저장 (최초 1회)
   static Future<void> submitTermsAgreement() async {
-    final url = Uri.parse("${ApiService.baseUrl}/exchange/agree-terms");
+    final url = Uri.parse("${ApiService.currentUrl}/exchange/agree-terms");
     final headers = await ApiService.getAuthHeaders();
 
     final response = await http.post(url, headers: headers);

@@ -86,20 +86,13 @@ public class OnlineExchangeController {
             Authentication authentication
     ) {
 
-        log.info("가나다라");
-
         // 인증 체크
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("message", "Unauthorized"));
         }
 
-        // 1. 복잡한 instanceof 제거 -> getName()으로 통일
         String custCode = authentication.getName(); // custCode 출력됨
 
-        // 2. 로그 찍어서 확인해보기 (에러 원인 파악용)
-        System.out.println(">>> 계좌 조회 요청 userId: " + custCode);
-
-        // 3. 서비스 호출
         Map<String, Object> result = onlineExchangeService.getMyExchangeAccounts(custCode, currency);
 
         return ResponseEntity.ok(result);

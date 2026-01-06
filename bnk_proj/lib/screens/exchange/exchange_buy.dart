@@ -412,31 +412,113 @@ class _ExchangeBuyPageState extends State<ExchangeBuyPage> {
       context: context,
       barrierDismissible: false, // 바깥 클릭해서 닫기 방지
       builder: (context) => AlertDialog(
-        title: const Text("환전 서비스 약관 동의"),
-        content: const SingleChildScrollView(
-          child: ListBody(
-            children: [
-              Text("비대면 외화 환전 서비스를 이용하기 위해 최초 1회 약관 동의가 필요합니다."),
-              SizedBox(height: 10),
-              Text(
-                "제1조 (목적)\n본 약관은 고객이 모바일 앱을 통해 외화를 환전함에 있어...",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              // 필요한 약관 내용을 더 추가하세요
-            ],
-          ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "환전 서비스 약관 동의",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false), // 거부
-            child: const Text("취소"),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true), // 동의
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3F5073),
+        content: Column(
+          mainAxisSize: MainAxisSize.min, // 내용물 크기에 맞게 조절
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "비대면 외화 환전 서비스를 이용하기 위해\n최초 1회 약관 동의가 필요합니다.",
+              style: TextStyle(fontSize: 14, color: Colors.black87),
             ),
-            child: const Text("동의합니다", style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 16),
+            const Text(
+              "외화 환전 약관",
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+
+            // 📜 약관 내용 스크롤 영역
+            Container(
+              height: 200, // 높이 제한 (스크롤 유도)
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: const SingleChildScrollView(
+                child: Text(
+                  """제1조 (목적)
+본 약관은 고객이 모바일 앱을 통해 외화를 환전함에 있어 은행과 고객 사이의 권리와 의무를 규정함을 목적으로 합니다.
+
+제2조 (적용대상)
+본 서비스는 실명 확인이 완료된 개인 고객에 한하여 제공됩니다.
+
+제3조 (환율 적용)
+1. 환전 시 적용되는 환율은 거래 시점에 은행이 고시한 전신환 매도율(살 때) 또는 전신환 매입율(팔 때)을 기준으로 합니다.
+2. 우대율은 은행의 정책 및 고객 등급에 따라 차등 적용될 수 있습니다.
+
+제4조 (취소 및 정정)
+환전 거래가 완료된 이후에는 원칙적으로 취소나 정정이 불가능합니다. 단, 은행의 전산 장애 등 귀책사유가 있는 경우는 예외로 합니다.
+
+제5조 (이용 한도)
+1. 1일 최대 환전 한도는 미화 환산 기준 10,000 USD입니다.
+2. 연간 누적 한도는 관련 외국환거래법 규정에 따릅니다.
+
+제6조 (서비스 제한)
+시스템 점검 시간(23:50 ~ 00:10)에는 서비스 이용이 제한될 수 있습니다.""",
+                  style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.5),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // (선택 사항) '자세히 보기' 텍스트 버튼
+            Align(
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                onTap: () {
+                  // TODO: 별도의 전체 화면 페이지로 이동하거나 더 큰 다이얼로그 띄우기
+                  // 지금은 간단히 안내 메시지만 출력
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("전체 약관 페이지로 이동합니다 (구현 필요)")),
+                  );
+                },
+                child: const Text(
+                  "전체 내용 자세히 보기 >",
+                  style: TextStyle(
+                      color: Color(0xFF3F5073),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, false), // 거부
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Colors.grey[200],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("취소", style: TextStyle(color: Colors.black54)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true), // 동의
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: const Color(0xFF3F5073),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("동의합니다", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
