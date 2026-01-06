@@ -3,6 +3,7 @@ import 'package:test_main/models/survey.dart';
 import 'package:test_main/screens/app_colors.dart';
 import 'package:test_main/services/deposit_service.dart';
 import 'package:test_main/services/survey_service.dart';
+import 'package:test_main/screens/deposit/recommend.dart';
 
 class DepositSurveyScreen extends StatefulWidget {
   static const routeName = "/deposit-survey";
@@ -418,8 +419,9 @@ class _DepositSurveyScreenState extends State<DepositSurveyScreen> {
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('저장 완료')),
+      Navigator.pushReplacementNamed(
+        context,
+        RecommendScreen.routeName,
       );
     } catch (error) {
       if (!mounted) return;

@@ -59,8 +59,17 @@ class _RecommendScreenState extends State<RecommendScreen> {
         custCode: custCode,
       );
 
+      final preferredCurrency = prefill.preferredCurrency?.trim();
+      final recommendedCurrency = recommendation.dpstCurrency.trim();
+      final resolvedCurrency = (preferredCurrency != null &&
+              preferredCurrency.isNotEmpty &&
+              preferredCurrency.toUpperCase() ==
+                  recommendedCurrency.toUpperCase())
+          ? preferredCurrency
+          : recommendedCurrency;
+
       final application = DepositApplication(dpstId: recommendation.dpstId)
-        ..newCurrency = prefill.preferredCurrency ?? ''
+        ..newCurrency = resolvedCurrency
         ..newAmount = prefill.preferredAmount
         ..newPeriodMonths = prefill.preferredPeriodMonths
         ..withdrawType = prefill.withdrawType ?? 'krw';
