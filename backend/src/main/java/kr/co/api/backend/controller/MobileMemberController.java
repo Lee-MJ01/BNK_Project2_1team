@@ -1,6 +1,7 @@
 package kr.co.api.backend.controller;
 
 import kr.co.api.backend.dto.CustInfoDTO;
+import kr.co.api.backend.dto.ReqSignupDTO;
 import kr.co.api.backend.jwt.JwtTokenProvider;
 import kr.co.api.backend.service.CustInfoService;
 import kr.co.api.backend.service.MobileAuthService; // ★ 새로 만든 서비스 import
@@ -9,6 +10,7 @@ import kr.co.api.backend.service.SmsService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +43,18 @@ public class MobileMemberController {
         private String userid;
         private String password;
         private String deviceId;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Object> appRegister(@RequestBody ReqSignupDTO reqSignupDTO) {
+        log.info("/register 진입");
+
+        // insert CustInfo, CustAcct, FrgnAcct (트랜잭션 처리)
+        custInfoService.apiRegister(reqSignupDTO.getCustInfo(), reqSignupDTO.getCustAcct());
+
+
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 
