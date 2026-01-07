@@ -68,36 +68,8 @@ class _ExchangeSellPageState extends State<ExchangeSellPage> {
       return;
     }
 
-    // ====================================================
-    // [추가] 0.5. 약관 동의 여부 확인 (최초 1회)
-    // ====================================================
-    try {
-      bool isAgreed = await ExchangeService.checkTermsAgreed();
-
-      if (!isAgreed) {
-        if (!mounted) return;
-        // 동의가 안 되어 있다면 약관 팝업 띄우기
-        bool? agreeResult = await _showTermsDialog();
-
-        if (agreeResult == true) {
-          // 동의했으면 서버에 저장하고 진행
-          await ExchangeService.submitTermsAgreement();
-        } else {
-          // 동의 거부 시 중단
-          return;
-        }
-      }
-    } catch (e) {
-      print("약관 확인 중 오류: $e");
-      // 오류 발생 시 안전을 위해 진행 막거나, 스킵 정책에 따라 결정
-      return;
-    }
-
     // 1. PIN 등록 여부 확인 (API 필요)
-    // (여기서는 예시로 ApiService에 checkHasPin 함수가 있다고 가정하거나,
-    // 현재는 무조건 있다고 가정하고 진행할 수도 있습니다. 없을 경우를 대비한 로직입니다.)
-    bool hasPin = true;
-    // bool hasPin = await ApiService.checkHasPin(); // 실제 구현 시 주석 해제
+    bool hasPin = await ApiService.checkHasPin(); // 실제 구현 시 주석 해제
 
     if (!hasPin) {
       // PIN이 없으면 생성 화면으로 이동
