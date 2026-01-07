@@ -822,6 +822,7 @@ class _ExchangeDetailScreenState
 
 class _ActionButtons extends StatelessWidget {
   const _ActionButtons({
+    super.key,
     required this.changeColor,
     required this.isUp,
     required this.rate,
@@ -831,6 +832,124 @@ class _ActionButtons extends StatelessWidget {
   final bool isUp;
   final CurrencyRate rate;
 
+  // 약관 확인 및 네비게이션 처리 로직 추가
+  Future<void> _handleNavigation(BuildContext context, Widget targetPage) async {
+    try {
+      // 1. 약관 동의 여부 확인
+      bool isAgreed = await ExchangeService.checkTermsAgreed();
+
+      if (!isAgreed) {
+        // 2. 동의 안 된 경우 다이얼로그 띄우기
+        if (!context.mounted) return;
+        bool? agreeResult = await _showTermsDialog(context);
+
+        if (agreeResult == true) {
+          // 3. 동의 시 서버 전송 후 페이지 이동
+          await ExchangeService.submitTermsAgreement();
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => targetPage),
+            );
+          }
+        }
+      } else {
+        // 4. 이미 동의한 경우 바로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => targetPage),
+        );
+      }
+    } catch (e) {
+      debugPrint("약관 확인 중 오류: $e");
+      // 오류 발생 시에도 일단 진입시킬지, 막을지는 정책에 따라 결정 (여기선 일단 진입)
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => targetPage),
+        );
+      }
+    }
+  }
+
+  // 약관 동의 다이얼로그
+  Future<bool?> _showTermsDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "환전 서비스 약관 동의",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        content: Container(
+          height: 200,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: const SingleChildScrollView(
+            child: Text(
+              """제1조 (목적)
+본 약관은 고객이 모바일 앱을 통해 외화를 환전함에 있어 은행과 고객 사이의 권리와 의무를 규정함을 목적으로 합니다.
+
+제2조 (적용대상)
+본 서비스는 실명 확인이 완료된 개인 고객에 한하여 제공됩니다.
+
+제3조 (환율 적용)
+1. 환전 시 적용되는 환율은 거래 시점에 은행이 고시한 전신환 매도율(살 때) 또는 전신환 매입율(팔 때)을 기준으로 합니다.
+2. 우대율은 은행의 정책 및 고객 등급에 따라 차등 적용될 수 있습니다.
+
+제4조 (취소 및 정정)
+환전 거래가 완료된 이후에는 원칙적으로 취소나 정정이 불가능합니다. 단, 은행의 전산 장애 등 귀책사유가 있는 경우는 예외로 합니다.
+
+제5조 (이용 한도)
+1. 1일 최대 환전 한도는 미화 환산 기준 10,000 USD입니다.
+2. 연간 누적 한도는 관련 외국환거래법 규정에 따릅니다.
+
+제6조 (서비스 제한)
+시스템 점검 시간(23:50 ~ 00:10)에는 서비스 이용이 제한될 수 있습니다.""",
+              style: TextStyle(fontSize: 13, color: Colors.grey, height: 1.5),
+            ),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Colors.grey[200],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("취소", style: TextStyle(color: Colors.black54)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: AppColors.pointDustyNavy,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text("동의합니다", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -838,11 +957,9 @@ class _ActionButtons extends StatelessWidget {
         Expanded(
           child: OutlinedButton(
             onPressed: () {
-              Navigator.push(
+              _handleNavigation(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => ExchangeSellPage(rate: rate),
-                ),
+                ExchangeSellPage(rate: rate),
               );
             },
             child: const Text('팔기'),
@@ -854,11 +971,9 @@ class _ActionButtons extends StatelessWidget {
             builder: (context) {
               return ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
+                  _handleNavigation(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => ExchangeBuyPage(rate: rate),
-                    ),
+                    ExchangeBuyPage(rate: rate),
                   );
                 },
                 style: ElevatedButton.styleFrom(
