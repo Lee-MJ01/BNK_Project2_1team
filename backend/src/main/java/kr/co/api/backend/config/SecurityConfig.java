@@ -67,7 +67,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/mobile/member/auth/send-code-hp",
                                 "/api/mobile/member/auth/verify-code-hp",
-                                "/member/api/register"
+                                "/api/mobile/member/register"
                         ).permitAll()
                         .requestMatchers(
                                 "/api/mobile/mypage/chatbot"

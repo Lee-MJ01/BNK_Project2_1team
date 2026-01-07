@@ -195,17 +195,6 @@ public class MemberController {
         return "redirect:/";
     }
 
-    @PostMapping("/api/register")
-    public ResponseEntity<Object> appRegister(@RequestBody ReqSignupDTO reqSignupDTO) {
-        log.info("/api/register 진입");
-
-        // insert CustInfo, CustAcct, FrgnAcct (트랜잭션 처리)
-        custInfoService.apiRegister(reqSignupDTO.getCustInfo(), reqSignupDTO.getCustAcct());
-
-
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
 
     @GetMapping("/ping")
     public String ping() {

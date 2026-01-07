@@ -29,7 +29,7 @@ class SignupService {
     try {
       final response = await _client
           .post(
-        Uri.parse('$serverUrl/member/api/register'),
+        Uri.parse('$serverUrl/api/mobile/member/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       )
@@ -61,7 +61,7 @@ class SignupService {
     try {
       final response = await _client
           .post(
-        Uri.parse('$serverUrl/member/api/register'),
+        Uri.parse('$serverUrl/api/mobile/member/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       )
