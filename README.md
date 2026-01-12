@@ -33,7 +33,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 🛠️ 기술 스택 & 선택 이유 (Why)
+## 기술 스택 & 선택 이유 (Why)
 
 ### Backend
 
