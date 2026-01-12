@@ -7,7 +7,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 📌 프로젝트 개요
+## 프로젝트 개요
 
 - **프로젝트명**: FLOBANK (플로뱅크)
 - **주제**: Generative AI(OpenAI)를 활용한 외환 상품 관리 및 고객 안내 서비스
@@ -28,7 +28,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 🏗️ 시스템 아키텍처
+## 시스템 아키텍처
 <img width="1442" height="534" alt="image" src="https://github.com/user-attachments/assets/e6715062-81bb-4268-90a6-99a6800c1d29" />
 
 ---
@@ -93,7 +93,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 🚀 핵심 기능
+## 핵심 기능
 
 ### 1️⃣ AI 기반 경제·환율 브리핑 & QnA
 
@@ -125,7 +125,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 🧩 Troubleshooting
+## Troubleshooting
 
 ### 1️⃣ CI/CD 보안 이슈 – WIF 도입
 
@@ -157,7 +157,7 @@ Generative AI(OpenAI)와 금융 데이터를 결합하여
 
 ---
 
-## 📈 프로젝트 회고
+## 프로젝트 회고
 
 - 금융 서비스에서 기능 구현보다 **안정성과 신뢰성의 중요성**을 체감
 - AI를 보조 기능이 아닌 실제 사용자 의사결정 흐름에 통합한 경험
