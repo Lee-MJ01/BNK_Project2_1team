@@ -45,9 +45,6 @@ AI 음성 비서를 통해 **초보 사용자도 쉽게 이용 가능한 외환 
 ---
 
 ## 4. 시스템 아키텍처
-
-![System Architecture](./docs/architecture.png)
-
 * GCP 기반 서버 인프라
 * Oracle DB Master / Slave 이중화
 * Redis 비동기 처리 구조
