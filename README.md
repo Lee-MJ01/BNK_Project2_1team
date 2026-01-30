@@ -136,7 +136,8 @@ AI 음성 비서를 통해 **초보 사용자도 쉽게 이용 가능한 외환 
 ## 9. 결과 보고서
 
  **최종 결과 보고서**
- [`결과보고서`]((https://drive.google.com/file/d/1LWS5zEJrTKAV466jentCkP0gNsPNK7_0/view?usp=drive_link))
+[최종 결과 보고서 (Google Drive)](https://drive.google.com/file/d/1LWS5zEJrTKAV466jentCkP0gNsPNK7_0/view)
+
 
 ---
 
