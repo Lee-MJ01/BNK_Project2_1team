@@ -1,0 +1,9 @@
+.env
+.env.*
+.git
+.gradle
+files
+**/*.pem
+**/*.key
+**/*service-account*.json
+**/firebase-sa.json

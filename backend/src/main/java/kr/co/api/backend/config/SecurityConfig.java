@@ -46,6 +46,7 @@ public class SecurityConfig {
                         // 🔓 로그인, 회원가입 관련 허용
                         .requestMatchers(
                                 "/api/mobile/member/login",
+                                "/api/mobile/member/addresses",      // 회원가입 주소검색
                                 "/api/mobile/member/check-device",    // 기기 확인
                                 "/api/mobile/member/auth/send-code",  // 인증번호 발송
                                 "/api/mobile/member/auth/verify-code",// 인증번호 검증

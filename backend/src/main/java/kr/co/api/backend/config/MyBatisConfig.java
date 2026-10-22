@@ -32,13 +32,28 @@ public class MyBatisConfig {
     @Autowired
     private DbStatusManager dbStatusManager;
 
+    // 접속 정보는 코드에 두지 않고 환경변수(application.yml)에서 주입한다
+    @Value("${spring.datasource.master.jdbc-url}")
+    private String masterUrl;
+    @Value("${spring.datasource.master.username}")
+    private String masterUsername;
+    @Value("${spring.datasource.master.password}")
+    private String masterPassword;
+
+    @Value("${spring.datasource.slave.jdbc-url}")
+    private String slaveUrl;
+    @Value("${spring.datasource.slave.username}")
+    private String slaveUsername;
+    @Value("${spring.datasource.slave.password}")
+    private String slavePassword;
+
     // 감시자용 성격 급한 DataSource (Timeout 1초)
     @Bean(name = "masterPingDataSource")
     public DataSource masterPingDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:oracle:thin:@34.64.251.211:1521/XEPDB1"); // Master URL
-        dataSource.setUsername("FLOBANK");
-        dataSource.setPassword("1234");
+        dataSource.setJdbcUrl(masterUrl);
+        dataSource.setUsername(masterUsername);
+        dataSource.setPassword(masterPassword);
         dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
 
         dataSource.setConnectionTimeout(1000); // 1초
@@ -52,9 +67,9 @@ public class MyBatisConfig {
     @Bean(name = "slavePingDataSource")
     public DataSource slavePingDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:oracle:thin:@34.64.116.127:1521/XE"); // Slave URL 확인!
-        dataSource.setUsername("FLOBANK");
-        dataSource.setPassword("1234");
+        dataSource.setJdbcUrl(slaveUrl);
+        dataSource.setUsername(slaveUsername);
+        dataSource.setPassword(slavePassword);
         dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
 
         // ★ 핵심: 1초 안에 연결 안 되면 바로 포기!
@@ -77,9 +92,9 @@ public class MyBatisConfig {
     public DataSource realSlaveDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
 
-        dataSource.setJdbcUrl("jdbc:oracle:thin:@34.64.116.127:1521/XE");
-        dataSource.setUsername("FLOBANK");
-        dataSource.setPassword("1234");
+        dataSource.setJdbcUrl(slaveUrl);
+        dataSource.setUsername(slaveUsername);
+        dataSource.setPassword(slavePassword);
         dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
 
         dataSource.setPoolName("Slave-HikariCP");
@@ -88,7 +103,7 @@ public class MyBatisConfig {
         dataSource.setMinimumIdle(5);
         dataSource.setConnectionTimeout(30000);
 
-        System.out.println(">>> [MyBatisConfig] realSlaveDataSource 생성 완료 (IP: 34.64.116.127)");
+        System.out.println(">>> [MyBatisConfig] realSlaveDataSource 생성 완료");
         return dataSource;
     }
 

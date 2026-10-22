@@ -1,0 +1,33 @@
+# Runtime credentials and machine-specific settings
+.env
+.env.*
+!.env.example
+!.env.*.example
+**/application-local.yml
+**/application-local.yaml
+**/application-local.properties
+**/google-services.json
+**/GoogleService-Info.plist
+**/firebase-sa.json
+**/*service-account*.json
+**/*serviceAccount*.json
+**/credentials.json
+**/key.properties
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Local tools, IDE files and generated data
+.tools/
+.idea/
+.vscode/
+**/__pycache__/
+*.pyc
+*.log
+backend/files/
+backend/app.jar
+gitleaks-report.*
+gha-creds-*.json

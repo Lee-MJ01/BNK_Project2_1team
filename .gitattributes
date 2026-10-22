@@ -1,0 +1,3 @@
+# Git hooks must remain executable shell scripts on every platform.
+.githooks/* text eol=lf
+**/.env.example text eol=lf

@@ -1,0 +1,17 @@
+title = "FLOBANK secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "hardcoded-datasource-password"
+description = "Literal JDBC password, including weak passwords"
+regex = '''(?i)setPassword\(\s*["']([^"'\r\n]+)["']\s*\)'''
+secretGroup = 1
+
+[[rules]]
+id = "literal-config-credential"
+description = "Literal credential in application YAML"
+path = '''(^|/)application[^/]*\.ya?ml$'''
+regex = '''(?im)^\s*(?:password|secret|api-key|apiKey|apiSecret|auth-key):\s*["']?([^\s$#"'][^\r\n]*)'''
+secretGroup = 1
