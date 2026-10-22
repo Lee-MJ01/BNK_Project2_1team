@@ -5,6 +5,8 @@
 
 AI와 음성 비서를 결합한 **사용자 중심 외환 특화 뱅킹 서비스**
 
+개발 환경, 비밀키 교체, commit/push 검사와 배포 설정은 [보안 및 개발 가이드](docs/SECURITY.md)를 참고하세요. 백엔드 빌드에는 **Java 21**이 필요합니다. 새 PC에서는 저장소 루트에서 `python scripts/security.py setup`을 먼저 실행하세요.
+
 ---
 
 ## 프로젝트 한 줄 요약
@@ -113,7 +115,7 @@ AI 음성 비서를 통해 **초보 사용자도 쉽게 이용 가능한 외환 
 
 ## 7. 기술 스택
 
-* **Backend**: Java 17, Spring Boot 3.x, MyBatis, Spring Security
+* **Backend**: Java 21, Spring Boot 3.x, MyBatis, Spring Security
 * **Frontend**: Flutter (Dart)
 * **Database**: Oracle DB (Master/Slave), Redis, Elasticsearch
 * **AI**: OpenAI API, Google Gemini, Google ML Kit

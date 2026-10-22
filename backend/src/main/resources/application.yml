@@ -10,6 +10,8 @@ server:
 app-version: '@version@'
 
 spring:
+  config:
+    import: optional:file:./.env[.properties]
   application:
     name: backend
   servlet:
@@ -44,9 +46,9 @@ spring:
   #  profiles:
   #    active: dev
   elasticsearch:
-    uris: http://34.64.251.211:9200
-    username: elastic
-    password: bnk1234!
+    uris: ${ELASTIC_URI}
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
 
 
   mail:
@@ -65,13 +67,14 @@ spring:
             trust: smtp.gmail.com
   data:
     redis:
-      host: 34.64.251.211
+      host: ${REDIS_HOST}
+      password: ${REDIS_PASSWORD:}
       port: 6379
 
 
 flobank:
   ap:
-    host: 34.64.251.211
+    host: ${FLOBANK_AP_HOST}
     port: 9090
   aes:
     secret: ${AES_SECRET}
@@ -83,7 +86,7 @@ jwt:
 eximbank:
   api:
     base-url: "https://oapi.koreaexim.go.kr/site/program/financial/exchangeJSON"
-    auth-key: "LNyeb6x2OFLu289XSY1tokxFueROPpxI"
+    auth-key: ${EXIM_AUTH_KEY}
 
 openai:
   api-key: ${OPENAI_API_KEY}
@@ -95,11 +98,11 @@ solapi:
   phoneNumber: ${SOLAPI_PHONE}
 
 terms:
-  base-dir: C:/Users/GGG/Desktop/workspace
+  base-dir: ${TERMS_BASE_DIR:./files/terms}
 
 pinecone:
   api-key: ${PINECONE_API_KEY}
-  index-host: https://bank-db-46fp8tb.svc.aped-4627-b74a.pinecone.io
+  index-host: ${PINECONE_INDEX_HOST}
   index-name: bank-db
 
 file:
@@ -113,13 +116,16 @@ deepl:
     key: ${DEEPL_API_KEY}
 
 ai-server:
-  url: http://34.64.84.82:8000
+  url: ${AI_SERVER_URL}
 
 ai-server-qna:
-  url: http://34.64.84.82:8000/api/qna/auto_process
+  url: ${AI_SERVER_QNA_URL}
 
-#firebase:
-# service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+firebase:
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+
+juso:
+  api-key: ${JUSO_API_KEY:}
 
 
 logging:
@@ -128,4 +134,4 @@ logging:
     org.mybatis: DEBUG
 
 ai-server-reco:
-  url: http://34.64.84.82:8000
+  url: ${AI_SERVER_RECO_URL:${AI_SERVER_URL}}

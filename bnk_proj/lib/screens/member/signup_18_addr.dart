@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:test_main/services/api_service.dart';
 
 class AddressSearchPage extends StatefulWidget {
   const AddressSearchPage({super.key});
@@ -13,41 +14,37 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
   final TextEditingController _ctrl = TextEditingController();
   List<dynamic> results = [];
 
-  static const String jusoKey = 'devU01TX0FVVEgyMDI2MDEwMjEyMjc0ODExNzM4Mjc=';
 
   Future<void> search(String query) async {
     final filtered = filterKeyword(query);
     if (filtered.isEmpty) return;
 
-    final uri = Uri.parse(
-      'https://business.juso.go.kr/addrlink/addrLinkApi.do'
-          '?confmKey=$jusoKey'
-          '&currentPage=1'
-          '&countPerPage=20'
-          '&keyword=$filtered'
-          '&resultType=json',
-    );
-
-    final res = await http.get(uri);
-    final body = jsonDecode(res.body);
-
-    final resultsObj = body['results'];
-    final common = resultsObj['common'];
-    debugPrint('COMMON => $common');
-    debugPrint('BODY => $body');
-
-    if (common['errorCode'] != '0') {
+    final uri = Uri.parse('${ApiService.currentUrl}/member/addresses')
+        .replace(queryParameters: {'keyword': filtered});
+    try {
+      final res = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (res.statusCode != 200) throw Exception('Address search failed');
+      final body = jsonDecode(utf8.decode(res.bodyBytes));
+      final resultsObj = body['results'];
+      if (!mounted) return;
       setState(() {
-        results = [];
+        results = resultsObj['common']['errorCode'] == '0'
+            ? (resultsObj['juso'] as List<dynamic>? ?? [])
+            : [];
       });
-      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => results = []);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('주소검색을 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.')),
+      );
     }
+  }
 
-    final List<dynamic>? juso = resultsObj['juso'];
-
-    setState(() {
-      results = juso ?? [];
-    });
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
   }
 
 

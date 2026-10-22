@@ -1,138 +1,118 @@
-name: GCP VM 배포 (Backend) - Docker Compose 방식
+name: Deploy backend to GCP
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'backend/**'
+    branches: [main]
+    paths: ['backend/**', 'scripts/**', '.github/workflows/**', '.gitleaks.toml']
+  workflow_dispatch:
 
 permissions:
-  contents: 'read'
-  id-token: 'write'
+  contents: read
+  id-token: write
+
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
     steps:
-    # --- 1. 기본 설정 ---
-    - name: 코드 체크아웃
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-
-    - name: GCP 인증
-      id: auth
-      uses: 'google-github-actions/auth@v2'
-      with:
-        workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
-        service_account: ${{ secrets.GCP_SA_EMAIL }}
-
-    - name: gcloud CLI 설정
-      uses: 'google-github-actions/setup-gcloud@v2'
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-    - name: gcloud 베타 설치
-      run: gcloud components install beta --quiet
-
-    # --- 2. 빌드 (Gradle) ---
-    - name: Backend 빌드
-      run: |
-        cd backend
-        chmod +x ./gradlew
-        ./gradlew clean build -x test
-
-    # --- 3. 파일 전송 및 배포 ---
-    - name: 배포 파일 전송 (JAR, Dockerfile, docker-compose.yml)
-      run: |
-        # 1. JAR 파일 찾기
-        JAR_FILE=$(find backend/build/libs -name "*.jar" ! -name "*-plain.jar")
-        
-        if [ -z "$JAR_FILE" ]; then
-          echo "ERROR: JAR 파일을 찾을 수 없습니다."
-          exit 1
-        fi
-
-        # 2. SCP 전송 (이름을 app.jar로 통일하여 전송)
-        gcloud beta compute scp "$JAR_FILE" bnk-api-server:/tmp/app.jar --project=${{ secrets.GCP_PROJECT_ID }} --zone=asia-northeast3-a
-        gcloud beta compute scp backend/Dockerfile bnk-api-server:/tmp/Dockerfile --project=${{ secrets.GCP_PROJECT_ID }} --zone=asia-northeast3-a
-        gcloud beta compute scp backend/docker-compose.yml bnk-api-server:/tmp/docker-compose.yml --project=${{ secrets.GCP_PROJECT_ID }} --zone=asia-northeast3-a
-        gcloud beta compute scp backend/nginx/default.conf bnk-api-server:/tmp/default.conf --project=${{ secrets.GCP_PROJECT_ID }} --zone=asia-northeast3-a
-
-    - name: 서버 배포 및 실행 (Docker Compose)
-      run: |
-        gcloud beta compute ssh bnk-api-server \
-          --project=${{ secrets.GCP_PROJECT_ID }} \
-          --zone=asia-northeast3-a \
-          --command="
-            # 1. 배포 폴더 준비 (/opt/flobank-backend)
-            sudo mkdir -p /opt/flobank-backend
-            sudo mkdir -p /opt/flobank-backend/files
-
-            # Nginx 설정 파일을 담을 폴더 생성
-            sudo mkdir -p /opt/flobank-backend/nginx
-
-            sudo chown -R \$USER:\$USER /opt/flobank-backend
-
-            # 2. 전송된 파일 이동
-            mv /tmp/app.jar /opt/flobank-backend/app.jar
-            mv /tmp/Dockerfile /opt/flobank-backend/Dockerfile
-            mv /tmp/docker-compose.yml /opt/flobank-backend/docker-compose.yml
-
-            # Nginx 설정 파일 제자리로 이동
-            mv /tmp/default.conf /opt/flobank-backend/nginx/default.conf
-
-            cd /opt/flobank-backend
-
-            # 3. .env 파일 생성 (GitHub Secrets 내용을 한땀한땀 기록)
-            # 기존 파일 초기화
-            echo '# Env Config' > .env
-            
-            # DB 정보
-            echo 'DB_URL=${{ secrets.DB_URL }}' >> .env
-            echo 'DB_USERNAME=${{ secrets.DB_USERNAME }}' >> .env
-            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env
-            
-            # Elastic & Redis
-            echo 'ELASTIC_URI=${{ secrets.ELASTIC_URI }}' >> .env
-            echo 'ELASTIC_USERNAME=${{ secrets.ELASTIC_USERNAME }}' >> .env
-            echo 'ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}' >> .env
-            echo 'REDIS_HOST=${{ secrets.REDIS_HOST }}' >> .env
-            
-            # Mail & Auth
-            echo 'MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}' >> .env
-            echo 'MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}' >> .env
-            echo 'AES_SECRET=${{ secrets.AES_SECRET }}' >> .env
-            echo 'JWT_SECRET=${{ secrets.JWT_SECRET }}' >> .env
-            
-            # API Keys
-            echo 'EXIM_AUTH_KEY=${{ secrets.EXIM_AUTH_KEY }}' >> .env
-            echo 'OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}' >> .env
-            echo 'SOLAPI_API_KEY=${{ secrets.SOLAPI_API_KEY }}' >> .env
-            echo 'SOLAPI_API_SECRET=${{ secrets.SOLAPI_API_SECRET }}' >> .env
-            echo 'SOLAPI_PHONE=${{ secrets.SOLAPI_PHONE }}' >> .env
-            echo 'PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }}' >> .env
-            echo 'DEEPL_API_KEY=${{ secrets.DEEPL_API_KEY }}' >> .env
-            
-            # 기타 설정
-            echo 'FLOBANK_AP_HOST=${{ secrets.FLOBANK_AP_HOST }}' >> .env
-            echo 'AI_SERVER_URL=${{ secrets.AI_SERVER_URL }}' >> .env
-            echo 'AI_SERVER_QNA_URL=${{ secrets.AI_SERVER_QNA_URL }}' >> .env
-            
-            # [중요] 파일 업로드 경로 매핑 (Docker 내부 경로)
-            echo 'TERMS_BASE_DIR=/app/uploads/terms' >> .env
-
-            # 4. Docker Compose 재시작
-            # 기존 컨테이너 종료 -> 이미지 새로 빌드 -> 실행
-            sudo docker-compose down
-            sudo docker-compose up -d --build
-
-            # 5. 불필요한 이미지 정리
-            sudo docker system prune -af
-          "
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check for exposed credentials
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        run: |
+          python scripts/security.py setup
+          python scripts/security.py check
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            python scripts/security.py range --base "$BASE_SHA"
+          fi
+          python -m unittest discover -s scripts/tests -v
+      - name: Prepare runtime environment
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SLAVE_DB_URL: ${{ secrets.SLAVE_DB_URL }}
+          SLAVE_DB_USERNAME: ${{ secrets.SLAVE_DB_USERNAME }}
+          SLAVE_DB_PASSWORD: ${{ secrets.SLAVE_DB_PASSWORD }}
+          ELASTIC_URI: ${{ secrets.ELASTIC_URI }}
+          ELASTIC_USERNAME: ${{ secrets.ELASTIC_USERNAME }}
+          ELASTIC_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          AES_SECRET: ${{ secrets.AES_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          EXIM_AUTH_KEY: ${{ secrets.EXIM_AUTH_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SOLAPI_API_KEY: ${{ secrets.SOLAPI_API_KEY }}
+          SOLAPI_API_SECRET: ${{ secrets.SOLAPI_API_SECRET }}
+          SOLAPI_PHONE: ${{ secrets.SOLAPI_PHONE }}
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_INDEX_HOST: ${{ secrets.PINECONE_INDEX_HOST }}
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          JUSO_API_KEY: ${{ secrets.JUSO_API_KEY }}
+          FLOBANK_AP_HOST: ${{ secrets.FLOBANK_AP_HOST }}
+          AI_SERVER_URL: ${{ secrets.AI_SERVER_URL }}
+          AI_SERVER_QNA_URL: ${{ secrets.AI_SERVER_QNA_URL }}
+          AI_SERVER_RECO_URL: ${{ secrets.AI_SERVER_RECO_URL }}
+        run: python scripts/write_deploy_env.py .tools/deploy.env
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+      - name: Build and test backend
+        working-directory: backend
+        run: |
+          chmod +x gradlew
+          ./gradlew clean assemble test --tests '*AddressSearchServiceTest' --no-daemon
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Transfer release and restart services
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          RELEASE_DIR="/tmp/flobank-release-$RELEASE_ID"
+          gcloud compute ssh bnk-api-server --project="$GCP_PROJECT_ID" --zone=asia-northeast3-a \
+            --command="umask 077; mkdir -p '$RELEASE_DIR'"
+          JAR_FILE=$(find backend/build/libs -name '*.jar' ! -name '*-plain.jar' -print -quit)
+          test -n "$JAR_FILE"
+          cp "$JAR_FILE" .tools/app.jar
+          gcloud compute scp .tools/app.jar backend/Dockerfile backend/.dockerignore backend/docker-compose.yml \
+            .tools/deploy.env backend/nginx/default.conf "bnk-api-server:$RELEASE_DIR/" \
+            --project="$GCP_PROJECT_ID" --zone=asia-northeast3-a
+          gcloud compute ssh bnk-api-server --project="$GCP_PROJECT_ID" --zone=asia-northeast3-a \
+            --command="set -eu
+              trap 'rm -f $RELEASE_DIR/deploy.env' EXIT
+              test -f /opt/keys/firebase-sa.json
+              sudo mkdir -p /opt/flobank-backend/files /opt/flobank-backend/nginx
+              sudo install -m 600 '$RELEASE_DIR/deploy.env' /opt/flobank-backend/.env
+              sudo install -m 644 '$RELEASE_DIR/app.jar' /opt/flobank-backend/app.jar
+              sudo install -m 644 '$RELEASE_DIR/Dockerfile' /opt/flobank-backend/Dockerfile
+              sudo install -m 644 '$RELEASE_DIR/.dockerignore' /opt/flobank-backend/.dockerignore
+              sudo install -m 644 '$RELEASE_DIR/docker-compose.yml' /opt/flobank-backend/docker-compose.yml
+              sudo install -m 644 '$RELEASE_DIR/default.conf' /opt/flobank-backend/nginx/default.conf
+              cd /opt/flobank-backend
+              sudo docker-compose config --quiet
+              sudo docker-compose up -d --build
+            "
+      - name: Remove runner credentials
+        if: always()
+        run: rm -f .tools/deploy.env

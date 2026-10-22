@@ -1,0 +1,50 @@
+name: Project checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'codex/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install secret scanner
+        run: python scripts/security.py setup
+      - name: Check tracked files
+        run: python scripts/security.py check
+      - name: Check new commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            python scripts/security.py range --base "$BASE_SHA"
+          elif [ "${{ github.ref_name }}" != "main" ]; then
+            python scripts/security.py range --base origin/main
+          fi
+      - name: Check deployment tooling
+        run: python -m unittest discover -s scripts/tests -v
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile backend and run isolated tests
+        working-directory: backend
+        run: |
+          chmod +x gradlew
+          ./gradlew clean assemble test --tests '*AddressSearchServiceTest' --no-daemon
